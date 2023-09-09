@@ -23,7 +23,7 @@ forward_button_image = "https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.c
 user_logo = "https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/user.jpg"
 
 
-df = pd.read_csv("final_data.csv")
+df = pd.read_csv(/Data/final_data.csv")
 
 #User Table
 alert_table_df = df[(df["alert_contents"].str.lower() != "no") & (df["alert_contents"].str.lower() != "")]
