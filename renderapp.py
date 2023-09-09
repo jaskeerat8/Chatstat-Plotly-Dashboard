@@ -147,7 +147,7 @@ dashboard.layout = html.Div([
                         dmc.SegmentedControl(
                             id="user_control", value=user_list[0],
                             data = [{"value": i, "label": i.title()} for i in user_list],
-                            color="green", radius="md", size="md",
+                            color="green", radius="md", size="md"
                         ), style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center'}
                     ),
 
@@ -201,8 +201,6 @@ dashboard.layout = html.Div([
                 children=[])
     ], style={"width": "100%"})
 ])
-
-
 #Dashboard Clock
 @dashboard.callback(
     Output('current-time', 'children'),
@@ -407,7 +405,7 @@ def update_sunburst_chart(interval, user_child, platform, alert):
 
 #Comment Alert Line Chart Filter
 @dashboard.callback(
-    Output('comment_alert_line_chart_filter', 'children'),
+    [Output('comment_alert_line_chart_filter', 'children'), Output('comment_alert_line_chart_filter', 'value')],
     [Input("time_view", "value"), Input('user_control', 'value')]
 )
 def update_line_filter(interval, user_child):
@@ -418,10 +416,10 @@ def update_line_filter(interval, user_child):
     alert_comments_filter_df = alert_comments_filter_df[alert_comments_filter_df["name_childrens"] == user_child]
     alert_comments_filter_df = alert_comments_filter_df[(alert_comments_filter_df["alert_comments"].str.lower() != "no") & (alert_comments_filter_df["alert_comments"].str.lower() != "")]
 
-    if(len([i for i in alert_comments_filter_df["platform_comments"].unique() if str(i) != "nan"]) > 1):
-        return [dmc.Radio("All", value="all", color="orange")] + [dmc.Radio(i.title(), value=i, color="orange") for i in alert_comments_filter_df["platform_comments"].unique() if str(i) != "nan"]
+    if len([i for i in alert_comments_filter_df["platform_comments"].unique() if str(i) != "nan"]) > 1:
+        return [dmc.Radio("All", value="all", color="orange")] + [dmc.Radio(i.title(), value=i, color="orange") for i in alert_comments_filter_df["platform_comments"].unique() if str(i) != "nan"], "all"
     else:
-        return [dmc.Radio("All", value="all", color="orange")]
+        return [dmc.Radio("All", value="all", color="orange")], "all"
 
 
 #Comment Alert Line Chart
