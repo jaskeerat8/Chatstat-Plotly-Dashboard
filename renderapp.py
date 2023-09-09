@@ -38,6 +38,7 @@ user_list = alert_table_df["name"].unique()
 
 # Creating a Dash app for Dashboard
 dashboard = dash.Dash(__name__, external_stylesheets = [dbc.themes.BOOTSTRAP])
+server = dashboard.server
 
 # Define the layout of the app
 dashboard.layout = html.Div([
