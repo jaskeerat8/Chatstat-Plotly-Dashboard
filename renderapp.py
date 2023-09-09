@@ -10,10 +10,7 @@ import pytz
 from datetime import datetime, timedelta
 import io, json, boto3
 import pandas as pd
-import mysql.connector
-import warnings
 
-warnings.filterwarnings("ignore")
 
 #Image Links
 chatstat_logo = "https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/chatstatlogo.png"
