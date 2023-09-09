@@ -1,2 +1,2 @@
 # render_dash
-Hosting Dash App https://chatstatdash.onrender.com
+Hosting Dash App: https://chatstatdash.onrender.com
