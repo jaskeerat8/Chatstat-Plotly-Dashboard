@@ -10,6 +10,7 @@ import pytz
 from datetime import datetime, timedelta
 import io, json, boto3
 import pandas as pd
+import mysql.connector
 
 
 #Image Links
