@@ -11,7 +11,9 @@ from datetime import datetime, timedelta
 import io, json, boto3
 import pandas as pd
 import mysql.connector
+import warnings
 
+warnings.filterwarnings("ignore")
 
 #Image Links
 chatstat_logo = "https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/chatstatlogo.png"
@@ -22,8 +24,52 @@ backward_button_image = "https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.
 forward_button_image = "https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/forward-arrow.png"
 user_logo = "https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/user.jpg"
 
+#Connecting to AWS
+region_name = "ap-southeast-2"
+secret_name = "rdsMYSQL"
 
-df = pd.read_csv("Data/final_data.csv")
+session = boto3.session.Session(aws_access_key_id = "AKIAQBTIQ6VDCHHWNCNV", aws_secret_access_key = "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")
+sm_client = session.client(service_name = "secretsmanager", region_name = region_name)
+s3_client = session.client("s3")
+
+try:
+    get_secret_value_response = sm_client.get_secret_value(SecretId = secret_name)
+    value = json.loads(get_secret_value_response["SecretString"])
+except Exception as e:
+    print(e)
+
+try:
+    bucket_name = value["final_location"].split("/")[2]
+    folder_path = "/".join(value["final_location"].split("/")[3:])
+    response = s3_client.list_objects_v2(Bucket = bucket_name, Prefix = folder_path)
+    for obj in response['Contents']:
+        if obj['Key'].endswith('.csv'):
+            csv_object = s3_client.get_object(Bucket=bucket_name, Key=obj['Key'])
+            csv_content = csv_object['Body'].read()
+            df = pd.read_csv(io.StringIO(csv_content.decode('utf-8')))
+
+except Exception as e:
+    #Connecting to DataBase
+    mysql_db = mysql.connector.connect(
+        host = value["endpoint"],
+        port = value["port"],
+        user = value["user"],
+        password = value["password"],
+        database = value["database"])
+    mysql_cursor = mysql_db.cursor()
+
+    query = f'SELECT * FROM {value["final_table"]}'
+
+    mysql_cursor.execute(query)
+    rows = mysql_cursor.fetchall()
+
+    mysql_cursor.close()
+    mysql_db.close()
+
+    #Final DataFrame
+    columns = [col[0] for col in mysql_cursor.description]
+    df = pd.DataFrame(rows, columns = columns)
+
 
 #User Table
 alert_table_df = df[(df["alert_contents"].str.lower() != "no") & (df["alert_contents"].str.lower() != "")]
@@ -396,10 +442,11 @@ def update_sunburst_chart(interval, user_child, platform, alert):
     result_comments_df = result_comments_df[(result_comments_df["result_comments"].str.lower() != "no") & (df["result_comments"].str.lower() != "")]
     result_comments_df = result_comments_df.groupby(by = ["result_comments", "platform_comments"], as_index = False)["id_contents"].nunique()
     result_comments_df.columns = ["classification", "platform", "count"]
+    result_comments_df["classification"] = "<b>" + result_comments_df["classification"].str.replace(" ", "<br>") + "</b>"
 
-    comment_classification = px.sunburst(result_comments_df, path=['classification', 'platform'], values='count')
-    comment_classification.update_traces(marker=dict(line=dict(color='black', width=1)))
-    comment_classification.update_layout(title={"text": "Select to see platform", "x": 0.5, "xanchor": "center"})
+    comment_classification = px.sunburst(result_comments_df, path=["classification", "platform"], values="count")
+    comment_classification.update_traces(marker=dict(line=dict(color="black", width=1.5)), insidetextorientation="horizontal")
+    comment_classification.update_layout(title={"text": "Select to see platform", "x": 0.5, "xanchor": "center"}, uniformtext=dict(minsize=9))
     return comment_classification
 
 
@@ -453,4 +500,4 @@ def update_line_chart(interval, user_child, comment_platform):
 
 #Running Application
 if __name__ == '__main__':
-    dashboard.run_server(debug=False)
+    dashboard.run_server(debug=True)
