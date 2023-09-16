@@ -73,8 +73,7 @@ except Exception as e:
 
 # User Table
 alert_table_df = df[(df["alert_contents"].str.lower() != "no") & (df["alert_contents"].str.lower() != "")]
-alert_table_df = alert_table_df.groupby(by=["user_childrens", "name_childrens"], as_index=False)[
-    "id_contents"].nunique()
+alert_table_df = alert_table_df.groupby(by=["user_childrens", "name_childrens"], as_index=False)["id_contents"].nunique()
 alert_table_df = alert_table_df.sort_values(by=["id_contents"], ascending=False)
 alert_table_df = alert_table_df.reset_index(drop=True)
 alert_table_df.columns = ["user", "name", "count"]
@@ -99,26 +98,29 @@ dashboard.layout = html.Div([
                         dcc.Interval(id="Time", interval=1000, n_intervals=0)
                     ])
                 )
-            ], width=6),
+            ], width=7),
 
             dbc.Col([
-                html.Div([
-                    html.P("Difference in Alerts generated", style={"font-weight": "bold", "color": "white", "margin-right": "10px"}),
-                    dcc.Dropdown(
-                        id="kpi_dropdown",
-                        options=[
-                            {'label': 'Day', 'value': 'D'},
-                            {'label': 'Week', 'value': 'W'},
-                            {'label': 'Month', 'value': 'M'},
-                            {'label': 'Quarter', 'value': '3M'}
-                        ],
-                        value="W", clearable=False, searchable=False,
-                        style={'width': '100px'}
-                    )
-                ], style={"display": "flex", "flex-direction": "row", "justify-content": "center", "align-items": "center", "padding-top": "5px"}
+                dbc.Row(
+                    [
+                        dbc.Col(html.P("Difference in Alerts Generated",
+                                       style={"margin-top": "15px", "font-size": "15.9px", "font-weight": "bold", "color": "white"}),
+                            width=8),
+                        dbc.Col(dcc.Dropdown(
+                            id="kpi_dropdown",
+                            options=[
+                                {'label': 'Day', 'value': 'D'},
+                                {'label': 'Week', 'value': 'W'},
+                                {'label': 'Month', 'value': 'M'},
+                                {'label': 'Quarter', 'value': '3M'}
+                            ],
+                            value="W", clearable=False, searchable=False, style={"width": "100px"}),
+                            width=4)
+                    ], align="center"
                 ),
                 dbc.Row(id="kpi_metric")
-            ], width=4, style={"backgroundColor": "#223f73", "border-radius": "10px"})
+            ], width=3, style={"backgroundColor": "#223f73", "border-radius": "10px"}
+            )
         ])
     ], style={"padding-top": "10px", "padding-bottom": "10px", "padding-left": "15px", "padding-right": "15px"}),
 
@@ -399,8 +401,7 @@ def update_card_alert_kpi(interval, user_child):
     card_alert_df = df.copy()
 
     card_alert_df = card_alert_df[card_alert_df["name_childrens"] == user_child]
-    card_alert_df["createTime_contents"] = pd.to_datetime(card_alert_df["createTime_contents"],
-                                                          format="%Y-%m-%d %H:%M:%S.%f")
+    card_alert_df["createTime_contents"] = pd.to_datetime(card_alert_df["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f")
     card_alert_df = card_alert_df[(card_alert_df["createTime_contents"] >= datetime.today() - timedelta(days=interval))]
     card_alert_df = card_alert_df[card_alert_df["result_contents"].str.lower() != "no"]
     card_alert_df = card_alert_df.groupby(by=["result_contents"], as_index=False)["id_contents"].nunique()
@@ -423,21 +424,18 @@ def update_card_alert_kpi(interval, user_child):
 # Content Classification Pie Chart
 @dashboard.callback(
     Output('content_classification_pie_chart', 'figure'),
-    [Input("time_view", "value"), Input('user_control', 'value'), Input("platform_dropdown", "value"),
-     Input("alert_dropdown", "value")]
+    [Input("time_view", "value"), Input('user_control', 'value'), Input("platform_dropdown", "value"), Input("alert_dropdown", "value")]
 )
-def update_pie_chart(interval, user_child, platform, alert):
+def update_pie_chart(interval, user_child, platform_value, alert_value):
     result_contents_df = df.copy()
 
-    result_contents_df["createTime_contents"] = pd.to_datetime(result_contents_df["createTime_contents"],
-                                                               format="%Y-%m-%d %H:%M:%S.%f")
-    result_contents_df = result_contents_df[
-        (result_contents_df["createTime_contents"] >= datetime.today() - timedelta(days=interval))]
+    result_contents_df["createTime_contents"] = pd.to_datetime(result_contents_df["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f")
+    result_contents_df = result_contents_df[result_contents_df["createTime_contents"] >= datetime.today() - timedelta(days=interval)]
     result_contents_df = result_contents_df[result_contents_df["name_childrens"] == user_child]
-    if (platform != "all"):
-        result_contents_df = result_contents_df[result_contents_df["platform_contents"] == platform]
-    if (alert != "all"):
-        result_contents_df = result_contents_df[result_contents_df["alert_contents"] == alert]
+    if (platform_value != "all"):
+        result_contents_df = result_contents_df[result_contents_df["platform_contents"] == platform_value]
+    if (alert_value != "all"):
+        result_contents_df = result_contents_df[result_contents_df["alert_contents"] == alert_value]
 
     result_contents_df = result_contents_df[result_contents_df["result_contents"].str.lower() != "no"]
     result_contents_df = result_contents_df.groupby(by=["result_contents"], as_index=False)["id_contents"].nunique()
@@ -447,8 +445,7 @@ def update_pie_chart(interval, user_child, platform, alert):
     content_classification.update_traces(marker=dict(line=dict(color='black', width=1)), hole=0.6)
     content_classification.update_layout(title={"text": "Highest Classification", "x": 0.5, "xanchor": "center"})
     content_classification.update_layout(margin=dict(l=50, r=50, t=50, b=50),
-                                         legend={"orientation": "h", "x": 0.5, "xanchor": "center", "y": -0.08,
-                                                 "font": {"size": 10}})
+                                         legend={"orientation": "h", "x": 0.5, "xanchor": "center", "y": -0.08, "font": {"size": 10}})
 
     try:
         highest_value = result_contents_df.loc[result_contents_df["count"].idxmax(), "classification"]
@@ -465,35 +462,28 @@ def update_pie_chart(interval, user_child, platform, alert):
 # Content Alert Bar Chart
 @dashboard.callback(
     Output('content_alert_bar_chart', 'figure'),
-    [Input("time_view", "value"), Input('user_control', 'value'), Input("platform_dropdown", "value"),
-     Input("alert_dropdown", "value")]
+    [Input("time_view", "value"), Input('user_control', 'value'), Input("platform_dropdown", "value"), Input("alert_dropdown", "value")]
 )
-def update_bar_chart(interval, user_child, platform, alert):
+def update_bar_chart(interval, user_child, platform_value, alert_value):
     alert_contents_df = df.copy()
 
-    alert_contents_df["createTime_contents"] = pd.to_datetime(alert_contents_df["createTime_contents"],
-                                                              format="%Y-%m-%d %H:%M:%S.%f")
-    alert_contents_df = alert_contents_df[
-        (alert_contents_df["createTime_contents"] >= datetime.today() - timedelta(days=interval))]
+    alert_contents_df["createTime_contents"] = pd.to_datetime(alert_contents_df["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f")
+    alert_contents_df = alert_contents_df[alert_contents_df["createTime_contents"] >= datetime.today() - timedelta(days=interval)]
     alert_contents_df = alert_contents_df[alert_contents_df["name_childrens"] == user_child]
-    if (platform != "all"):
-        alert_contents_df = alert_contents_df[alert_contents_df["platform_contents"] == platform]
-    if (alert != "all"):
-        alert_contents_df = alert_contents_df[alert_contents_df["alert_contents"] == alert]
+    if (platform_value != "all"):
+        alert_contents_df = alert_contents_df[alert_contents_df["platform_contents"] == platform_value]
+    if (alert_value != "all"):
+        alert_contents_df = alert_contents_df[alert_contents_df["alert_contents"] == alert_value]
 
-    alert_contents_df = alert_contents_df[
-        (alert_contents_df["alert_contents"].str.lower() != "no") & (df["alert_contents"].str.lower() != "")]
-    alert_contents_df = alert_contents_df.groupby(by=["alert_contents", "platform_contents"], as_index=False)[
-        "id_contents"].nunique()
+    alert_contents_df = alert_contents_df[(alert_contents_df["alert_contents"].str.lower() != "no") & (df["alert_contents"].str.lower() != "")]
+    alert_contents_df = alert_contents_df.groupby(by=["alert_contents", "platform_contents"], as_index=False)["id_contents"].nunique()
     alert_contents_df.columns = ["alert", "platform", "count"]
-    alert_contents_df["alert"] = pd.Categorical(alert_contents_df["alert"], categories=["High", "Medium", "Low"],
-                                                ordered=True)
+    alert_contents_df["alert"] = pd.Categorical(alert_contents_df["alert"], categories=["High", "Medium", "Low"], ordered=True)
     alert_contents_df = alert_contents_df.sort_values(by="alert")
 
     content_alert = px.bar(alert_contents_df, x="alert", y="count", color="platform", text_auto=True)
     content_alert.update_traces(width=0.4, marker_line=dict(color='black', width=1))
-    content_alert.update_layout(xaxis_title="Alert", yaxis_title="Count", legend_title_text="", xaxis_showgrid=False,
-                                yaxis_showgrid=False)
+    content_alert.update_layout(xaxis_title="Alert", yaxis_title="Count", legend_title_text="", xaxis_showgrid=False, yaxis_showgrid=False)
     content_alert.update_layout(legend=dict(orientation="h", y=1.15, traceorder="grouped"), legend_xanchor="left")
     content_alert.update_xaxes(fixedrange=True)
     content_alert.update_yaxes(fixedrange=True)
@@ -506,32 +496,25 @@ def update_bar_chart(interval, user_child, platform, alert):
     [Input("time_view", "value"), Input('user_control', 'value'), Input("platform_dropdown", "value"),
      Input("alert_dropdown", "value")]
 )
-def update_sunburst_chart(interval, user_child, platform, alert):
+def update_sunburst_chart(interval, user_child, platform_value, alert_value):
     result_comments_df = df.copy()
 
-    result_comments_df["createTime_contents"] = pd.to_datetime(result_comments_df["createTime_contents"],
-                                                               format="%Y-%m-%d %H:%M:%S.%f")
-    result_comments_df = result_comments_df[
-        (result_comments_df["createTime_contents"] >= datetime.today() - timedelta(days=interval))]
+    result_comments_df["createTime_contents"] = pd.to_datetime(result_comments_df["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f")
+    result_comments_df = result_comments_df[result_comments_df["createTime_contents"] >= datetime.today() - timedelta(days=interval)]
     result_comments_df = result_comments_df[result_comments_df["name_childrens"] == user_child]
-    if (platform != "all"):
-        result_comments_df = result_comments_df[result_comments_df["platform_contents"] == platform]
-    if (alert != "all"):
-        result_comments_df = result_comments_df[result_comments_df["alert_contents"] == alert]
+    if (platform_value != "all"):
+        result_comments_df = result_comments_df[result_comments_df["platform_contents"] == platform_value]
+    if (alert_value != "all"):
+        result_comments_df = result_comments_df[result_comments_df["alert_contents"] == alert_value]
 
-    result_comments_df = result_comments_df[
-        (result_comments_df["result_comments"].str.lower() != "no") & (df["result_comments"].str.lower() != "")]
-    result_comments_df = result_comments_df.groupby(by=["result_comments", "platform_comments"], as_index=False)[
-        "id_contents"].nunique()
+    result_comments_df = result_comments_df[(result_comments_df["result_comments"].str.lower() != "no") & (df["result_comments"].str.lower() != "")]
+    result_comments_df = result_comments_df.groupby(by=["result_comments", "platform_comments"], as_index=False)["id_contents"].nunique()
     result_comments_df.columns = ["classification", "platform", "count"]
-    result_comments_df["classification"] = "<b>" + result_comments_df["classification"].str.replace(" ",
-                                                                                                    "<br>") + "</b>"
+    result_comments_df["classification"] = "<b>" + result_comments_df["classification"].str.replace(" ", "<br>") + "</b>"
 
     comment_classification = px.sunburst(result_comments_df, path=["classification", "platform"], values="count")
-    comment_classification.update_traces(marker=dict(line=dict(color="black", width=1.5)),
-                                         insidetextorientation="horizontal")
-    comment_classification.update_layout(title={"text": "Select to see platform", "x": 0.5, "xanchor": "center"},
-                                         uniformtext=dict(minsize=9))
+    comment_classification.update_traces(marker=dict(line=dict(color="black", width=1.5)), insidetextorientation="horizontal")
+    comment_classification.update_layout(title={"text": "Select to see platform", "x": 0.5, "xanchor": "center"}, uniformtext=dict(minsize=9))
     return comment_classification
 
 
@@ -543,14 +526,10 @@ def update_sunburst_chart(interval, user_child, platform, alert):
 def update_line_filter(interval, user_child):
     alert_comments_filter_df = df.copy()
 
-    alert_comments_filter_df["createTime_contents"] = pd.to_datetime(alert_comments_filter_df["createTime_contents"],
-                                                                     format="%Y-%m-%d %H:%M:%S.%f")
-    alert_comments_filter_df = alert_comments_filter_df[
-        (alert_comments_filter_df["createTime_contents"] >= datetime.today() - timedelta(days=interval))]
+    alert_comments_filter_df["createTime_contents"] = pd.to_datetime(alert_comments_filter_df["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f")
+    alert_comments_filter_df = alert_comments_filter_df[(alert_comments_filter_df["createTime_contents"] >= datetime.today() - timedelta(days=interval))]
     alert_comments_filter_df = alert_comments_filter_df[alert_comments_filter_df["name_childrens"] == user_child]
-    alert_comments_filter_df = alert_comments_filter_df[
-        (alert_comments_filter_df["alert_comments"].str.lower() != "no") & (
-                alert_comments_filter_df["alert_comments"].str.lower() != "")]
+    alert_comments_filter_df = alert_comments_filter_df[(alert_comments_filter_df["alert_comments"].str.lower() != "no") & (alert_comments_filter_df["alert_comments"].str.lower() != "")]
 
     if len([i for i in alert_comments_filter_df["platform_comments"].unique() if str(i) != "nan"]) > 1:
         return [dmc.Radio("All", value="all", color="orange")] + [dmc.Radio(i.title(), value=i, color="orange") for i in
@@ -568,16 +547,12 @@ def update_line_filter(interval, user_child):
 def update_line_chart(interval, user_child, comment_platform):
     alert_comments_df = df.copy()
 
-    alert_comments_df["createTime_contents"] = pd.to_datetime(alert_comments_df["createTime_contents"],
-                                                              format="%Y-%m-%d %H:%M:%S.%f")
-    alert_comments_df = alert_comments_df[
-        (alert_comments_df["createTime_contents"] >= datetime.today() - timedelta(days=interval))]
+    alert_comments_df["createTime_contents"] = pd.to_datetime(alert_comments_df["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f")
+    alert_comments_df = alert_comments_df[alert_comments_df["createTime_contents"] >= datetime.today() - timedelta(days=interval)]
     alert_comments_df = alert_comments_df[alert_comments_df["name_childrens"] == user_child]
-    alert_comments_df = alert_comments_df[(alert_comments_df["alert_comments"].str.lower() != "no") & (
-            alert_comments_df["alert_comments"].str.lower() != "")]
+    alert_comments_df = alert_comments_df[(alert_comments_df["alert_comments"].str.lower() != "no") & (alert_comments_df["alert_comments"].str.lower() != "")]
     alert_comments_df["commentTime_comments"] = pd.to_datetime(alert_comments_df["commentTime_comments"]).dt.date
-    alert_comments_df = alert_comments_df.groupby(by=["commentTime_comments", "platform_comments"], as_index=False)[
-        "id_contents"].nunique()
+    alert_comments_df = alert_comments_df.groupby(by=["commentTime_comments", "platform_comments"], as_index=False)["id_contents"].nunique()
     alert_comments_df.columns = ["commentTime", "platform", "count"]
 
     if (comment_platform == "all"):
@@ -587,8 +562,7 @@ def update_line_chart(interval, user_child, comment_platform):
         alert_comments_df = alert_comments_df[alert_comments_df["platform"] == comment_platform]
         comment_alert = px.area(alert_comments_df, x="commentTime", y="count")
 
-    comment_alert.update_layout(title="<b>Trend of Alerts based on Comments Received</b>", xaxis_title="Time Period",
-                                yaxis_title="Count")
+    comment_alert.update_layout(title="<b>Trend of Alerts based on Comments Received</b>", xaxis_title="Time Period", yaxis_title="Count")
     comment_alert.update_layout(xaxis_showgrid=False, yaxis_showgrid=True, margin=dict(r=0))
     comment_alert.update_traces(mode="lines", line=dict(width=3))
     return comment_alert
