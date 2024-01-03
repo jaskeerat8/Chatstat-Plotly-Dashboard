@@ -427,8 +427,7 @@ def update_kpi_platform(child_value, time_value, date_range_value, alert_value):
                         dmc.Image(src=f"assets/images/{platform}.png", height="50px", width="50px"),
                         dmc.Stack(children=[
                             html.Div(children=[
-                                dmc.Text(row["result"], style={"color": "#979797", "fontSize": "12px", "fontFamily": "Poppins"}),
-                                dmc.Space(w="25px"),
+                                dmc.Text(row["result"], style={"color": "#979797", "fontSize": "12px", "fontFamily": "Poppins", "margin": "0px 15px 0px 0px"}),
                                 dmc.Text(row["count"], style={"color": "#052F5F", "fontSize": "12px", "fontFamily": "Poppins", "fontWeight": "bold"})
                             ], style={"display": "flex", "justifyContent": "space-between", "width": "100%"})
                             for index, row in platform_df.iterrows()],
