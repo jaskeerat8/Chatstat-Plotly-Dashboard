@@ -134,7 +134,7 @@ analytics_header = dmc.Header(className="header", height="60px", fixed=False, ch
 control = dmc.Group([
     dmc.Group(className="filter_container", children=[
         html.P("FILTERS", className="filter_label", id="filter_label"),
-        dmc.SegmentedControl(id="time_control", value="""{"KPI": "A", "delta": 365}""", radius="md", size="xs", fullWidth=True, style={"width": "auto"},
+        dmc.SegmentedControl(id="time_control", className="time_control", value="""{"KPI": "A", "delta": 365}""", radius="md", size="xs",
             data=[
                 {"label": "Daily", "value": """{"KPI": "D", "delta": 1}"""},
                 {"label": "Weekly", "value": """{"KPI": "W", "delta": 7}"""},
@@ -264,14 +264,14 @@ def update_child_control(time_interval):
 
 # Date Picker
 @app.callback(
-    Output("popover_date_picker", "style"),
+    [Output("popover_date_picker", "style"), Output("popover_date_picker", "offset")],
     [Input("time_control", "value")]
 )
 def update_popover_date_picker(time_value):
     if(time_value == "all"):
-        return {"display": "block"}
+        return {"display": "block"}, "160,10"
     else:
-        return {"display": "none"}
+        return {"display": "none"}, ""
 
 
 # Platform Dropdown
@@ -428,7 +428,7 @@ def update_kpi_platform(child_value, time_value, date_range_value, alert_value):
                         dmc.Stack(children=[
                             html.Div(children=[
                                 dmc.Text(row["result"], style={"color": "#979797", "fontSize": "12px", "fontFamily": "Poppins"}),
-                                dmc.Space(w="30px"),
+                                dmc.Space(w="25px"),
                                 dmc.Text(row["count"], style={"color": "#052F5F", "fontSize": "12px", "fontFamily": "Poppins", "fontWeight": "bold"})
                             ], style={"display": "flex", "justifyContent": "space-between", "width": "100%"})
                             for index, row in platform_df.iterrows()],
