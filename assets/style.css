@@ -1,0 +1,480 @@
+/* Add Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap");
+
+/* Attributes for whole page */
+body {
+    font-family: "Poppins";
+    background-color: #B9D9EB;
+}
+
+/* No data after Filter Message */
+.no_data_message {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: "Poppins";
+    background-color: white;
+}
+
+/* Page Header */
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #F5F5F5;
+    padding: 10px;
+    border-bottom: 3px solid black;
+}
+.header_title {
+    color: #25D366;
+    font-size: 32px;
+    font-family: "Poppins";
+    font-weight: 600;
+}
+.sidebar:hover + .header .header_title {
+    margin-left: 9.5rem;
+}
+
+/* child control dropdown */
+.child_control_container {
+    width: 13%;
+}
+.child_control .mantine-Select-input {
+    background-color: transparent;
+    border: none;
+    text-align: center;
+}
+.child_control .mantine-Select-dropdown {
+    border: 1px solid black;
+}
+.child_control .mantine-Select-rightSection {
+    pointer-events: none;
+}
+.child_control .mantine-Select-input:focus + .mantine-Select-rightSection {
+    transform: rotate(180deg);
+    transition: transform 0.3s;
+}
+
+/* filter container */
+.filter_container {
+    padding: 5px 10px 5px 5px;
+    border-radius: 5px;
+    background-color: #0b71aa;
+}
+.filter_label {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: "Poppins";
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    margin: 0px;
+    padding: 0px;
+    border-left: 3px solid black;
+}
+
+/* date segment control filter */
+.mantine-SegmentedControl-root {
+    background-color: #c7e4ff;
+    align-items: center;
+}
+.mantine-SegmentedControl-active {
+    border: 2px solid black;
+}
+.mantine-SegmentedControl-label {
+    font-family: "Poppins";
+    color: #2D96FF;
+    font-size: 14px;
+    font-weight: 500;
+}
+.mantine-SegmentedControl-label:hover {
+    color: #0074e2;
+    font-weight: 600;
+}
+.mantine-SegmentedControl-labelActive {
+    font-family: "Poppins";
+    color: #0080ff;
+    font-size: 16px;
+    font-weight: 600;
+}
+.mantine-s28z26:not(:first-of-type) {
+    border-style: solid;
+    border-width: 0px 0px 0px 2px;
+    border-color: #0074e2;
+}
+
+/* Date Range Picker */
+.popover_date_picker {
+    font-family: "Poppins";
+    text-align: center;
+    width: 300px;
+    border-radius: 5px;
+    border: 1px solid black;
+}
+.popover_date_picker_label {
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.date_range_picker .mantine-DateRangePicker-icon {
+    background-color: white;
+    border-top: 2px solid black;
+    border-bottom: 1px solid black;
+    border-left: 1px solid black;
+    border-right: 2px solid black;
+    border-radius: 0px 0px 0px 5px;
+}
+.date_range_picker .mantine-DateRangePicker-input {
+    text-align: center;
+    border-radius: 0px 0px 5px 5px;
+    border: 1px solid black;
+    border-top: 2px solid black;
+    background-color: #25D366;
+    font-size: 16px;
+    font-weight: 600;
+}
+.date_range_picker .mantine-DateRangePicker-dropdown {
+    border: 2px solid black;
+}
+
+/* platform dropdown */
+.platform_dropdown_container {
+    /*margin-top: auto;*/
+    position: relative;
+}
+.platform_dropdown_label {
+    z-index: 1;
+    top: -20%;
+    left: 10%;
+    position: absolute;
+    padding: 0px 5px;
+    margin: 0px;
+    font-family: "Poppins";
+    font-size: 12px;
+    font-weight: 600;
+    color: black;
+    background: white;
+    border-radius: 2px 2px 0px 0px;
+}
+.platform_dropdown {
+    border-radius: 8px;
+    align-items: center;
+}
+.platform_dropdown .mantine-Select-input {
+    font-family: "Poppins";
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    border: 1px solid black;
+}
+.platform_dropdown .mantine-Select-input:focus {
+    border: 1px solid black;
+}
+.platform_dropdown .mantine-Select-dropdown {
+    border: 1px solid black;
+}
+.platform_dropdown .mantine-Select-item {
+    font-family: "Poppins";
+    font-size: 14px;
+    font-weight: 500;
+}
+.platform_dropdown .mantine-Select-rightSection {
+    pointer-events: none;
+}
+.platform_dropdown .mantine-Select-input:focus + .mantine-Select-rightSection {
+    transform: rotate(180deg);
+    transition: transform 0.3s;
+}
+
+/* alert dropdown */
+.alert_dropdown_container {
+    position: relative;
+}
+.alert_dropdown_label {
+    z-index: 1;
+    top: -20%;
+    left: 10%;
+    position: absolute;
+    padding: 0px 5px;
+    margin: 0px;
+    font-family: "Poppins";
+    font-size: 12px;
+    font-weight: 600;
+    color: black;
+    background-color: white;
+    border-radius: 2px 2px 0px 0px;
+}
+.alert_dropdown {
+    border-radius: 8px;
+    align-items: center;
+}
+.alert_dropdown .mantine-Select-input {
+    font-family: "Poppins";
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    border: 1px solid black;
+}
+.alert_dropdown .mantine-Select-input:focus {
+    border: 1px solid black;
+}
+.alert_dropdown .mantine-Select-dropdown {
+    border: 1px solid black;
+}
+.alert_dropdown .mantine-Select-item {
+    font-family: "Poppins";
+    font-size: 14px;
+    font-weight: 500;
+}
+.alert_dropdown .mantine-Select-rightSection {
+    pointer-events: none;
+}
+.alert_dropdown .mantine-Select-input:focus + .mantine-Select-rightSection {
+    transform: rotate(180deg);
+    transition: transform 0.3s;
+}
+
+/* Search Bar */
+.searchbar {
+    flex: 1;
+    display: inline-block;
+}
+.searchbar .mantine-TextInput-input {
+    font-family: "Poppins";
+    border: 1px solid black;
+}
+.searchbar .mantine-TextInput-icon {
+    background-color: #25D366;
+    border: 1px solid black;
+    border-radius: 5px 0px 0px 5px;
+}
+
+/* date slider filter */
+.rc-slider-track {
+    background-color: black;
+}
+.rc-slider-step {
+    position: absolute;
+    width: 100%;
+    height: 6px;
+    background: transparent;
+}
+.rc-slider-handle {
+    background-color: #eb2b5d;
+    border-color: black;
+    box-shadow: 0 0 0 3px #96dbfa;
+    margin-top: -5.5px;
+    width: 16px;
+    height: 16px;
+}
+.rc-slider-handle:focus {
+    border-color: black;
+    box-shadow: 0 0 0 3px #96dbfa;
+    margin-top: -5.5px;
+    width: 16px;
+    height: 16px;
+}
+.rc-slider-handle-dragging.rc-slider-handle-dragging.rc-slider-handle-dragging {
+    box-shadow: 0 0 0 3px #96dbfa;
+    margin-top: -5.5px;
+    border-color: black;
+}
+.rc-slider-handle:focus {
+    border-color: black;
+}
+.rc-slider-dot {
+    border-color: #eb2b5d;
+    width: 10px;
+    height: 10px;
+}
+.rc-slider-dot-active {
+    border-color: #eb2b5d;
+    width: 10px;
+    height: 10px;
+}
+
+/* kpi_alert_count */
+.kpi_alert_count_label {
+    font-size:18px;
+    font-weight:600;
+    font-family: "Poppins";
+    text-align: center;
+    margin: 0px 10px 0px 10px;
+    padding: 0px;
+    color: #2D96FF;
+}
+
+/* kpi_platform_count */
+.kpi_platform_count {
+    flex: 1;
+}
+
+/* progress bar */
+.mantine-Progress-label {
+    color: black;
+    font-size: 13px;
+    font-family: "Poppins";
+}
+.mantine-Progress-bar {
+    border-style: solid;
+    border-color: white;
+    border-width: 1px;
+}
+
+/* progress bar legend */
+.mantine-Badge-leftSection {
+    width: 20px !important;
+    height: 20px;
+    border-radius: 20px;
+}
+
+/* This creates a skinny side bar fixed to the left of the page */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 4.5rem;
+    padding: 0rem 1rem;
+    background-color: #052F5F;
+    z-index: 1050;
+    transition: width 0.1s ease-in-out;
+}
+
+/* when the user hovers on the sidebar, expand it */
+.sidebar:hover {
+    width: 14rem;
+}
+
+/* make sure the contents of the navlink don't wrap when navbar collapses */
+.sidebar .nav-link {
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    margin: 0; /* Remove any margin */
+    padding: 0; /* Remove any padding */
+}
+
+/* hide the navlink labels by default */
+.sidebar .nav-link span {
+    visibility: hidden;
+    opacity: 1;
+    transition: opacity 0.1s ease-in-out;
+}
+.sidebar .nav-link img {
+    width: 2.5rem;
+}
+.sidebar p {
+    display: none;
+}
+
+/* when the sidebar is hovered, reveal the labels */
+.sidebar:hover .nav-link span {
+    visibility: visible;
+    opacity: 1;
+    color: black;
+    color: #FFFFFF;
+    font-family: "Poppins";
+    font-weight: 450;
+    margin-left: 1rem;
+}
+.sidebar:hover p {
+    font-family: "Poppins";
+    display: block;
+    visibility: visible;
+    opacity: 1;
+    margin-left: 0.2rem !important;
+}
+
+/* container for the sidebar header. make sure the contents don't wrap when
+ * the sidebar is collapsed.
+ */
+.sidebar-header {
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    overflow: hidden;
+    white-space: nowrap;
+    height: 60px;
+}
+.sidebar-navlink {
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+/* position the header relative to the logo and hide by default */
+.sidebar-header h2 {
+    font-family: "Poppins";
+    opacity: 1;
+    margin-left: 1rem;
+    margin-bottom: 0;
+    transition: opacity 0.1s ease-in-out;
+}
+
+/* fix the width of the header logo */
+.sidebar-header img {
+    width: 2.5rem;
+}
+
+/* reveal the header when the sidebar is toggled */
+.sidebar:hover .sidebar-header h2 {
+    opacity: 1;
+    color: #25D366;
+    font-family: "Poppins";
+    font-weight: "bold";
+    font-size: 26;
+}
+
+/* position the content relative to the collapsed sidebar */
+.content {
+    margin-left: 2rem;
+    margin-right: 2rem;
+    padding: 2rem 1rem;
+}
+
+/* Radial Chart */
+.content_classification_radial_chart {
+    font-family: "Poppins";
+    background-color: white;
+    border-radius: 5px 0px 0px 5px;
+    overflow: hidden;
+}
+
+/* Progress Bar */
+.content_classification_horizontal_bar {
+    font-family: "Poppins";
+    background-color: white;
+    border-radius: 0px 5px 5px 0px;
+    overflow: hidden;
+}
+
+/* Risk Bar Chart */
+.content_risk_bar_chart {
+    font-family: "Poppins";
+    background-color: white;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+/* Comment Alert Line Chart */
+.comment_alert_line_chart_container {
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+/* Comment Classification Pie Chart */
+.comment_classification_pie_chart {
+    border-radius: 5px;
+    overflow: hidden;
+}
