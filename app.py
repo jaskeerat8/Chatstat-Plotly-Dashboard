@@ -19,7 +19,7 @@ from dash.dependencies import Input, Output
 global date_dict
 
 # Reading static Data, later read from AWS after user authentication
-df = pd.read_csv("data/final_30-11-2023_14_11_18.csv")
+df = pd.read_csv("Data/final_30-11-2023_14_11_18.csv")
 
 # Defining Colors and Plotly Graph Options
 plot_config = {"modeBarButtonsToRemove": ["zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d", "resetScale2d", "hoverClosestCartesian", "hoverCompareCartesian"],
