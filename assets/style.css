@@ -83,13 +83,14 @@ body {
     align-items: center;
 }
 .mantine-SegmentedControl-active {
+    color: #0074e2;
     border: 2px solid black;
 }
 .mantine-SegmentedControl-label {
     font-family: "Poppins";
     color: #2D96FF;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
 }
 .mantine-SegmentedControl-label:hover {
     color: #0074e2;
@@ -98,7 +99,7 @@ body {
 .mantine-SegmentedControl-labelActive {
     font-family: "Poppins";
     color: #0080ff;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 600;
 }
 .mantine-s28z26:not(:first-of-type) {
