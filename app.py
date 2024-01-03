@@ -769,4 +769,4 @@ def update_bubble_chart(time_interval):
 
 # Running Main App
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8050)
+    app.run_server(debug=False)
