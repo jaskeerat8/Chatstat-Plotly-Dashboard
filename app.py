@@ -84,21 +84,23 @@ def no_data_graph():
 
 # SideBar
 sidebar = html.Div(className="sidebar", children=[
-    html.Div(className="sidebar-header", children=[
+
+    html.A(html.Div(className="sidebar_header", children=[
         html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/chatstatlogo.png"),
         html.H2("chatstat")
-    ]),
+    ]), href="https://chatstat.com/", target="_blank", style={"color": "black", "textDecoration": "none"}
+    ),
 
     html.Hr(style={"height": "8px", "width": "100%", "backgroundColor": "#25d366", "opacity": "1", "borderRadius": "5px", "margin-top": "0px", "margin-left": "0px", "margin-right": "0px"}),
 
     html.P("Main Menu", style={"color": "white", "margin": 0, "padding": 0, "fontFamily": "Poppins", "fontSize": 12}),
-    dbc.Nav(className="sidebar-navlink", children=[
+    dbc.Nav(className="sidebar_navlink", children=[
         dbc.NavLink([html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/dashboard.png"), html.Span("Dashboard")],
-                    href="/dashboard", active="exact"),
+                    href="/dashboard", active="exact", className="sidebar_navlink_option"),
         dbc.NavLink([html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/analytics.png"), html.Span("Analytics")],
-                    href="/analytics", active="exact"),
+                    href="/analytics", active="exact", className="sidebar_navlink_option"),
         dbc.NavLink([html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/report.png"), html.Span("Report & Logs")],
-                    href="/report", active="exact"),
+                    href="/report", active="exact", className="sidebar_navlink_option")
         ],
         vertical=True, pills=True)
     ]
@@ -198,13 +200,12 @@ dashboard_charts = html.Div(children=[
         ),
         html.Div(id="comment_classification_pie_chart", className="comment_classification_pie_chart", style={"width": "calc(35% - 5px)", "background-color": "white", "box-shadow": ""})
     ], spacing="10px", style={"margin": "10px", "padding": "0px"}
-    ),
+    )
 ], style={"height": "100%", "width": "100%", "margin": "0px", "padding": "0px"})
 
 analytics_charts = html.Div(children=[
-    dmc.LoadingOverlay(
-        dcc.Graph(id="content_result_treemap"), loaderProps={"variant": "bars", "color": "orange", "size": "xl"}, style={"width": "100%"}
-    ),
+    dcc.Graph(id="content_classification_sunburst_chart", config=plot_config),
+    dcc.Graph(id="content_result_treemap"),
     dcc.Graph(id="comment_result_radar", style={"width": "100%"}),
     dcc.Graph(id="content_result_bubble_chart", style={"width": "100%"}),
 ])
@@ -221,7 +222,7 @@ app.layout = html.Div(
         dcc.Location(id="url_path", refresh=False),
         html.Div(children=[], style={"width": "4.5rem", "display": "inline-block"}),
         html.Div(id="page_content", style={"display": "inline-block", "width": "calc(100% - 4.5rem)"})
-    ],
+    ]
 )
 
 
@@ -422,20 +423,20 @@ def update_kpi_platform(child_value, time_value, date_range_value, alert_value):
             title = platform.title()+f" - {alert_value} Alerts" if ((alert_value is not None) and (alert_value != "all")) else platform.title()
             kpi_list.append(
                 dmc.Card(children=[
-                    dmc.Text(title, style={"color": "black", "fontSize": "18px", "fontFamily": "Poppins, verdana", "fontWeight": "bold"}),
-                    dmc.Group(children=[
-                        dmc.Image(src=f"assets/images/{platform}.png", height="50px", width="50px"),
-                        dmc.Stack(children=[
+                    dbc.Row(dbc.Col(dmc.Text(title, style={"color": "black", "fontSize": "18px", "fontFamily": "Poppins, verdana", "fontWeight": "bold"}))),
+                    dbc.Row([
+                        dbc.Col(dmc.Image(src=f"assets/images/{platform}.png", height="50px", width="50px"), align="center", width=2),
+                        dbc.Col(dmc.Stack(children=[
                             html.Div(children=[
                                 dmc.Text(row["result"], style={"color": "#979797", "fontSize": "12px", "fontFamily": "Poppins", "margin": "0px 15px 0px 0px"}),
                                 dmc.Text(row["count"], style={"color": "#052F5F", "fontSize": "12px", "fontFamily": "Poppins", "fontWeight": "bold"})
                             ], style={"display": "flex", "justifyContent": "space-between", "width": "100%"})
-                            for index, row in platform_df.iterrows()],
-                            align="flex-start", justify="flex-end", spacing="0px"
-                        ),
-                        dmc.Text(platform_df["count"].sum(), style={"color": "#052F5F", "fontSize": "40px", "fontFamily": "Poppins", "fontWeight": 600})
-                    ], position="apart")
-                ], withBorder=True, radius="5px", style={"width": f"""calc((100% - {10*(number_of_platforms-1)}px) / {number_of_platforms})""", "box-shadow": ""}
+                            for index, row in platform_df.iterrows()], align="flex-start", justify="flex-end", spacing="0px"
+                        ), align="center", width=7),
+                        dbc.Col(dmc.Text(platform_df["count"].sum(), style={"color": "#052F5F", "fontSize": "40px", "fontFamily": "Poppins", "fontWeight": 600, "text-align": "right"}), align="center", width=2)
+                    ], justify="between"
+                    )
+                ], withBorder=True, radius="5px", style={"width": f"""calc((100% - {10*(number_of_platforms-1)}px) / {number_of_platforms})""", "height": "100%", "box-shadow": ""}
                 )
             )
         return kpi_list
@@ -512,7 +513,7 @@ def update_horizontal_bar(child_value, time_value, date_range_value):
         return [
             html.Header("Risk Categories Classification", style={"color": "#052F5F", "fontWeight": "bold", "fontSize": 17, "margin": "10px 25px 0px 25px"}),
             dmc.Space(h="lg"),
-            dmc.Progress(sections=bar_sections, radius="xl", size=25, animate=False, striped=False, style={"width": "90%", "margin": "auto"}),
+            dmc.Progress(sections=bar_sections, radius="xl", size=20, animate=False, striped=False, style={"width": "90%", "margin": "auto"}),
             dmc.Space(h="lg"),
             dmc.Grid(children=sum(bar_legend, []), gutter="xs", justify="center", align="center", style={"margin": "20px"})
             ]
@@ -559,7 +560,7 @@ def update_bar_chart(child_value, time_value, date_range_value, platform_value):
 
         content_risk.update_layout(margin=dict(l=25, r=25, b=0))
         content_risk.update_layout(legend=dict(font=dict(family="Poppins"), traceorder="grouped", orientation="h", x=1, y=1, xanchor="right", yanchor="bottom", title_text="", bgcolor="rgba(0,0,0,0)"))
-        content_risk.update_traces(width=0.4, marker_line=dict(color="black", width=1.5), textangle=0)
+        content_risk.update_traces(width=0.4, marker_line=dict(color="black", width=1), textangle=0)
         content_risk.update_traces(textfont=dict(color="#052F5F", size=16, family="Poppins"))
         content_risk.update_layout(xaxis_title="", yaxis_title="", legend_title_text="", plot_bgcolor="rgba(0, 0, 0, 0)")
         content_risk.update_layout(yaxis_showgrid=True, yaxis=dict(tickfont=dict(size=12, family="Poppins", color="#8E8E8E"), griddash="dash", gridwidth=1, gridcolor="#DADADA"))
@@ -688,6 +689,41 @@ def update_pie_chart(child_value, time_value, date_range_value, platform_value, 
         else:
             comment_classification.update_layout(title={"text": "<b>Comment Classification</b>"}, title_font_color="#052F5F", title_font=dict(family="Poppins", size=17))
         return dcc.Graph(figure=comment_classification, config=plot_config)
+
+
+# Content Classification Sunburst Chart
+@app.callback(
+    Output("content_classification_sunburst_chart", "figure"),
+    [Input("time_interval", "n_intervals")]
+    #[Input("child_control", "value"), Input("time_control", "value"), Input("date_range_picker", "value"), Input("platform_dropdown", "value"), Input("alert_dropdown", "value")]
+)
+def update_sunburst_chart(time_interval):
+    risk_content_df = df.copy()
+    risk_content_df = risk_content_df[(risk_content_df["result_json_contents"].str.lower() != "no") & (risk_content_df["result_json_contents"].str.lower() != "") & (risk_content_df["result_json_contents"].notna())]
+    risk_content_df = risk_content_df[(risk_content_df["alert_contents"].str.lower() != "no") & (risk_content_df["alert_contents"].str.lower() != "") & (risk_content_df["alert_contents"].notna())]
+
+    # Filters
+    # risk_content_df = child_filter(risk_content_df, child_value)
+    # risk_content_df = time_filter(risk_content_df, time_value, date_range_value)
+    # risk_content_df = platform_filter(risk_content_df, platform_value)
+    # risk_content_df = alert_filter(risk_content_df, alert_value)
+
+    sunburst_data = {"category": [], "subcategory": [], "value": []}
+    for index, row in risk_content_df.iterrows():
+        result_json_contents = ast.literal_eval(row["result_json_contents"])
+        for category, subcategory_values in result_json_contents.items():
+            for subcategory, value in subcategory_values.items():
+                sunburst_data["category"].append(category)
+                sunburst_data["subcategory"].append(subcategory)
+                sunburst_data["value"].append(value)
+
+    risk_content_df = pd.DataFrame(sunburst_data)
+    risk_content_df = risk_content_df.groupby(by=["category", "subcategory"], as_index=False)["value"].sum()
+    risk_content_df = risk_content_df[risk_content_df["value"] != 0]
+
+    content_classification = px.sunburst(risk_content_df, path=["category", "subcategory"], values="value")
+    content_classification.update_traces(marker=dict(line=dict(color="white", width=0.1)), insidetextorientation="horizontal")
+    return content_classification
 
 
 # Content Result Treemap

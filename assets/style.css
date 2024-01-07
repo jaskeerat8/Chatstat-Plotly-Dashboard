@@ -398,7 +398,7 @@ body {
 /* container for the sidebar header. make sure the contents don't wrap when
  * the sidebar is collapsed.
  */
-.sidebar-header {
+.sidebar_header {
     display: flex;
     justify-content: left;
     align-items: center;
@@ -406,16 +406,19 @@ body {
     white-space: nowrap;
     height: 60px;
 }
-.sidebar-navlink {
+.sidebar_navlink {
     display: flex;
     justify-content: left;
     align-items: center;
     overflow: hidden;
     white-space: nowrap;
 }
+.sidebar_navlink_option:hover .sidebar_navlink_option_text {
+    color: red;
+}
 
 /* position the header relative to the logo and hide by default */
-.sidebar-header h2 {
+.sidebar_header h2 {
     font-family: "Poppins";
     opacity: 1;
     margin-left: 1rem;
@@ -424,12 +427,12 @@ body {
 }
 
 /* fix the width of the header logo */
-.sidebar-header img {
+.sidebar_header img {
     width: 2.5rem;
 }
 
 /* reveal the header when the sidebar is toggled */
-.sidebar:hover .sidebar-header h2 {
+.sidebar:hover .sidebar_header h2 {
     opacity: 1;
     color: #25D366;
     font-family: "Poppins";
