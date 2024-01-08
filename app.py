@@ -282,7 +282,7 @@ def update_popover_date_picker(time_value):
 )
 def update_platform_dropdown(platform_value):
     if(platform_value in ["all", None]):
-        return DashIconify(icon="gis:earth-australia-o", color="#23a8fe", width=20)
+        return DashIconify(icon="emojione-v1:globe-showing-asia-australia", width=25)
     else:
         return DashIconify(icon=platform_icons[platform_value.title()], width=20)
 
@@ -558,15 +558,26 @@ def update_bar_chart(child_value, time_value, date_range_value, platform_value):
             content_risk = px.bar(risk_content_df, x="alert", y="count", color="alert", text_auto=True, color_discrete_map=alert_colors, pattern_shape_sequence=None)
             content_risk.update_layout(title=f"<b>Alerts on User Content - {platform_value}</b>", title_font_color="#052F5F", title_font=dict(size=17, family="Poppins"))
 
-        content_risk.update_layout(margin=dict(l=25, r=25, b=0))
+        content_risk.update_layout(margin=dict(l=25, r=25, b=0), barmode="relative")
         content_risk.update_layout(legend=dict(font=dict(family="Poppins"), traceorder="grouped", orientation="h", x=1, y=1, xanchor="right", yanchor="bottom", title_text="", bgcolor="rgba(0,0,0,0)"))
-        content_risk.update_traces(width=0.4, marker_line=dict(color="black", width=1), textangle=0)
+        content_risk.update_traces(width=0.4, marker_line=dict(color="black", width=1.5), textangle=0)
         content_risk.update_traces(textfont=dict(color="#052F5F", size=16, family="Poppins"))
         content_risk.update_layout(xaxis_title="", yaxis_title="", legend_title_text="", plot_bgcolor="rgba(0, 0, 0, 0)")
         content_risk.update_layout(yaxis_showgrid=True, yaxis=dict(tickfont=dict(size=12, family="Poppins", color="#8E8E8E"), griddash="dash", gridwidth=1, gridcolor="#DADADA"))
         content_risk.update_layout(xaxis_showgrid=False, xaxis=dict(tickfont=dict(size=18, family="Poppins", color="#052F5F")))
         content_risk.update_xaxes(fixedrange=True)
         content_risk.update_yaxes(fixedrange=True)
+
+        # Adding Bubbles on top
+        if(platform_value not in [None, "all"]):
+            risk_content_df = risk_content_df.groupby(by=["alert"], as_index=False)["count"].sum()
+            scatter_trace = px.scatter(risk_content_df, x="alert", y="count", color="alert", color_discrete_map=alert_colors, text="count")
+            scatter_trace.update_traces(textfont=dict(color="#052F5F", size=16, family="Poppins"))
+            scatter_trace.update_traces(marker=dict(size=55, symbol="circle", line=dict(width=2, color="black")), showlegend=False)
+            content_risk.add_trace(scatter_trace.data[0])
+            content_risk.add_trace(scatter_trace.data[1])
+            content_risk.add_trace(scatter_trace.data[2])
+
         return dcc.Graph(figure=content_risk, responsive=True, config=plot_config, style={"height": "100%", "width": "100%"})
 
 
