@@ -27,7 +27,7 @@ plot_config = {"modeBarButtonsToRemove": ["zoom2d", "pan2d", "select2d", "lasso2
 platform_colors = {"Instagram": "#25D366", "Twitter": "#2D96FF", "Facebook": "#FF5100", "Tiktok": "#f6c604"}
 alert_colors = {"High": "#FF5100", "Medium": "#f6c604", "Low": "#25D366"}
 content_classification_colors = {"Offensive": "#FFD334", "Sexually Explicit": "#2D96FF", "Sexually Suggestive": "#FF5100", "Other": "#25D366", "Self Harm & Death": "#f77d07"}
-classification_bar_colors = {"Mental & Emotional Health": "yellow", "Other Toxic Content": "blue", "Violence & Threats": "red", "Cyberbullying": "green", "Self Harm & Death": "orange", "Sexual & Inappropriate Content": "purple"}
+classification_bar_colors = {"Mental & Emotional Health": "rgb(255,211,52)", "Other Toxic Content": "rgb(45,150,255)", "Violence & Threats": "rgb(236,88,0)", "Cyberbullying": "rgb(37,211,102)", "Self Harm & Death": "rgb(255,81,0)", "Sexual & Inappropriate Content": "rgb(160,32,240)"}
 image_location = {"Instagram": "assets/Instagram.png", "Twitter": "assets/twitter.png", "Facebook": "assets/facebook.png", "Tiktok": "assets/tiktok.png"}
 platform_icons = {"Instagram": "skill-icons:instagram", "Twitter": "devicon:twitter", "Facebook": "devicon:facebook", "Tiktok": "logos:tiktok-icon"}
 
@@ -110,25 +110,17 @@ sidebar = html.Div(className="sidebar", children=[
 # Header
 dashboard_header = dmc.Header(className="header", height="60px", fixed=False, children=[
     dmc.Text("Dashboard", className="header_title"),
-    dmc.Group(className="child_control_container", children=[
-        dmc.Avatar(id="child_control_avatar", className="child_control_avatar", color="red", size="40px", radius="xl"),
-        dmc.Select(id="child_control", className="child_control", value="all",
-                   placeholder="Select Member", clearable=False, searchable=False,
-                   rightSection=DashIconify(icon="radix-icons:chevron-down", color="black"),
-                   style={"width": "calc(100% - 50px)"})
-    ], spacing="10px"
+    dmc.Select(id="child_control", className="child_control", value="all",
+               placeholder="Select Member", clearable=False, searchable=False,
+               rightSection=DashIconify(icon="radix-icons:chevron-down", color="black")
     )
 ])
 
 analytics_header = dmc.Header(className="header", height="60px", fixed=False, children=[
     dmc.Text("Analytics", className="header_title"),
-    dmc.Group(className="child_control_container", children=[
-        dmc.Avatar(id="child_control_avatar", className="child_control_avatar", color="red", size="40px", radius="xl"),
-        dmc.Select(id="child_control", className="child_control", value="all",
-                   placeholder="Select Member", clearable=False, searchable=False,
-                   rightSection=DashIconify(icon="radix-icons:chevron-down", color="black"),
-                   style={"width": "calc(100% - 50px)"})
-    ], spacing="10px"
+    dmc.Select(id="child_control", className="child_control", value="all",
+               placeholder="Select Member", clearable=False, searchable=False,
+               rightSection=DashIconify(icon="radix-icons:chevron-down", color="black")
     )
 ])
 
@@ -136,16 +128,21 @@ analytics_header = dmc.Header(className="header", height="60px", fixed=False, ch
 control = dmc.Group([
     dmc.Group(className="filter_container", children=[
         html.P("FILTERS", className="filter_label", id="filter_label"),
-        dmc.SegmentedControl(id="time_control", className="time_control", value="""{"KPI": "A", "delta": 365}""", radius="md", size="xs",
-            data=[
-                {"label": "Daily", "value": """{"KPI": "D", "delta": 1}"""},
-                {"label": "Weekly", "value": """{"KPI": "W", "delta": 7}"""},
-                {"label": "Monthly", "value": """{"KPI": "M", "delta": 30}"""},
-                {"label": "Quarterly", "value": """{"KPI": "3M", "delta": 90}"""},
-                {"label": "Yearly", "value": """{"KPI": "A", "delta": 365}"""},
-                {"label": "Custom Range", "value": "all"}
-            ]
-        ),
+        dmc.HoverCard(openDelay=1000, children=[
+            dmc.HoverCardTarget(
+                dmc.SegmentedControl(id="time_control", className="time_control", value="""{"KPI": "A", "delta": 365}""", radius="md", size="xs",
+                                     data=[
+                                        {"label": "Daily", "value": """{"KPI": "D", "delta": 1}"""},
+                                        {"label": "Weekly", "value": """{"KPI": "W", "delta": 7}"""},
+                                        {"label": "Monthly", "value": """{"KPI": "M", "delta": 30}"""},
+                                        {"label": "Quarterly", "value": """{"KPI": "3M", "delta": 90}"""},
+                                        {"label": "Yearly", "value": """{"KPI": "A", "delta": 365}"""},
+                                        {"label": "Custom Range", "value": "all"}
+                                     ]
+                )
+            ),
+            dmc.HoverCardDropdown(dmc.Text("Information about Time Control"))
+        ]),
         dbc.Popover(id="popover_date_picker", className="popover_date_picker", children=[
             dbc.PopoverHeader("Selected Date Range", className="popover_date_picker_label"),
             dmc.DateRangePicker(id="date_range_picker", className="date_range_picker", clearable=False, inputFormat="MMM DD, YYYY", icon=DashIconify(icon=f"arcticons:calendar-{datetime.now().day}", color="black", width=30),
@@ -172,7 +169,10 @@ control = dmc.Group([
         dmc.ActionIcon(DashIconify(icon="grommet-icons:power-reset", color="white", width=25, flip="horizontal"), id="reset_filter_container", n_clicks=0, variant="transparent")
     ], spacing="10px"
     ),
-    dmc.TextInput(className="searchbar", id="searchbar", placeholder=" Search...", radius="5px", size="lg", icon=html.Img(src="assets/images/chatstatlogo_black.png", width="50%"))
+    dmc.Select(className="searchbar", id="searchbar", clearable=True, searchable=True, placeholder=" Search...", nothingFound="Nothing Found", limit=5, iconWidth=50,
+               icon=html.Img(src="assets/images/chatstatlogo_black.png", width="60%"), rightSection=DashIconify(icon="radix-icons:chevron-right", color="black"),
+               data=list(df["name_childrens"].unique()) + list(df["id_childrens"].unique())
+    )
 ], style={"margin": "10px"}, spacing="10px"
 )
 
@@ -188,7 +188,7 @@ kpi_cards = html.Div([
 dashboard_charts = html.Div(children=[
     dbc.Row([
         dbc.Col(id="content_classification_radial_chart", className="content_classification_radial_chart", style={"margin": "0px 0px 0px 0px", "padding": "0px", "box-shadow": ""}),
-        dbc.Col(id="content_classification_horizontal_bar", className="content_classification_horizontal_bar", style={"margin": "0px 5px 0px 0px", "padding": "0px", "box-shadow": ""}),
+        dbc.Col(id="risk_categories_horizontal_bar", className="risk_categories_horizontal_bar", style={"margin": "0px 5px 0px 0px", "padding": "0px", "box-shadow": ""}),
         dbc.Col(id="content_risk_bar_chart", className="content_risk_bar_chart", style={"margin": "0px 0px 0px 5px", "padding": "0px", "box-shadow": ""})
     ], style={"margin": "10px", "padding": "0px"}
     ),
@@ -241,26 +241,17 @@ def display_page(pathname):
         return [sidebar]
 
 
-# Child Control Avatar
-@app.callback(
-    Output("child_control_avatar", "children"),
-    Input("child_control", "value")
-)
-def update_child_control_avatar(child_value):
-    avatar_text = "".join([name[0].title() for name in child_value.split(" ")])
-    return avatar_text
-
-
 # Child Control Drop Down
 @app.callback(
-    Output("child_control", "data"),
-    [Input("time_interval", "n_intervals")]
+    [Output("child_control", "data"), Output("child_control", "icon")],
+    Input("child_control", "value")
 )
-def update_child_control(time_interval):
+def update_child_control(child_value):
     user_df = df.copy()
     user_list = user_df["name_childrens"].unique()
     data = [{"value": "all", "label": "All Members"}] + [{"value": i, "label": i.split(" ")[0].title()} for i in user_list]
-    return data
+    avatar_text = "".join([name[0].title() for name in child_value.split(" ")])
+    return data, dmc.Avatar(id="child_control_avatar", className="child_control_avatar", children=avatar_text, color="red", size=30, radius="xl", style={"border": "2px solid red"})
 
 
 # Date Picker
@@ -282,7 +273,7 @@ def update_popover_date_picker(time_value):
 )
 def update_platform_dropdown(platform_value):
     if(platform_value in ["all", None]):
-        return DashIconify(icon="emojione-v1:globe-showing-asia-australia", width=25)
+        return DashIconify(icon="emojione-v1:globe-showing-asia-australia", width=20)
     else:
         return DashIconify(icon=platform_icons[platform_value.title()], width=20)
 
@@ -480,43 +471,62 @@ def update_radial_chart(child_value, time_value, date_range_value, platform_valu
         ]
 
 
-# Content Classification Horizontal Bar
+# Risk Categories Horizontal Bar
 @app.callback(
-    Output("content_classification_horizontal_bar", "children"),
+    Output("risk_categories_horizontal_bar", "children"),
     [Input("child_control", "value"), Input("time_control", "value"), Input("date_range_picker", "value")]
 )
 def update_horizontal_bar(child_value, time_value, date_range_value):
-    content_bar_df = df.copy()
-    content_bar_df = content_bar_df[(content_bar_df["result_contents"].str.lower() != "no") & (content_bar_df["result_contents"].str.lower() != "") & (content_bar_df["result_contents"].notna())]
-    content_bar_df = content_bar_df[(content_bar_df["alert_contents"].str.lower() != "no") & (content_bar_df["alert_contents"].str.lower() != "") & (content_bar_df["alert_contents"].notna())]
+    risk_categories_df = df.copy()
+    risk_categories_df = risk_categories_df[(risk_categories_df["result_contents"].str.lower() != "no") & (risk_categories_df["result_contents"].str.lower() != "") & (risk_categories_df["result_contents"].notna())]
+    risk_categories_df = risk_categories_df[(risk_categories_df["alert_contents"].str.lower() != "no") & (risk_categories_df["alert_contents"].str.lower() != "") & (risk_categories_df["alert_contents"].notna())]
 
     # Filters
-    content_bar_df = child_filter(content_bar_df, child_value)
-    content_bar_df = time_filter(content_bar_df, time_value, date_range_value)
+    risk_categories_df = child_filter(risk_categories_df, child_value)
+    risk_categories_area_df = risk_categories_df.copy()
+    risk_categories_df = time_filter(risk_categories_df, time_value, date_range_value)
 
-    if(len(content_bar_df) == 0):
+    if(len(risk_categories_df) == 0):
         return no_data_graph()
     else:
-        content_bar_df = content_bar_df.groupby(by=["result_contents"], as_index=False)["id_contents"].nunique()
-        content_bar_df.columns = ["classification", "count"]
-        content_bar_df["percentage_of_total"] = (content_bar_df["count"] / content_bar_df["count"].sum()) * 100
+        risk_categories_df = risk_categories_df.groupby(by=["result_contents"], as_index=False)["id_contents"].nunique()
+        risk_categories_df.columns = ["classification", "count"]
+        risk_categories_df["percentage_of_total"] = (risk_categories_df["count"] / risk_categories_df["count"].sum()) * 100
+
         bar_sections = []
-        bar_legend = []
-        for index, row in content_bar_df.iterrows():
+        risk_categories_df.sort_values(by="percentage_of_total", ascending=True, inplace=True)
+        for index, row in risk_categories_df.iterrows():
             bar_sections.append({"value": row["percentage_of_total"], "color": classification_bar_colors[row["classification"]], "label": str(int(row["percentage_of_total"]))+"%"})
+
+        bar_legend = []
+        risk_categories_df.sort_values(by="percentage_of_total", ascending=False, inplace=True)
+        for index, row in risk_categories_df.iterrows():
             bar_legend.append([
-                dmc.Col(dmc.Badge(row["classification"], variant="dot", color=classification_bar_colors[row["classification"]], size="xl", radius="xl", style={"border": "white", "fontSize": 14, "text-align": "left"}), span=6),
-                dmc.Col(html.Header(row["count"], style={"color": "#081A51", "fontFamily": "Poppins", "fontWeight": "bold", "fontSize": 14, "text-align": "right", "margin": "auto"}), span=3),
-                dmc.Col(dmc.Avatar(str(int(row["percentage_of_total"]))+"%", size="md", radius="xl", color="#2D96FF"), span=2, offset=1)
+                dmc.Col(DashIconify(className="risk_categories_progress_legend_symbol", icon="material-symbols:circle", width=12, color=classification_bar_colors[row["classification"]], ), span=1),
+                dmc.Col(dmc.Text(className="risk_categories_progress_legend_marking", children=row["classification"]), span=6),
+                dmc.Col(html.Header(row["count"], style={"color": "#081A51", "fontFamily": "Poppins", "fontWeight": "bold", "fontSize": 14, "text-align": "right"}), span=2),
+                dmc.Col(dmc.Avatar(className="risk_categories_progress_legend_avatar", children=str(int(row["percentage_of_total"]))+"%", size=30, radius="xl", color="#2D96FF"), span=1, offset=2)
                 ]
             )
-        return [
+
+        risk_categories_area_df["createTime_contents"] = pd.to_datetime(risk_categories_area_df["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f").dt.strftime("%b %Y")
+        risk_categories_area_df = risk_categories_area_df.groupby(by=["createTime_contents", "result_contents"], as_index=False)["id_contents"].nunique()
+        risk_categories_area_df.columns = ["createTime", "risk_category", "count"]
+        risk_categories_area_df["createTime"] = pd.to_datetime(risk_categories_area_df["createTime"], format="%b %Y")
+        risk_categories_area_df.sort_values(by=["createTime", "count"], ascending=[True, False], inplace=True)
+
+        area_category = px.area(risk_categories_area_df, x="createTime", y="count", color="risk_category", color_discrete_map=classification_bar_colors)
+        area_category.update_layout(margin=dict(t=0, r=25, b=0, l=25), plot_bgcolor="white")
+        area_category.update_layout(xaxis_title="", yaxis_title="", legend_title_text="")
+        area_category.update_xaxes(showticklabels=False, showgrid=False, zeroline=False, fixedrange=True)
+        area_category.update_yaxes(showticklabels=False, showgrid=False, zeroline=False, fixedrange=True)
+        area_category.update_traces(showlegend=False)
+        return dmc.Stack([
             html.Header("Risk Categories Classification", style={"color": "#052F5F", "fontWeight": "bold", "fontSize": 17, "margin": "10px 25px 0px 25px"}),
-            dmc.Space(h="lg"),
-            dmc.Progress(sections=bar_sections, radius="xl", size=20, animate=False, striped=False, style={"width": "90%", "margin": "auto"}),
-            dmc.Space(h="lg"),
-            dmc.Grid(children=sum(bar_legend, []), gutter="xs", justify="center", align="center", style={"margin": "20px"})
-            ]
+            dmc.Progress(className="risk_categories_progress_bar", sections=bar_sections, radius="xl", size=20, animate=False, striped=False, style={"width": "90%", "margin": "auto"}),
+            dmc.Grid(className="risk_categories_progress_legend", children=sum(bar_legend, []), gutter="xs", justify="center", align="center"),
+            dcc.Graph(figure=area_category, responsive=True, config=plot_config, style={"height": "25vh"})
+            ], align="stretch", justify="center", spacing="10px")
 
 
 # Content Risk Bar Chart
@@ -568,7 +578,7 @@ def update_bar_chart(child_value, time_value, date_range_value, platform_value):
         content_risk.update_xaxes(fixedrange=True)
         content_risk.update_yaxes(fixedrange=True)
 
-        # Adding Bubbles on top
+        # Adding Bubbles on top for effect
         if(platform_value not in [None, "all"]):
             risk_content_df = risk_content_df.groupby(by=["alert"], as_index=False)["count"].sum()
             scatter_trace = px.scatter(risk_content_df, x="alert", y="count", color="alert", color_discrete_map=alert_colors, text="count")

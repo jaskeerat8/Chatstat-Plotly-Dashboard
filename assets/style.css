@@ -37,9 +37,6 @@ body {
 }
 
 /* child control dropdown */
-.child_control_container {
-    width: 13%;
-}
 .child_control .mantine-Select-input {
     background-color: transparent;
     border: none;
@@ -248,11 +245,13 @@ body {
     flex: 1;
     display: inline-block;
 }
-.searchbar .mantine-TextInput-input {
+.searchbar .mantine-Select-input {
+    height: 60px;
     font-family: "Poppins";
     border: 1px solid black;
+    border-radius: 5px;
 }
-.searchbar .mantine-TextInput-icon {
+.searchbar .mantine-Select-icon {
     background-color: #25D366;
     border: 1px solid black;
     border-radius: 5px 0px 0px 5px;
@@ -319,22 +318,34 @@ body {
 }
 
 /* progress bar */
-.mantine-Progress-label {
+.risk_categories_progress_bar .mantine-Progress-label {
     color: black;
     font-size: 13px;
     font-family: "Poppins";
 }
-.mantine-Progress-bar {
+.risk_categories_progress_bar .mantine-Progress-bar {
     border-style: solid;
     border-color: white;
     border-width: 1px;
 }
-
-/* progress bar legend */
-.mantine-Badge-leftSection {
-    width: 20px !important;
-    height: 20px;
-    border-radius: 20px;
+.risk_categories_progress_legend {
+    margin: 0px 20px;
+    padding: 0px;
+}
+.risk_categories_progress_legend_symbol {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+.risk_categories_progress_legend_marking {
+    font-size: 14px;
+    font-weight: 600;
+    font-family: "Poppins";
+    color: black;
+}
+.risk_categories_progress_legend_avatar .mantine-1hv0clq {
+    border: 2px solid #228be6;
 }
 
 /* This creates a skinny side bar fixed to the left of the page */
@@ -456,7 +467,7 @@ body {
 }
 
 /* Progress Bar */
-.content_classification_horizontal_bar {
+.risk_categories_horizontal_bar {
     font-family: "Poppins";
     background-color: white;
     border-radius: 0px 5px 5px 0px;
