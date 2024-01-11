@@ -155,7 +155,6 @@ body {
 
 /* platform dropdown */
 .platform_dropdown_container {
-    /*margin-top: auto;*/
     position: relative;
 }
 .platform_dropdown_label {
@@ -260,6 +259,8 @@ body {
 .searchbar .mantine-Select-input {
     height: 60px;
     font-family: "Poppins";
+    font-size: 18px;
+    font-weight: 600;
     border: 1px solid black;
     border-radius: 5px;
 }
