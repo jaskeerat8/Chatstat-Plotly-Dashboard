@@ -37,6 +37,9 @@ body {
 }
 
 /* child control dropdown */
+.child_control {
+    width: 12%;
+}
 .child_control .mantine-Select-input {
     background-color: transparent;
     border: none;
@@ -46,6 +49,7 @@ body {
     border: 1px solid black;
 }
 .child_control .mantine-Select-rightSection {
+    background-color: transparent;
     pointer-events: none;
 }
 .child_control .mantine-Select-input:focus + .mantine-Select-rightSection {
@@ -143,6 +147,12 @@ body {
     border: 2px solid black;
 }
 
+/* time control information */
+.time_control_information {
+    font-size: 12px;
+    font-family: "Poppins";
+}
+
 /* platform dropdown */
 .platform_dropdown_container {
     /*margin-top: auto;*/
@@ -185,6 +195,7 @@ body {
     font-weight: 500;
 }
 .platform_dropdown .mantine-Select-rightSection {
+    background-color: transparent;
     pointer-events: none;
 }
 .platform_dropdown .mantine-Select-input:focus + .mantine-Select-rightSection {
@@ -233,6 +244,7 @@ body {
     font-weight: 500;
 }
 .alert_dropdown .mantine-Select-rightSection {
+    background-color: transparent;
     pointer-events: none;
 }
 .alert_dropdown .mantine-Select-input:focus + .mantine-Select-rightSection {

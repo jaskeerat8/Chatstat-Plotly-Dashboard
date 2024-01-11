@@ -141,7 +141,7 @@ control = dmc.Group([
                                      ]
                 )
             ),
-            dmc.HoverCardDropdown(dmc.Text("Information about Time Control"))
+            dmc.HoverCardDropdown(id="time_control_information", className="time_control_information")
         ]),
         dbc.Popover(id="popover_date_picker", className="popover_date_picker", children=[
             dbc.PopoverHeader("Selected Date Range", className="popover_date_picker_label"),
@@ -252,6 +252,24 @@ def update_child_control(child_value):
     data = [{"value": "all", "label": "All Members"}] + [{"value": i, "label": i.split(" ")[0].title()} for i in user_list]
     avatar_text = "".join([name[0].title() for name in child_value.split(" ")])
     return data, dmc.Avatar(id="child_control_avatar", className="child_control_avatar", children=avatar_text, color="red", size=30, radius="xl", style={"border": "2px solid red"})
+
+
+# Time Control Information
+@app.callback(
+    Output("time_control_information", "children"),
+    Input("time_interval", "n_intervals")
+)
+def update_time_control_information(time_interval):
+    todays_date = datetime.today().strftime('%d-%b-%Y')
+    information = html.Ul(children=[
+        html.Li(f"Daily: For Date {todays_date}"),
+        html.Li(f"weekly: Between {todays_date} & {(datetime.today() - timedelta(7)).strftime('%d-%b-%Y')}"),
+        html.Li(f"Monthly: Between {todays_date} & {(datetime.today() - timedelta(30)).strftime('%d-%b-%Y')}"),
+        html.Li(f"Quaterly: Between {todays_date} & {(datetime.today() - timedelta(90)).strftime('%d-%b-%Y')}"),
+        html.Li(f"Yearly: Between {todays_date} & {(datetime.today() - timedelta(365)).strftime('%d-%b-%Y')}"),
+        html.Li("Custom Range: Select from Date Picker")
+    ])
+    return information
 
 
 # Date Picker
@@ -483,8 +501,8 @@ def update_horizontal_bar(child_value, time_value, date_range_value):
 
     # Filters
     risk_categories_df = child_filter(risk_categories_df, child_value)
-    risk_categories_area_df = risk_categories_df.copy()
     risk_categories_df = time_filter(risk_categories_df, time_value, date_range_value)
+    risk_categories_area_df = risk_categories_df.copy()
 
     if(len(risk_categories_df) == 0):
         return no_data_graph()
@@ -513,20 +531,26 @@ def update_horizontal_bar(child_value, time_value, date_range_value):
         risk_categories_area_df = risk_categories_area_df.groupby(by=["createTime_contents", "result_contents"], as_index=False)["id_contents"].nunique()
         risk_categories_area_df.columns = ["createTime", "risk_category", "count"]
         risk_categories_area_df["createTime"] = pd.to_datetime(risk_categories_area_df["createTime"], format="%b %Y")
-        risk_categories_area_df.sort_values(by=["createTime", "count"], ascending=[True, False], inplace=True)
+        risk_categories_area_df["total_count"] = risk_categories_area_df.groupby("createTime")["count"].transform("sum")
+        risk_categories_area_df["percentage"] = (risk_categories_area_df["count"] / risk_categories_area_df["total_count"]) * 100
+        risk_categories_area_df = risk_categories_area_df.drop(columns=["total_count", "count"])
+        risk_categories_area_df.sort_values(by=["createTime", "percentage"], ascending=[True, False], inplace=True)
+        risk_categories_area_df["createTime"] = pd.to_datetime(risk_categories_area_df["createTime"], format="%b %Y").dt.strftime("%b")
 
-        area_category = px.area(risk_categories_area_df, x="createTime", y="count", color="risk_category", color_discrete_map=classification_bar_colors)
+        area_category = px.bar(risk_categories_area_df, x="percentage", y="createTime", color="risk_category", orientation="h", color_discrete_map=classification_bar_colors)
         area_category.update_layout(margin=dict(t=0, r=25, b=0, l=25), plot_bgcolor="white")
-        area_category.update_layout(xaxis_title="", yaxis_title="", legend_title_text="")
-        area_category.update_xaxes(showticklabels=False, showgrid=False, zeroline=False, fixedrange=True)
-        area_category.update_yaxes(showticklabels=False, showgrid=False, zeroline=False, fixedrange=True)
+        area_category.update_layout(xaxis_title="", yaxis_title="", legend_title_text="", bargap=0)
+        area_category.update_layout(yaxis_ticksuffix="  ", yaxis=dict(tickfont=dict(size=10, family="Poppins", color="#8E8E8E"), ticklabelposition="inside"))
+        area_category.update_layout(xaxis_ticksuffix="%", xaxis=dict(tickfont=dict(size=10, family="Poppins", color="#8E8E8E")))
+        area_category.update_xaxes(showgrid=False, zeroline=True, fixedrange=True)
+        area_category.update_yaxes(showgrid=False, zeroline=True, fixedrange=True)
         area_category.update_traces(showlegend=False)
         return dmc.Stack([
             html.Header("Risk Categories Classification", style={"color": "#052F5F", "fontWeight": "bold", "fontSize": 17, "margin": "10px 25px 0px 25px"}),
             dmc.Progress(className="risk_categories_progress_bar", sections=bar_sections, radius="xl", size=20, animate=False, striped=False, style={"width": "90%", "margin": "auto"}),
             dmc.Grid(className="risk_categories_progress_legend", children=sum(bar_legend, []), gutter="xs", justify="center", align="center"),
-            dcc.Graph(figure=area_category, responsive=True, config=plot_config, style={"height": "25vh"})
-            ], align="stretch", justify="center", spacing="10px")
+            dcc.Graph(figure=area_category, responsive=True, config={"displayModeBar": False}, style={"height": "25vh"})
+            ], align="stretch", justify="space-between", spacing="10px")
 
 
 # Content Risk Bar Chart
