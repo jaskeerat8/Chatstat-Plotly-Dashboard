@@ -26,8 +26,8 @@ plot_config = {"modeBarButtonsToRemove": ["zoom2d", "pan2d", "select2d", "lasso2
                "staticPlot": False, "displaylogo": False}
 platform_colors = {"Instagram": "#25D366", "Twitter": "#2D96FF", "Facebook": "#FF5100", "Tiktok": "#f6c604"}
 alert_colors = {"High": "#FF5100", "Medium": "#f6c604", "Low": "#25D366"}
-content_classification_colors = {"Offensive": "#FFD334", "Sexually Explicit": "#2D96FF", "Sexually Suggestive": "#FF5100", "Other": "#25D366", "Self Harm & Death": "#f77d07"}
-classification_bar_colors = {"Mental & Emotional Health": "rgb(255,211,52)", "Other Toxic Content": "rgb(45,150,255)", "Violence & Threats": "rgb(236,88,0)", "Cyberbullying": "rgb(37,211,102)", "Self Harm & Death": "rgb(255,81,0)", "Sexual & Inappropriate Content": "rgb(160,32,240)"}
+comment_classification_colors = {"Offensive": "#FFD334", "Sexually Explicit": "#2D96FF", "Sexually Suggestive": "#FF5100", "Other": "#25D366", "Self Harm & Death": "#f77d07"}
+category_bar_colors = {"Mental & Emotional Health": "rgb(255,211,52)", "Other Toxic Content": "rgb(45,150,255)", "Violence & Threats": "rgb(236,88,0)", "Cyberbullying": "rgb(37,211,102)", "Self Harm & Death": "rgb(255,81,0)", "Sexual & Inappropriate Content": "rgb(160,32,240)"}
 image_location = {"Instagram": "assets/Instagram.png", "Twitter": "assets/twitter.png", "Facebook": "assets/facebook.png", "Tiktok": "assets/tiktok.png"}
 platform_icons = {"Instagram": "skill-icons:instagram", "Twitter": "devicon:twitter", "Facebook": "devicon:facebook", "Tiktok": "logos:tiktok-icon"}
 
@@ -476,13 +476,13 @@ def update_radial_chart(child_value, time_value, date_range_value, platform_valu
         result_contents_df.sort_values(by=["radial"], ascending=True, inplace=True)
 
         if(((platform_value is not None) and (platform_value != "all")) and ((alert_value is not None) and (alert_value != "all"))):
-            title = f"Comment Classification - {platform_value} & {alert_value} Alerts"
+            title = f"Comment Risk Classification - {platform_value} & {alert_value} Alerts"
         elif((platform_value is not None) and (platform_value != "all")):
-            title = f"Content Classification - {platform_value}"
+            title = f"Content Risk Classification - {platform_value}"
         elif((alert_value is not None) and (alert_value != "all")):
-            title = f"Content Classification - {alert_value} Alerts"
+            title = f"Content Risk Classification - {alert_value} Alerts"
         else:
-            title = "Content Classification"
+            title = "Content Risk Classification"
         return [
             html.P(title, style={"color": "#052F5F", "fontWeight": "bold", "fontSize": 17, "margin": "10px 25px 0px 25px"}),
             html.Img(src=radial_bar_chart.radial_chart(result_contents_df, platform_value, alert_value), width="100%")
@@ -502,13 +502,12 @@ def update_horizontal_bar(child_value, time_value, date_range_value):
     # Filters
     risk_categories_df = child_filter(risk_categories_df, child_value)
     risk_categories_df = time_filter(risk_categories_df, time_value, date_range_value)
-    risk_categories_area_df = risk_categories_df.copy()
 
     if(len(risk_categories_df) == 0):
         return no_data_graph()
     else:
         risk_categories_df = risk_categories_df.groupby(by=["result_contents"], as_index=False)["id_contents"].nunique()
-        risk_categories_df.columns = ["classification", "count"]
+        risk_categories_df.columns = ["category", "count"]
         risk_categories_df["percentage_of_total"] = (risk_categories_df["count"] / risk_categories_df["count"].sum()) * 100
         risk_categories_df["percentage_of_total"] = risk_categories_df["percentage_of_total"].round().astype(int)
         risk_categories_df.loc[risk_categories_df["percentage_of_total"].idxmax(), "percentage_of_total"] += 100 - risk_categories_df["percentage_of_total"].sum()
@@ -516,43 +515,30 @@ def update_horizontal_bar(child_value, time_value, date_range_value):
         bar_sections = []
         risk_categories_df.sort_values(by="percentage_of_total", ascending=True, inplace=True)
         for index, row in risk_categories_df.iterrows():
-            bar_sections.append({"value": row["percentage_of_total"], "color": classification_bar_colors[row["classification"]], "label": str(row["percentage_of_total"])+"%"})
+            bar_sections.append({"value": row["percentage_of_total"], "color": category_bar_colors[row["category"]], "label": str(row["percentage_of_total"])+"%"})
 
+        # Handling Missing Values
+        for classification in category_bar_colors.keys():
+            if(classification not in risk_categories_df["category"].unique()):
+                new_row = {"category": classification, "count": 0, "percentage_of_total": 0}
+                risk_categories_df = pd.concat([risk_categories_df, pd.DataFrame(new_row, index=[len(risk_categories_df)])])
+        
         bar_legend = []
         risk_categories_df.sort_values(by="percentage_of_total", ascending=False, inplace=True)
         for index, row in risk_categories_df.iterrows():
             bar_legend.append([
-                dmc.Col(DashIconify(className="risk_categories_progress_legend_symbol", icon="material-symbols:circle", width=12, color=classification_bar_colors[row["classification"]], ), span=1),
-                dmc.Col(dmc.Text(className="risk_categories_progress_legend_marking", children=row["classification"]), span=6),
+                dmc.Col(DashIconify(className="risk_categories_progress_legend_symbol", icon="material-symbols:circle", width=12, color=category_bar_colors[row["category"]]), span=1),
+                dmc.Col(dmc.Text(className="risk_categories_progress_legend_marking", children=row["category"]), span=6),
                 dmc.Col(html.Header(row["count"], style={"color": "#081A51", "fontFamily": "Poppins", "fontWeight": "bold", "fontSize": 14, "text-align": "right"}), span=2),
                 dmc.Col(dmc.Avatar(className="risk_categories_progress_legend_avatar", children=str(row["percentage_of_total"])+"%", size=30, radius="xl", color="#2D96FF"), span=1, offset=2)
                 ]
             )
 
-        risk_categories_area_df["createTime_contents"] = pd.to_datetime(risk_categories_area_df["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f").dt.strftime("%b %Y")
-        risk_categories_area_df = risk_categories_area_df.groupby(by=["createTime_contents", "result_contents"], as_index=False)["id_contents"].nunique()
-        risk_categories_area_df.columns = ["createTime", "risk_category", "count"]
-        risk_categories_area_df["createTime"] = pd.to_datetime(risk_categories_area_df["createTime"], format="%b %Y")
-        risk_categories_area_df["total_count"] = risk_categories_area_df.groupby("createTime")["count"].transform("sum")
-        risk_categories_area_df["percentage"] = (risk_categories_area_df["count"] / risk_categories_area_df["total_count"]) * 100
-        risk_categories_area_df = risk_categories_area_df.drop(columns=["total_count", "count"])
-        risk_categories_area_df.sort_values(by=["createTime", "percentage"], ascending=[True, False], inplace=True)
-        risk_categories_area_df["createTime"] = pd.to_datetime(risk_categories_area_df["createTime"], format="%b %Y").dt.strftime("%b")
-
-        area_category = px.bar(risk_categories_area_df, x="percentage", y="createTime", color="risk_category", orientation="h", color_discrete_map=classification_bar_colors)
-        area_category.update_layout(margin=dict(t=0, r=25, b=0, l=25), plot_bgcolor="white")
-        area_category.update_layout(xaxis_title="", yaxis_title="", legend_title_text="", bargap=0)
-        area_category.update_layout(yaxis_ticksuffix="  ", yaxis=dict(tickfont=dict(size=10, family="Poppins", color="#8E8E8E"), ticklabelposition="inside"))
-        area_category.update_layout(xaxis_ticksuffix="%", xaxis=dict(tickfont=dict(size=10, family="Poppins", color="#8E8E8E")))
-        area_category.update_xaxes(showgrid=False, zeroline=True, fixedrange=True)
-        area_category.update_yaxes(showgrid=False, zeroline=True, fixedrange=True)
-        area_category.update_traces(showlegend=False)
-        return dmc.Stack([
-            html.Header("Risk Categories Classification", style={"color": "#052F5F", "fontWeight": "bold", "fontSize": 17, "margin": "10px 25px 0px 25px"}),
-            dmc.Progress(className="risk_categories_progress_bar", sections=bar_sections, radius="xl", size=20, animate=False, striped=False, style={"width": "90%", "margin": "auto"}),
-            dmc.Grid(className="risk_categories_progress_legend", children=sum(bar_legend, []), gutter="xs", justify="center", align="center"),
-            dcc.Graph(figure=area_category, responsive=True, config={"displayModeBar": False}, style={"height": "25vh"})
-            ], align="stretch", justify="space-between", spacing="10px")
+        return html.Div(className="risk_categories_progress_bar_container", id="risk_categories_progress_bar_container", children=[
+            dmc.Progress(className="risk_categories_progress_bar", sections=bar_sections, radius="xl", size=25, animate=False, striped=False, style={"width": "90%", "margin": "auto"}),
+            dmc.Space(h=20),
+            dmc.Grid(className="risk_categories_progress_legend", children=sum(bar_legend, []), gutter="xs", justify="center", align="center")
+            ])
 
 
 # Content Risk Bar Chart
@@ -596,11 +582,11 @@ def update_bar_chart(child_value, time_value, date_range_value, platform_value):
 
         content_risk.update_layout(margin=dict(l=25, r=25, b=0), barmode="relative")
         content_risk.update_layout(legend=dict(font=dict(family="Poppins"), traceorder="grouped", orientation="h", x=1, y=1, xanchor="right", yanchor="bottom", title_text="", bgcolor="rgba(0,0,0,0)"))
-        content_risk.update_traces(width=0.4, marker_line=dict(color="black", width=1.5), textangle=0)
-        content_risk.update_traces(textfont=dict(color="#052F5F", size=16, family="Poppins"))
         content_risk.update_layout(xaxis_title="", yaxis_title="", legend_title_text="", plot_bgcolor="rgba(0, 0, 0, 0)")
         content_risk.update_layout(yaxis_showgrid=True, yaxis=dict(tickfont=dict(size=12, family="Poppins", color="#8E8E8E"), griddash="dash", gridwidth=1, gridcolor="#DADADA"))
         content_risk.update_layout(xaxis_showgrid=False, xaxis=dict(tickfont=dict(size=18, family="Poppins", color="#052F5F")))
+        content_risk.update_traces(width=0.4, marker_line=dict(color="black", width=1.5), textangle=0)
+        content_risk.update_traces(textfont=dict(color="#052F5F", size=16, family="Poppins"))
         content_risk.update_xaxes(fixedrange=True)
         content_risk.update_yaxes(fixedrange=True)
 
@@ -644,7 +630,7 @@ def update_line_chart(child_value, alert_value, slider_value):
         comment_alert.update_layout(margin=dict(l=25, r=25, b=0), height=400)
         comment_alert.update_layout(legend=dict(font=dict(family="Poppins"), traceorder="grouped", orientation="h", x=1, y=1, xanchor="right", yanchor="bottom", title_text=""))
         comment_alert.update_layout(xaxis_title="", yaxis_title="", legend_title_text="", plot_bgcolor="rgba(0, 0, 0, 0)")
-        comment_alert.update_layout(yaxis_showgrid=True, yaxis=dict(tickfont=dict(size=12, family="Poppins", color="#8E8E8E"), griddash="dash", gridwidth=1, gridcolor="#DADADA"))
+        comment_alert.update_layout(yaxis_showgrid=True, yaxis_ticksuffix="  ", yaxis=dict(tickfont=dict(size=12, family="Poppins", color="#8E8E8E"), griddash="dash", gridwidth=1, gridcolor="#DADADA"))
         comment_alert.update_layout(xaxis_showgrid=False, xaxis=dict(tickfont=dict(size=9, family="Poppins", color="#052F5F"), tickangle=0))
         comment_alert.update_traces(mode="lines+markers", line=dict(width=2), marker=dict(sizemode="diameter", size=8, color="white", line=dict(width=2)))
         comment_alert.update_xaxes(fixedrange=True)
@@ -717,7 +703,7 @@ def update_pie_chart(child_value, time_value, date_range_value, platform_value, 
         result_comment_df.columns = ["classification", "count"]
         result_comment_df.sort_values(by=["count"], ascending=True, inplace=True)
 
-        comment_classification = px.pie(result_comment_df, values="count", names="classification", color="classification", color_discrete_map=content_classification_colors)
+        comment_classification = px.pie(result_comment_df, values="count", names="classification", color="classification", color_discrete_map=comment_classification_colors)
         comment_classification.update_layout(margin=dict(l=25, r=25), plot_bgcolor="white", paper_bgcolor="white")
         comment_classification.update_layout(annotations=[dict(text="<b>"+str(result_comment_df["count"].sum())+"</b>", x=0.5, y=0.55, font=dict(family="Poppins", size=28, color="#052F5F"), showarrow=False),
                                                           dict(text="Total Comments", x=0.5, y=0.45, font=dict(family="Poppins", size=18, color="#052F5F"), showarrow=False)]

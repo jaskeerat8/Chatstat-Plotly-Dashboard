@@ -331,15 +331,18 @@ body {
 }
 
 /* progress bar */
+.risk_categories_progress_bar_container {
+    border-left: 10px #2196F3 solid;
+    border-radius: 0px 5px 5px 0px;
+    background-color: #c1dfff;
+    margin: 10px;
+    padding: 20px 0px 0px 0px;
+    height: 100%;
+}
 .risk_categories_progress_bar .mantine-Progress-label {
     color: black;
     font-size: 13px;
     font-family: "Poppins";
-}
-.risk_categories_progress_bar .mantine-Progress-bar {
-    border-style: solid;
-    border-color: white;
-    border-width: 1px;
 }
 .risk_categories_progress_legend {
     margin: 0px 20px;
@@ -485,6 +488,10 @@ body {
     background-color: white;
     border-radius: 0px 5px 5px 0px;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 /* Risk Bar Chart */
