@@ -510,11 +510,13 @@ def update_horizontal_bar(child_value, time_value, date_range_value):
         risk_categories_df = risk_categories_df.groupby(by=["result_contents"], as_index=False)["id_contents"].nunique()
         risk_categories_df.columns = ["classification", "count"]
         risk_categories_df["percentage_of_total"] = (risk_categories_df["count"] / risk_categories_df["count"].sum()) * 100
+        risk_categories_df["percentage_of_total"] = risk_categories_df["percentage_of_total"].round().astype(int)
+        risk_categories_df.loc[risk_categories_df["percentage_of_total"].idxmax(), "percentage_of_total"] += 100 - risk_categories_df["percentage_of_total"].sum()
 
         bar_sections = []
         risk_categories_df.sort_values(by="percentage_of_total", ascending=True, inplace=True)
         for index, row in risk_categories_df.iterrows():
-            bar_sections.append({"value": row["percentage_of_total"], "color": classification_bar_colors[row["classification"]], "label": str(int(row["percentage_of_total"]))+"%"})
+            bar_sections.append({"value": row["percentage_of_total"], "color": classification_bar_colors[row["classification"]], "label": str(row["percentage_of_total"])+"%"})
 
         bar_legend = []
         risk_categories_df.sort_values(by="percentage_of_total", ascending=False, inplace=True)
@@ -523,7 +525,7 @@ def update_horizontal_bar(child_value, time_value, date_range_value):
                 dmc.Col(DashIconify(className="risk_categories_progress_legend_symbol", icon="material-symbols:circle", width=12, color=classification_bar_colors[row["classification"]], ), span=1),
                 dmc.Col(dmc.Text(className="risk_categories_progress_legend_marking", children=row["classification"]), span=6),
                 dmc.Col(html.Header(row["count"], style={"color": "#081A51", "fontFamily": "Poppins", "fontWeight": "bold", "fontSize": 14, "text-align": "right"}), span=2),
-                dmc.Col(dmc.Avatar(className="risk_categories_progress_legend_avatar", children=str(int(row["percentage_of_total"]))+"%", size=30, radius="xl", color="#2D96FF"), span=1, offset=2)
+                dmc.Col(dmc.Avatar(className="risk_categories_progress_legend_avatar", children=str(row["percentage_of_total"])+"%", size=30, radius="xl", color="#2D96FF"), span=1, offset=2)
                 ]
             )
 
