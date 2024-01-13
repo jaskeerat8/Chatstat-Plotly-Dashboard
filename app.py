@@ -169,10 +169,13 @@ control = dmc.Group([
         dmc.ActionIcon(DashIconify(icon="grommet-icons:power-reset", color="white", width=25, flip="horizontal"), id="reset_filter_container", n_clicks=0, variant="transparent")
     ], spacing="10px"
     ),
-    dmc.Select(className="searchbar", id="searchbar", clearable=True, searchable=True, placeholder=" Search...", nothingFound="Nothing Found", limit=5, iconWidth=50,
-               icon=html.Img(src="assets/images/chatstatlogo_black.png", width="60%"), rightSection=DashIconify(icon="radix-icons:chevron-right", color="black"),
+    html.Div(className="searchbar_container", id="searchbar_container", children=[
+        html.P("Generate Progress Overview", className="searchbar_label", id="searchbar_label"),
+        dmc.Select(className="searchbar", id="searchbar", clearable=True, searchable=True, placeholder=" Search...", nothingFound="Nothing Found", limit=5, iconWidth=50,
+               icon=html.Img(src="assets/images/chatstatlogo_black.png", width="40%"), rightSection=DashIconify(icon="radix-icons:chevron-right", color="black"),
                data=list(df["name_childrens"].unique()) + list(df["id_childrens"].unique())
-    )
+        )
+    ])
 ], style={"margin": "10px"}, spacing="10px"
 )
 
@@ -534,11 +537,10 @@ def update_horizontal_bar(child_value, time_value, date_range_value):
                 ]
             )
 
-        return html.Div(className="risk_categories_progress_bar_container", id="risk_categories_progress_bar_container", children=[
-            dmc.Progress(className="risk_categories_progress_bar", sections=bar_sections, radius="xl", size=25, animate=False, striped=False, style={"width": "90%", "margin": "auto"}),
-            dmc.Space(h=20),
+        return dmc.Stack(className="risk_categories_progress_bar_container", id="risk_categories_progress_bar_container", children=[
+            dmc.Progress(className="risk_categories_progress_bar", sections=bar_sections, radius="xl", size=25, animate=False, striped=False, style={"width": "95%"}),
             dmc.Grid(className="risk_categories_progress_legend", children=sum(bar_legend, []), gutter="xs", justify="center", align="center")
-            ])
+            ], justify="space-evenly")
 
 
 # Content Risk Bar Chart

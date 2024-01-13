@@ -252,14 +252,20 @@ body {
 }
 
 /* Search Bar */
-.searchbar {
+.searchbar_container {
     flex: 1;
     display: inline-block;
 }
-.searchbar .mantine-Select-input {
-    height: 60px;
+.searchbar_label {
     font-family: "Poppins";
-    font-size: 18px;
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0px 0px 2px 0px;
+    text-align: center;
+}
+.searchbar .mantine-Select-input {
+    font-family: "Poppins";
+    font-size: 16px;
     font-weight: 600;
     border: 1px solid black;
     border-radius: 5px;
@@ -338,6 +344,7 @@ body {
     margin: 10px;
     padding: 20px 0px 0px 0px;
     height: 100%;
+    align-items: center;
 }
 .risk_categories_progress_bar .mantine-Progress-label {
     color: black;
