@@ -95,11 +95,11 @@ sidebar = html.Div(className="sidebar", children=[
 
     html.P("Main Menu", style={"color": "white", "margin": 0, "padding": 0, "fontFamily": "Poppins", "fontSize": 12}),
     dbc.Nav(className="sidebar_navlink", children=[
-        dbc.NavLink([html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/dashboard.png"), html.Span("Dashboard")],
+        dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/dashboard.png"), html.Span("Dashboard")],
                     href="/dashboard", active="exact", className="sidebar_navlink_option"),
-        dbc.NavLink([html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/analytics.png"), html.Span("Analytics")],
+        dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/analytics.png"), html.Span("Analytics")],
                     href="/analytics", active="exact", className="sidebar_navlink_option"),
-        dbc.NavLink([html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/report.png"), html.Span("Report & Logs")],
+        dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/report.png"), html.Span("Report & Logs")],
                     href="/report", active="exact", className="sidebar_navlink_option")
         ],
         vertical=True, pills=True)
@@ -170,7 +170,7 @@ control = dmc.Group([
     ], spacing="10px"
     ),
     html.Div(className="searchbar_container", id="searchbar_container", children=[
-        html.P("Generate Progress Overview", className="searchbar_label", id="searchbar_label"),
+        html.P("Search Child Overview", className="searchbar_label", id="searchbar_label"),
         dmc.Select(className="searchbar", id="searchbar", clearable=True, searchable=True, placeholder=" Search...", nothingFound="Nothing Found", limit=5, iconWidth=50,
                icon=html.Img(src="assets/images/chatstatlogo_black.png", width="40%"), rightSection=DashIconify(icon="radix-icons:chevron-right", color="black"),
                data=list(df["name_childrens"].unique()) + list(df["id_childrens"].unique())
@@ -181,7 +181,7 @@ control = dmc.Group([
 
 # KPI Card
 kpi_cards = html.Div([
-    dmc.Card(id="kpi_alert_count", withBorder=True, radius="5px", style={"width": "auto", "margin": "0px 10px 0px 0px", "box-shadow": ""}),
+    dmc.Card(id="kpi_alert_count", className="kpi_alert_count", withBorder=True, radius="5px", style={"width": "auto", "margin": "0px 10px 0px 0px", "box-shadow": ""}),
     dmc.Group(id="kpi_platform_count", className="kpi_platform_count", position="center", spacing="10px")
     ], style={"display": "flex", "flexDirection": "row", "margin": "10px", "padding": "0px"}
 )
@@ -393,12 +393,12 @@ def update_kpi_count(child_value, time_value, date_range_value):
                         dmc.Text(metric_text, color="dimmed", style={"fontSize": "12px", "fontFamily": "Poppins", "text-align": "right"})
                         ], align="center", justify="center", spacing="0px")
                 ], position="center", style={"margin": "0px", "padding": "0px"}),
-            ], spacing="0px")
+            ], spacing=0)
         else:
             card = dmc.Stack(children=[
                 dmc.Text("Number of Alerts", id="kpi_alert_count_label", className="kpi_alert_count_label"),
                 dmc.Text("No Data Found", color="black", style={"fontSize": 17, "fontFamily": "Poppins", "fontWeight": "bold", "text-align": "center"})
-            ])
+            ], spacing=0)
         return card
 
 

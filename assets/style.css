@@ -383,6 +383,11 @@ body {
     z-index: 1050;
     transition: width 0.1s ease-in-out;
 }
+.sidebar_navlink_option {
+    display: flex;
+    justify-content: left;
+    align-items: center;
+}
 
 /* when the user hovers on the sidebar, expand it */
 .sidebar:hover {
@@ -446,9 +451,6 @@ body {
     align-items: center;
     overflow: hidden;
     white-space: nowrap;
-}
-.sidebar_navlink_option:hover .sidebar_navlink_option_text {
-    color: red;
 }
 
 /* position the header relative to the logo and hide by default */
