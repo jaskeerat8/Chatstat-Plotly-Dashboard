@@ -170,7 +170,7 @@ control = dmc.Group([
     ], spacing="10px"
     ),
     html.Div(className="searchbar_container", id="searchbar_container", children=[
-        html.P("Search Child Overview", className="searchbar_label", id="searchbar_label"),
+        html.P("Child Overview", className="searchbar_label", id="searchbar_label"),
         dmc.Select(className="searchbar", id="searchbar", clearable=True, searchable=True, placeholder=" Search...", nothingFound="Nothing Found", limit=5, iconWidth=50,
                icon=html.Img(src="assets/images/chatstatlogo_black.png", width="40%"), rightSection=DashIconify(icon="radix-icons:chevron-right", color="black"),
                data=list(df["name_childrens"].unique()) + list(df["id_childrens"].unique())
@@ -178,6 +178,16 @@ control = dmc.Group([
     ])
 ], style={"margin": "10px"}, spacing="10px"
 )
+
+# Overview Card
+overview = html.Div(children=[
+    dmc.Modal(title="Child Overview", id="child_overview", centered=True, zIndex=10000, children=[
+        dmc.Avatar(size="lg", radius="xl"),
+        dmc.Text("Name"),
+        html.Div(id="overview_platform")
+    ]),
+    dmc.Button("Open modal", id="button")
+])
 
 # KPI Card
 kpi_cards = html.Div([
@@ -241,7 +251,7 @@ def display_page(pathname):
     elif pathname == "/report":
         return [sidebar]
     else:
-        return [sidebar]
+        return [sidebar, overview]
 
 
 # Child Control Drop Down
@@ -319,6 +329,59 @@ def update_alert_dropdown(alert_value):
 )
 def reset_filters(n_clicks):
     return """{"KPI": "A", "delta": 365}""", "all", "all"
+
+
+# Generate Overview Card
+@app.callback(
+    [Output("child_overview", "opened"), Output("overview_platform", "children")],
+    Input("button", "n_clicks"),
+    prevent_initial_call=True
+)
+def update_overview_card(n_clicks):
+    overview_platform_df = df.copy()
+    overview_platform_df = overview_platform_df[(overview_platform_df["alert_contents"].str.lower() != "no") & (overview_platform_df["alert_contents"].str.lower() != "") & (overview_platform_df["alert_contents"].notna())]
+
+    overview_platform_df["createTime_contents"] = pd.to_datetime(overview_platform_df["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f")
+    overview_platform_df = overview_platform_df.groupby(by=["platform_contents"], as_index=False)["id_contents"].nunique()
+    overview_platform_df.columns = ["platform", "count"]
+
+    platform_elements = [html.Div([
+        html.Div(
+            html.P(row["platform"],
+                   style={"text-align": "center", "font-size": "14px", "margin": "0px"}),
+            style={"display": "flex", "justify-content": "center"}
+        ),
+        html.Div(
+            html.P(row["count"],
+                   style={"text-align": "center", "font-weight": "bold", "font-size": "18px", "margin": "auto"}),
+            style={"background-color": "lightblue", "width": "50px", "height": "50px", "border-radius": "10px",
+                   "display": "flex", "flex-direction": "column", "align-items": "center", "justify-content": "center"}
+        )
+    ], style={"display": "flex", "flex-direction": "column", "align-items": "center", "margin-right": "20px"}) for
+        index, row in overview_platform_df.iterrows()]
+
+    overview_alert_df = df.copy()
+    overview_alert_df["createTime_contents"] = pd.to_datetime(overview_alert_df["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f")
+    overview_alert_df = overview_alert_df[(overview_alert_df["result_contents"].str.lower() != "no") & (overview_alert_df["result_contents"].str.lower() != "") & (overview_alert_df["result_contents"].notna())]
+    overview_alert_df = overview_alert_df.groupby(by=["result_contents"], as_index=False)["id_contents"].nunique()
+    overview_alert_df.columns = ["category", "count"]
+
+    category_elements = [
+        html.Div([
+            html.P(row["count"],
+                   style={"text-align": "left", "font-size": "14px", "font-weight": "bold", "margin": "0"}),
+            html.P(row["category"], style={"text-align": "left", "font-size": "15px", "margin": "auto"})
+        ], style={"width": "50%"}) for index, row in overview_alert_df.iterrows()
+    ]
+
+    category_elements = [
+        html.Div(category_elements[i:i + 2], style={"display": "flex", "flex-direction": "row", "margin": "10px"}) for i in range(0, len(category_elements), 2)
+    ]
+    return True, html.Div(children=[
+        html.Div(platform_elements, style={"margin": "auto", "display": "flex", "flex-direction": "row"}),
+        html.Div(category_elements)
+        ]
+    )
 
 
 # KPI Count Card
@@ -475,7 +538,8 @@ def update_radial_chart(child_value, time_value, date_range_value, platform_valu
     else:
         result_contents_df = result_contents_df.groupby(by=["result_contents"], as_index=False)["id_contents"].nunique()
         result_contents_df.columns = ["classification", "count"]
-        result_contents_df["radial"] = (result_contents_df["count"] / result_contents_df["count"].max()) * 270
+        result_contents_df["radial"] = (result_contents_df["count"] / result_contents_df["count"].sum()) * 270
+        result_contents_df["total_radial"] = 270
         result_contents_df.sort_values(by=["radial"], ascending=True, inplace=True)
 
         if(((platform_value is not None) and (platform_value != "all")) and ((alert_value is not None) and (alert_value != "all"))):
@@ -538,7 +602,12 @@ def update_horizontal_bar(child_value, time_value, date_range_value):
             )
 
         return dmc.Stack(className="risk_categories_progress_bar_container", id="risk_categories_progress_bar_container", children=[
-            dmc.Progress(className="risk_categories_progress_bar", sections=bar_sections, radius="xl", size=25, animate=False, striped=False, style={"width": "95%"}),
+            html.Div(className="risk_categories_progress_bar_label", children=[
+                html.Hr(style={"width": "30%", "borderTop": "2px solid", "borderBottom": "2px solid", "opacity": "unset"}),
+                dmc.Text("Categories", style={"fontFamily": "Poppins"}),
+                html.Hr(style={"width": "30%", "borderTop": "2px solid", "borderBottom": "2px solid", "opacity": "unset"}),
+            ], style={"width": "100%"}),
+            dmc.Progress(className="risk_categories_progress_bar", sections=bar_sections, radius=10, size=25, animate=False, striped=False, style={"width": "95%"}),
             dmc.Grid(className="risk_categories_progress_legend", children=sum(bar_legend, []), gutter="xs", justify="center", align="center")
             ], justify="space-evenly")
 

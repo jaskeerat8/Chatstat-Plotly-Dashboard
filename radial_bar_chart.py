@@ -21,14 +21,17 @@ content_classification_colors = {"Mental & Emotional Health": "#FFD334", "Other 
 # Matplotlib
 def radial_chart(result_contents_df, platform_value, alert_value):
     try:
+        print(result_contents_df)
         categories = result_contents_df["classification"]
         counts = result_contents_df["count"]
         radial = np.radians(result_contents_df["radial"])
+        total_radial = np.radians(result_contents_df["total_radial"])
         labels = result_contents_df["classification"]
         colors = [content_classification_colors[category] for category in categories]
 
         ax = plt.subplot(projection="polar")
-        radial_bars = ax.barh(categories, radial, color=colors, edgecolor="black", linewidth=1.5, height=0.9)
+        total_radial_bars = ax.barh(categories, total_radial, color="#d8dce2", height=0.8)
+        radial_bars = ax.barh(categories, radial, color=colors, edgecolor="black", linewidth=1.5, height=0.77)
         for category, count in zip(categories, counts):
             ax.text(0, category, category + "  (" + str(count) + ") ", color="black", ha="right", va="center",
                     fontsize=12, fontproperties=label_prop)
