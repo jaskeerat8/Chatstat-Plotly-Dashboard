@@ -13,15 +13,14 @@ label_font_path = "assets/fonts/Poppins-SemiBold.ttf"
 legend_font_path = "assets/fonts/Poppins-Regular.ttf"
 label_prop = fm.FontProperties(fname=label_font_path)
 legend_prop = fm.FontProperties(fname=legend_font_path)
-legend_prop.set_size(12)
+legend_prop.set_size(11)
 
 # Colors
 content_classification_colors = {"Mental & Emotional Health": "#FFD334", "Other Toxic Content": "#2D96FF", "Violence & Threats": "#FF5100", "Cyberbullying": "#25D366", "Self Harm & Death": "#f77d07", "Sexual & Inappropriate Content": "#a020f0"}
 
 # Matplotlib
-def radial_chart(result_contents_df, platform_value, alert_value):
+def radial_chart(result_contents_df):
     try:
-        print(result_contents_df)
         categories = result_contents_df["classification"]
         counts = result_contents_df["count"]
         radial = np.radians(result_contents_df["radial"])
@@ -38,18 +37,18 @@ def radial_chart(result_contents_df, platform_value, alert_value):
 
         ax.set_theta_zero_location("N")
         ax.set_theta_direction(-1)
-        ax.set_xticklabels([])
+        ax.set_xticklabels(["", "", "", "", "", "", f"Total {counts.sum()}       "], fontproperties=label_prop, fontsize=12, color="black")
         ax.set_yticklabels([])
         ax.set_frame_on(False)
         ax.grid(False)
 
         legend_elements = [Patch(color=color, label=label) for color, label in zip(colors, labels)]
-        legend = plt.legend(handles=legend_elements, loc="lower center", bbox_to_anchor=(0.5, -0.15), ncol=2, frameon=False, labelcolor="#2a3f5f")
+        legend = plt.legend(handles=legend_elements, loc="lower center", bbox_to_anchor=(0.5, -0.15), ncol=2, frameon=False, labelcolor="#052F5F")
         for text in legend.get_texts():
             text.set_fontproperties(legend_prop)
     except Exception as e:
         fig, ax = plt.subplots()
-        ax.text(0.5, 0.5, "Issues in Producing Visualisation", ha="center", va="center", fontsize=16, color="red", fontproperties=legend_prop)
+        ax.text(0.5, 0.5, "Issue in Producing Visualisation", ha="center", va="center", fontsize=16, color="red", fontproperties=legend_prop)
         ax.set_xticks([])
         ax.set_yticks([])
         ax.set_xticklabels([])

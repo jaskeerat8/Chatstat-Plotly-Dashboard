@@ -37,9 +37,6 @@ body {
 }
 
 /* child control dropdown */
-.child_control {
-    width: 12%;
-}
 .child_control .mantine-Select-input {
     background-color: transparent;
     border: none;
@@ -305,8 +302,7 @@ body {
 
 /* progress bar */
 .risk_categories_progress_bar_container {
-    border-left: 10px #2196F3 solid;
-    border-radius: 0px 5px 5px 0px;
+    border-radius: 5px;
     background-color: #c1dfff;
     margin: 10px;
     padding: 20px 0px 0px 0px;

@@ -14,6 +14,7 @@ import dash_mantine_components as dmc
 import dash_bootstrap_components as dbc
 from dash_iconify import DashIconify
 from dash.dependencies import Input, Output
+from PIL import Image, ImageDraw, ImageFont
 
 # Global Variables
 global date_dict
@@ -80,6 +81,15 @@ def no_data_graph():
         ], style={"height": "100%"}
     )
     return message
+
+
+# Function for Text Width
+def text_width(text, font_path, font_size):
+    canvas = ImageDraw.Draw(Image.new("RGB", (1, 1), (255, 255, 255)))
+    bbox = canvas.textbbox((0, 0), text, font=ImageFont.truetype(font_path, font_size))
+    width = bbox[2] - bbox[0]
+    del canvas
+    return width
 
 
 # SideBar
@@ -256,15 +266,18 @@ def display_page(pathname):
 
 # Child Control Drop Down
 @app.callback(
-    [Output("child_control", "data"), Output("child_control", "icon")],
+    [Output("child_control", "data"), Output("child_control", "icon"), Output("child_control", "style")],
     Input("child_control", "value")
 )
 def update_child_control(child_value):
     user_df = df.copy()
     user_list = user_df["name_childrens"].unique()
     data = [{"value": "all", "label": "All Members"}] + [{"value": i, "label": i.split(" ")[0].title()} for i in user_list]
+
     avatar_text = "".join([name[0].title() for name in child_value.split(" ")])
-    return data, dmc.Avatar(id="child_control_avatar", className="child_control_avatar", children=avatar_text, color="red", size=30, radius="xl", style={"border": "2px solid red"})
+    width = text_width(max(data, key=lambda x: len(x["label"]))["label"], "assets/fonts/Poppins-Bold.ttf", 14)
+
+    return data, dmc.Avatar(id="child_control_avatar", className="child_control_avatar", children=avatar_text, color="red", size=30, radius="xl", style={"border": "2px solid red"}), {"width": f"{width+80}px"}
 
 
 # Time Control Information
@@ -552,7 +565,7 @@ def update_radial_chart(child_value, time_value, date_range_value, platform_valu
             title = "Content Risk Classification"
         return [
             html.P(title, style={"color": "#052F5F", "fontWeight": "bold", "fontSize": 17, "margin": "10px 25px 0px 25px"}),
-            html.Img(src=radial_bar_chart.radial_chart(result_contents_df, platform_value, alert_value), width="100%")
+            html.Img(src=radial_bar_chart.radial_chart(result_contents_df), width="100%")
         ]
 
 
