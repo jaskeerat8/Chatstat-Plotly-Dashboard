@@ -191,7 +191,7 @@ control = dmc.Group([
 
 # Overview Card
 overview = html.Div(children=[
-    dmc.Modal(title="Child Overview", id="child_overview", centered=True, zIndex=10000, children=[
+    dmc.Modal(title="Child Overview", id="child_overview", zIndex=10000, centered=True, overflow="inside", children=[
         dmc.Avatar(size="lg", radius="xl"),
         dmc.Text("Name"),
         html.Div(id="overview_platform")
@@ -610,7 +610,7 @@ def update_horizontal_bar(child_value, time_value, date_range_value):
                 dmc.Col(DashIconify(className="risk_categories_progress_legend_symbol", icon="material-symbols:circle", width=12, color=category_bar_colors[row["category"]]), span=1),
                 dmc.Col(dmc.Text(className="risk_categories_progress_legend_marking", children=row["category"]), span=6),
                 dmc.Col(html.Header(row["count"], style={"color": "#081A51", "fontFamily": "Poppins", "fontWeight": "bold", "fontSize": 14, "text-align": "right"}), span=2),
-                dmc.Col(dmc.Avatar(className="risk_categories_progress_legend_avatar", children=str(row["percentage_of_total"])+"%", size=30, radius="xl", color="#2D96FF"), span=1, offset=2)
+                dmc.Col(dmc.Avatar(className="risk_categories_progress_legend_avatar", children=str(row["percentage_of_total"])+"%", size=35, radius="xl", color="#2D96FF"), span=1, offset=2)
                 ]
             )
 

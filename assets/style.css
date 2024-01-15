@@ -339,7 +339,10 @@ body {
     font-family: "Poppins";
     color: black;
 }
-.risk_categories_progress_legend_avatar .mantine-1hv0clq {
+.risk_categories_progress_legend_avatar .mantine-ht4gsv {
+    font-size: 12px;
+    font-weight: 600;
+    font-family: "Poppins";
     border: 2px solid #228be6;
 }
 
