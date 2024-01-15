@@ -4,7 +4,7 @@
 /* Attributes for whole page */
 body {
     font-family: "Poppins";
-    background-color: #B9D9EB;
+    background-color: #c1dfff;
 }
 
 /* No data after Filter Message */
@@ -302,8 +302,9 @@ body {
 
 /* progress bar */
 .risk_categories_progress_bar_container {
+    border: 3px solid #052F5F;
     border-radius: 5px;
-    background-color: #c1dfff;
+    background-color: #B9D9EB;
     margin: 10px;
     padding: 20px 0px 0px 0px;
     height: 100%;
@@ -315,7 +316,7 @@ body {
     font-family: "Poppins";
     color: #052F5F;
     display: flex;
-    justify-content: space-around;
+    justify-content: space-evenly;
     align-items: center;
 }
 .risk_categories_progress_bar .mantine-Progress-label {
