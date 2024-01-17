@@ -18,6 +18,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 # Global Variables
 global date_dict
+todays_date = datetime(2023, 12, 31)
 
 # Reading static Data, later read from AWS after user authentication
 df = pd.read_csv("Data/final_30-11-2023_14_11_18.csv")
@@ -34,25 +35,35 @@ platform_icons = {"Instagram": "skill-icons:instagram", "Twitter": "devicon:twit
 
 
 # Filter Functions
-def child_filter(dataframe, child_value):
-    if((child_value is not None) and (child_value != "all")):
-        dataframe = dataframe[dataframe["name_childrens"] == child_value]
-    return dataframe
-
 def time_filter(dataframe, time_value, date_range_value):
     if(time_value == "all"):
-        start_date = datetime.combine(datetime.strptime(date_range_value[0], "%Y-%m-%d"), datetime.min.time())
         end_date = datetime.combine(datetime.strptime(date_range_value[1], "%Y-%m-%d"), datetime.max.time())
+        start_date = datetime.combine(datetime.strptime(date_range_value[0], "%Y-%m-%d"), datetime.min.time())
         dataframe["createTime_contents"] = pd.to_datetime(dataframe["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f")
         dataframe = dataframe[(dataframe["createTime_contents"] >= start_date) & (dataframe["createTime_contents"] <= end_date)]
         return dataframe
     else:
-        time_value = json.loads(time_value)
-        start_date = datetime.now() - timedelta(days=time_value["delta"])
-        end_date = datetime.now()
+        end_date = datetime.combine(todays_date, datetime.max.time())
+        if(time_value == "W"):
+            start_date = end_date - timedelta(days=end_date.weekday())
+        elif(time_value == "M"):
+            start_date = end_date.replace(day=1)
+        elif(time_value == "3M"):
+            start_date = end_date.replace(day=1).replace(month=3*round((end_date.month - 1) // 3 + 1) - 2)
+        elif(time_value == "A"):
+            start_date = end_date.replace(day=1).replace(month=1)
+        else:
+            start_date = end_date
+        start_date = datetime.combine(start_date, datetime.min.time())
+
         dataframe["createTime_contents"] = pd.to_datetime(dataframe["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f")
         dataframe = dataframe[(dataframe["createTime_contents"] >= start_date) & (dataframe["createTime_contents"] <= end_date)]
         return dataframe
+
+def member_filter(dataframe, member_value):
+    if((member_value is not None) and (member_value != "all")):
+        dataframe = dataframe[dataframe["name_childrens"] == member_value]
+    return dataframe
 
 def platform_filter(dataframe, platform_value):
     if((platform_value is not None) and (platform_value != "all")):
@@ -84,12 +95,21 @@ def no_data_graph():
 
 
 # Function for Text Width
-def text_width(text, font_path, font_size):
-    canvas = ImageDraw.Draw(Image.new("RGB", (1, 1), (255, 255, 255)))
-    bbox = canvas.textbbox((0, 0), text, font=ImageFont.truetype(font_path, font_size))
-    width = bbox[2] - bbox[0]
-    del canvas
-    return width
+def text_width(font_path="assets/fonts/Poppins-Bold.ttf", font_size=16):
+    data = ["All Members", "All Platforms", "All Alerts"] + \
+           [i.split(" ")[0].title() for i in df["name_childrens"].unique() if ((str(i).lower() != "nan") and (str(i).lower() != "no"))] + \
+           [i.title() for i in df["platform_contents"].unique() if ((str(i).lower() != "nan") and (str(i).lower() != "no"))] + \
+           [i.title() for i in df["alert_contents"].unique() if ((str(i).lower() != "nan") and (str(i).lower() != "no"))]
+
+    max_dropdown_width = float("-inf")
+    for label in data:
+        canvas = ImageDraw.Draw(Image.new("RGB", (1, 1), (255, 255, 255)))
+        bbox = canvas.textbbox((0, 0), label, font=ImageFont.truetype(font_path, font_size))
+        width = bbox[2] - bbox[0]
+        del canvas
+        if(width > max_dropdown_width):
+            max_dropdown_width = width
+    return max_dropdown_width+100
 
 
 # SideBar
@@ -119,20 +139,13 @@ sidebar = html.Div(className="sidebar", children=[
 
 # Header
 dashboard_header = dmc.Header(className="header", height="60px", fixed=False, children=[
-    dmc.Text("Dashboard", className="header_title"),
-    dmc.Select(id="child_control", className="child_control", value="all",
-               placeholder="Select Member", clearable=False, searchable=False,
-               rightSection=DashIconify(icon="radix-icons:chevron-down", color="black")
-    )
+    dmc.Text("Dashboard", className="header_title")
 ])
 
 analytics_header = dmc.Header(className="header", height="60px", fixed=False, children=[
-    dmc.Text("Analytics", className="header_title"),
-    dmc.Select(id="child_control", className="child_control", value="all",
-               placeholder="Select Member", clearable=False, searchable=False,
-               rightSection=DashIconify(icon="radix-icons:chevron-down", color="black")
-    )
+    dmc.Text("Analytics", className="header_title")
 ])
+
 
 # Controls
 control = dmc.Group([
@@ -140,47 +153,48 @@ control = dmc.Group([
         html.P("FILTERS", className="filter_label", id="filter_label"),
         dmc.HoverCard(openDelay=1000, children=[
             dmc.HoverCardTarget(
-                dmc.SegmentedControl(id="time_control", className="time_control", value="""{"KPI": "A", "delta": 365}""", radius="md", size="xs",
-                                     data=[
-                                        {"label": "Daily", "value": """{"KPI": "D", "delta": 1}"""},
-                                        {"label": "Weekly", "value": """{"KPI": "W", "delta": 7}"""},
-                                        {"label": "Monthly", "value": """{"KPI": "M", "delta": 30}"""},
-                                        {"label": "Quarterly", "value": """{"KPI": "3M", "delta": 90}"""},
-                                        {"label": "Yearly", "value": """{"KPI": "A", "delta": 365}"""},
-                                        {"label": "Custom Range", "value": "all"}
-                                     ]
+                dmc.SegmentedControl(id="time_control", className="time_control", value="A", radius="md", size="xs", data=[
+                    {"label": "Daily", "value": "D"},
+                    {"label": "Weekly", "value": "W"},
+                    {"label": "Monthly", "value": "M"},
+                    {"label": "Quarterly", "value": "3M"},
+                    {"label": "Yearly", "value": "A"},
+                    {"label": "Custom Range", "value": "all"}
+                ]
                 )
             ),
             dmc.HoverCardDropdown(id="time_control_information", className="time_control_information")
         ]),
         dbc.Popover(id="popover_date_picker", className="popover_date_picker", children=[
             dbc.PopoverHeader("Selected Date Range", className="popover_date_picker_label"),
-            dmc.DateRangePicker(id="date_range_picker", className="date_range_picker", clearable=False, inputFormat="MMM DD, YYYY", icon=DashIconify(icon=f"arcticons:calendar-{datetime.now().day}", color="black", width=30),
-                                value=[datetime.now().date() - timedelta(days=30), datetime.now().date()])
+            dmc.DateRangePicker(id="date_range_picker", className="date_range_picker", clearable=False, inputFormat="MMM DD, YYYY", icon=DashIconify(icon=f"arcticons:calendar-{todays_date.day}", color="black", width=30),
+                                value=[todays_date.date()-timedelta(days=60), todays_date.date()]
+            )
         ], target="time_control", placement="bottom", trigger="legacy", hide_arrow=True
         ),
+        html.Div(className="member_dropdown_container", children=[
+            html.P("Members", className="member_dropdown_label"),
+            dmc.Select(className="member_dropdown", id="member_dropdown", clearable=False, searchable=False, value="all",
+               rightSection=DashIconify(icon="radix-icons:chevron-down", color="black"), style={"width": f"{text_width()}px"}
+            ),
+        ]),
         html.Div(className="platform_dropdown_container", children=[
             html.P("Social Platform", className="platform_dropdown_label"),
             dmc.Select(className="platform_dropdown", id="platform_dropdown", clearable=False, searchable=False, value="all",
-                data=[{"label": "All Platforms", "value": "all"}] + [{"label": i.title(), "value": i} for i in df["platform_contents"].unique() if ((str(i).lower() != "nan") and (str(i).lower() != "no"))],
-                rightSection=DashIconify(icon="radix-icons:chevron-down", color="black")
+                rightSection=DashIconify(icon="radix-icons:chevron-down", color="black"), style={"width": f"{text_width()}px"}
             )
         ]),
         html.Div(className="alert_dropdown_container", children=[
             html.P("Alert Level", className="alert_dropdown_label"),
             dmc.Select(className="alert_dropdown", id="alert_dropdown", clearable=False, searchable=False, value="all",
-                data=[{"label": "All Alerts", "value": "all"}] + [{"label": i.title(), "value": i}
-                for i in sorted(df["alert_contents"].unique(), key=lambda x: ["high", "medium", "low"].index(x.lower())
-                    if isinstance(x, str) and x.lower() in ["high", "medium", "low"] else float("inf"))
-                    if (isinstance(i, str) and str(i).lower() != "nan") and (str(i).lower() != "no")],
-                rightSection=DashIconify(icon="radix-icons:chevron-down", color="black")
+                rightSection=DashIconify(icon="radix-icons:chevron-down", color="black"), style={"width": f"{text_width()}px"}
             )
         ]),
         dmc.ActionIcon(DashIconify(icon="grommet-icons:power-reset", color="white", width=25, flip="horizontal"), id="reset_filter_container", n_clicks=0, variant="transparent")
     ], spacing="10px"
     ),
     html.Div(className="searchbar_container", id="searchbar_container", children=[
-        html.P("Child Overview", className="searchbar_label", id="searchbar_label"),
+        html.P("Member Overview", className="searchbar_label", id="searchbar_label"),
         dmc.Select(className="searchbar", id="searchbar", clearable=True, searchable=True, placeholder=" Search...", nothingFound="Nothing Found", limit=5, iconWidth=50,
                icon=html.Img(src="assets/images/chatstatlogo_black.png", width="40%"), rightSection=DashIconify(icon="radix-icons:chevron-right", color="black"),
                data=list(df["name_childrens"].unique()) + list(df["id_childrens"].unique())
@@ -188,6 +202,7 @@ control = dmc.Group([
     ])
 ], style={"margin": "10px"}, spacing="10px"
 )
+
 
 # Overview Card
 overview = html.Div(children=[
@@ -198,6 +213,7 @@ overview = html.Div(children=[
     ]),
     dmc.Button("Open modal", id="button")
 ])
+
 
 # KPI Card
 kpi_cards = html.Div([
@@ -264,35 +280,18 @@ def display_page(pathname):
         return [sidebar, overview]
 
 
-# Child Control Drop Down
-@app.callback(
-    [Output("child_control", "data"), Output("child_control", "icon"), Output("child_control", "style")],
-    Input("child_control", "value")
-)
-def update_child_control(child_value):
-    user_df = df.copy()
-    user_list = user_df["name_childrens"].unique()
-    data = [{"value": "all", "label": "All Members"}] + [{"value": i, "label": i.split(" ")[0].title()} for i in user_list]
-
-    avatar_text = "".join([name[0].title() for name in child_value.split(" ")])
-    width = text_width(max(data, key=lambda x: len(x["label"]))["label"], "assets/fonts/Poppins-Bold.ttf", 14)
-
-    return data, dmc.Avatar(id="child_control_avatar", className="child_control_avatar", children=avatar_text, color="red", size=30, radius="xl", style={"border": "2px solid red"}), {"width": f"{width+80}px"}
-
-
 # Time Control Information
 @app.callback(
     Output("time_control_information", "children"),
     Input("time_interval", "n_intervals")
 )
 def update_time_control_information(time_interval):
-    todays_date = datetime.today().strftime('%d-%b-%Y')
     information = html.Ul(children=[
-        html.Li(f"Daily: For Date {todays_date}"),
-        html.Li(f"weekly: Between {todays_date} & {(datetime.today() - timedelta(7)).strftime('%d-%b-%Y')}"),
-        html.Li(f"Monthly: Between {todays_date} & {(datetime.today() - timedelta(30)).strftime('%d-%b-%Y')}"),
-        html.Li(f"Quaterly: Between {todays_date} & {(datetime.today() - timedelta(90)).strftime('%d-%b-%Y')}"),
-        html.Li(f"Yearly: Between {todays_date} & {(datetime.today() - timedelta(365)).strftime('%d-%b-%Y')}"),
+        html.Li(f"Daily: For Today's Date {todays_date.strftime('%d %b, %Y')}"),
+        html.Li(f"weekly: From Monday to Sunday"),
+        html.Li(f"Monthly: From the 1st of {todays_date.strftime('%B')}"),
+        html.Li(f"Quarterly: For this Quarter starting from {todays_date.replace(month=3*round((todays_date.month - 1) // 3 + 1) - 2).strftime('%B')}"),
+        html.Li(f"Yearly: From the Beginning of {todays_date.year}"),
         html.Li("Custom Range: Select from Date Picker")
     ])
     return information
@@ -310,38 +309,59 @@ def update_popover_date_picker(time_value):
         return {"display": "none"}, ""
 
 
+# Member Dropdown
+@app.callback(
+    [Output("member_dropdown", "data"), Output("member_dropdown", "icon")],
+    Input("member_dropdown", "value")
+)
+def update_member_dropdown(member_value):
+    user_list = df["name_childrens"].unique()
+    if(len(user_list) == 1):
+        data = [{"value": "all", "label": i.split(" ")[0].title()} for i in user_list if ((str(i).lower() != "nan") and (str(i).lower() != "no"))]
+    else:
+        data = [{"value": "all", "label": "All Members"}] + [{"value": i, "label": i.split(" ")[0].title()} for i in user_list if ((str(i).lower() != "nan") and (str(i).lower() != "no"))]
+    return data, DashIconify(icon=f"tabler:square-letter-{member_value[0].lower()}", width=25, color="#FFC000")
+
+
 # Platform Dropdown
 @app.callback(
-    Output("platform_dropdown", "icon"),
+    [Output("platform_dropdown", "data"), Output("platform_dropdown", "icon")],
     Input("platform_dropdown", "value")
 )
 def update_platform_dropdown(platform_value):
+    platform_list = df["platform_contents"].unique()
+    data = [{"label": "All Platforms", "value": "all"}] + [{"label": i.title(), "value": i} for i in platform_list if ((str(i).lower() != "nan") and (str(i).lower() != "no"))]
     if(platform_value in ["all", None]):
-        return DashIconify(icon="emojione-v1:globe-showing-asia-australia", width=20)
+        return data, DashIconify(icon="emojione-v1:globe-showing-asia-australia", width=20)
     else:
-        return DashIconify(icon=platform_icons[platform_value.title()], width=20)
+        return data, DashIconify(icon=platform_icons[platform_value.title()], width=20)
 
 
 # Alert Dropdown
 @app.callback(
-    Output("alert_dropdown", "icon"),
+    [Output("alert_dropdown", "data"), Output("alert_dropdown", "icon")],
     Input("alert_dropdown", "value")
 )
 def update_alert_dropdown(alert_value):
+    alert_list = df["alert_contents"].unique()
+    data = [{"label": "All Alerts", "value": "all"}] + [{"label": i.title(), "value": i}
+                for i in sorted(alert_list, key=lambda x: ["high", "medium", "low"].index(x.lower())
+                    if isinstance(x, str) and x.lower() in ["high", "medium", "low"] else float("inf"))
+                    if (isinstance(i, str) and str(i).lower() != "nan") and (str(i).lower() != "no")]
     if(alert_value in ["all", None]):
-        return DashIconify(icon="line-md:alert", color="#012749", width=30)
+        return data, DashIconify(icon="line-md:alert", color="#012749", width=30)
     else:
-        return DashIconify(icon="line-md:alert", color=alert_colors[alert_value.title()], width=30)
+        return data, DashIconify(icon="line-md:alert", color=alert_colors[alert_value.title()], width=30)
 
 
 # Reset Filter Container
 @app.callback(
-    [Output("time_control", "value"), Output("platform_dropdown", "value"), Output("alert_dropdown", "value")],
+    [Output("time_control", "value"), Output("member_dropdown", "value"), Output("platform_dropdown", "value"), Output("alert_dropdown", "value")],
     Input("reset_filter_container", "n_clicks"),
     prevent_initial_call=True
 )
 def reset_filters(n_clicks):
-    return """{"KPI": "A", "delta": 365}""", "all", "all"
+    return "A", "all", "all", "all"
 
 
 # Generate Overview Card
@@ -400,14 +420,14 @@ def update_overview_card(n_clicks):
 # KPI Count Card
 @app.callback(
     Output("kpi_alert_count", "children"),
-    [Input("child_control", "value"), Input("time_control", "value"), Input("date_range_picker", "value")]
+    [Input("time_control", "value"), Input("date_range_picker", "value"), Input("member_dropdown", "value")]
 )
-def update_kpi_count(child_value, time_value, date_range_value):
+def update_kpi_count(time_value, date_range_value, member_value):
     alert_count_df = df.copy()
     alert_count_df = alert_count_df[(alert_count_df["alert_contents"].str.lower() != "no") & (alert_count_df["alert_contents"].str.lower() != "") & (alert_count_df["alert_contents"].notna())]
 
     # Filters
-    alert_count_df = child_filter(alert_count_df, child_value)
+    alert_count_df = member_filter(alert_count_df, member_value)
     if(time_value == "all"):
         alert_count_df = time_filter(alert_count_df, time_value, date_range_value)
         card = dmc.Stack(children=[
@@ -424,11 +444,9 @@ def update_kpi_count(child_value, time_value, date_range_value):
         return card
 
     else:
-        time_value = json.loads(time_value)
-
         alert_count_df["createTime_contents"] = pd.to_datetime(alert_count_df["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f")
         alert_count_df.set_index("createTime_contents", inplace=True)
-        alert_count_df = alert_count_df.resample(time_value["KPI"])["id_contents"].nunique()
+        alert_count_df = alert_count_df.resample(time_value)["id_contents"].nunique()
         alert_count_df = alert_count_df.reset_index()
         alert_count_df.columns = ["date", "count"]
         if(len(alert_count_df) == 1):
@@ -438,24 +456,24 @@ def update_kpi_count(child_value, time_value, date_range_value):
         alert_count_df["date"] = alert_count_df["date"].dt.date
         alert_count_df = alert_count_df.sort_values(by="date", ascending=False)
 
-        if(time_value["KPI"] == "W"):
-            today = datetime.today().date() - timedelta(days=365)
+        if(time_value == "W"):
+            today = todays_date.date()
             date_comparison = today + timedelta(days=(6 - today.weekday()) % 7)
             metric_text = "vs Last Week"
-        elif(time_value["KPI"] == "M"):
-            today = datetime.today().date() - timedelta(days=365)
+        elif(time_value == "M"):
+            today = todays_date.date()
             date_comparison = datetime(today.year, today.month, calendar.monthrange(today.year, today.month)[-1]).date()
             metric_text = "vs Last Month"
-        elif(time_value["KPI"] == "3M"):
-            today = datetime.today().date() - timedelta(days=365)
+        elif(time_value == "3M"):
+            today = todays_date.date()
             date_comparison = (today + pd.tseries.offsets.QuarterEnd(0)).date()
             metric_text = "vs Last Quarter"
-        elif(time_value["KPI"] == "A"):
-            today = datetime.today().date() - timedelta(days=365)
+        elif(time_value == "A"):
+            today = todays_date.date()
             date_comparison = datetime(today.year, 12, 31).date()
             metric_text = "vs Last Year"
         else:
-            date_comparison = datetime.today().date() - timedelta(days=365)
+            date_comparison = todays_date.date()
             metric_text = "vs Last Day"
 
         if(date_comparison in alert_count_df["date"].values):
@@ -481,16 +499,16 @@ def update_kpi_count(child_value, time_value, date_range_value):
 # KPI Platform Card
 @app.callback(
     Output("kpi_platform_count", "children"),
-    [Input("child_control", "value"), Input("time_control", "value"), Input("date_range_picker", "value"), Input("alert_dropdown", "value")]
+    [Input("time_control", "value"), Input("date_range_picker", "value"), Input("member_dropdown", "value"), Input("alert_dropdown", "value")]
 )
-def update_kpi_platform(child_value, time_value, date_range_value, alert_value):
+def update_kpi_platform(time_value, date_range_value, member_value, alert_value):
     kpi_platform_df = df.copy()
     kpi_platform_df = kpi_platform_df[(kpi_platform_df["alert_contents"].str.lower() != "no") & (kpi_platform_df["alert_contents"].str.lower() != "") & (kpi_platform_df["alert_contents"].notna())]
     kpi_platform_df = kpi_platform_df[(kpi_platform_df["result_contents"].str.lower() != "no") & (kpi_platform_df["result_contents"].str.lower() != "") & (kpi_platform_df["result_contents"].notna())]
 
     # Filters
-    kpi_platform_df = child_filter(kpi_platform_df, child_value)
     kpi_platform_df = time_filter(kpi_platform_df, time_value, date_range_value)
+    kpi_platform_df = member_filter(kpi_platform_df, member_value)
     kpi_platform_df = alert_filter(kpi_platform_df, alert_value)
 
     if(len(kpi_platform_df) == 0):
@@ -533,16 +551,16 @@ def update_kpi_platform(child_value, time_value, date_range_value, alert_value):
 # Content Classification Radial Chart
 @app.callback(
     Output("content_classification_radial_chart", "children"),
-    [Input("child_control", "value"), Input("time_control", "value"), Input("date_range_picker", "value"), Input("platform_dropdown", "value"), Input("alert_dropdown", "value")]
+    [Input("time_control", "value"), Input("date_range_picker", "value"), Input("member_dropdown", "value"), Input("platform_dropdown", "value"), Input("alert_dropdown", "value")]
 )
-def update_radial_chart(child_value, time_value, date_range_value, platform_value, alert_value):
+def update_radial_chart(time_value, date_range_value, member_value, platform_value, alert_value):
     result_contents_df = df.copy()
     result_contents_df = result_contents_df[(result_contents_df["result_contents"].str.lower() != "no") & (result_contents_df["result_contents"].str.lower() != "") & (result_contents_df["result_contents"].notna())]
     result_contents_df = result_contents_df[(result_contents_df["alert_contents"].str.lower() != "no") & (result_contents_df["alert_contents"].str.lower() != "") & (result_contents_df["alert_contents"].notna())]
 
     # Filters
-    result_contents_df = child_filter(result_contents_df, child_value)
     result_contents_df = time_filter(result_contents_df, time_value, date_range_value)
+    result_contents_df = member_filter(result_contents_df, member_value)
     result_contents_df = platform_filter(result_contents_df, platform_value)
     result_contents_df = alert_filter(result_contents_df, alert_value)
 
@@ -572,16 +590,16 @@ def update_radial_chart(child_value, time_value, date_range_value, platform_valu
 # Risk Categories Horizontal Bar
 @app.callback(
     Output("risk_categories_horizontal_bar", "children"),
-    [Input("child_control", "value"), Input("time_control", "value"), Input("date_range_picker", "value")]
+    [Input("time_control", "value"), Input("date_range_picker", "value"), Input("member_dropdown", "value")]
 )
-def update_horizontal_bar(child_value, time_value, date_range_value):
+def update_horizontal_bar(time_value, date_range_value, member_value):
     risk_categories_df = df.copy()
     risk_categories_df = risk_categories_df[(risk_categories_df["result_contents"].str.lower() != "no") & (risk_categories_df["result_contents"].str.lower() != "") & (risk_categories_df["result_contents"].notna())]
     risk_categories_df = risk_categories_df[(risk_categories_df["alert_contents"].str.lower() != "no") & (risk_categories_df["alert_contents"].str.lower() != "") & (risk_categories_df["alert_contents"].notna())]
 
     # Filters
-    risk_categories_df = child_filter(risk_categories_df, child_value)
     risk_categories_df = time_filter(risk_categories_df, time_value, date_range_value)
+    risk_categories_df = member_filter(risk_categories_df, member_value)
 
     if(len(risk_categories_df) == 0):
         return no_data_graph()
@@ -628,15 +646,15 @@ def update_horizontal_bar(child_value, time_value, date_range_value):
 # Content Risk Bar Chart
 @app.callback(
     Output("content_risk_bar_chart", "children"),
-    [Input("child_control", "value"), Input("time_control", "value"), Input("date_range_picker", "value"), Input("platform_dropdown", "value")]
+    [Input("time_control", "value"), Input("date_range_picker", "value"), Input("member_dropdown", "value"), Input("platform_dropdown", "value")]
 )
-def update_bar_chart(child_value, time_value, date_range_value, platform_value):
+def update_bar_chart(time_value, date_range_value, member_value, platform_value):
     risk_content_df = df.copy()
     risk_content_df = risk_content_df[(risk_content_df["alert_contents"].str.lower() != "no") & (risk_content_df["alert_contents"].str.lower() != "") & (risk_content_df["alert_contents"].notna())]
 
     # Filters
-    risk_content_df = child_filter(risk_content_df, child_value)
     risk_content_df = time_filter(risk_content_df, time_value, date_range_value)
+    risk_content_df = member_filter(risk_content_df, member_value)
     risk_content_df = platform_filter(risk_content_df, platform_value)
 
     if(len(risk_content_df) == 0):
@@ -690,14 +708,14 @@ def update_bar_chart(child_value, time_value, date_range_value, platform_value):
 # Comment Alert Line Chart
 @app.callback(
     Output("comment_alert_line_chart", "children"),
-    [Input("child_control", "value"), Input("alert_dropdown", "value"), Input("comment_alert_line_chart_slider", "value")]
+    [Input("member_dropdown", "value"), Input("alert_dropdown", "value"), Input("comment_alert_line_chart_slider", "value")]
 )
-def update_line_chart(child_value, alert_value, slider_value):
+def update_line_chart(member_value, alert_value, slider_value):
     alert_comment_df = df.copy()
     alert_comment_df = alert_comment_df[(alert_comment_df["alert_comments"].str.lower() != "no") & (alert_comment_df["alert_comments"].str.lower() != "") & (alert_comment_df["alert_comments"].notna())]
 
     # Filters
-    alert_comment_df = child_filter(alert_comment_df, child_value)
+    alert_comment_df = member_filter(alert_comment_df, member_value)
     alert_comment_df = alert_filter(alert_comment_df, alert_value)
     alert_comment_df = slider_filter(alert_comment_df, slider_value)
 
@@ -732,14 +750,14 @@ def update_line_chart(child_value, alert_value, slider_value):
 @app.callback(
     [Output("comment_alert_line_chart_slider", "marks"), Output("comment_alert_line_chart_slider", "max"),
      Output("comment_alert_line_chart_slider", "min"), Output("comment_alert_line_chart_slider", "value")],
-    [Input("child_control", "value")]
+    [Input("member_dropdown", "value")]
 )
-def update_line_chart_slider(child_value):
+def update_line_chart_slider(member_value):
     slider_df = df.copy()
     slider_df = slider_df[(slider_df["alert_comments"].str.lower() != "no") & (slider_df["alert_comments"].str.lower() != "") & (slider_df["alert_comments"].notna())]
 
     # Filters
-    slider_df = child_filter(slider_df, child_value)
+    slider_df = member_filter(slider_df, member_value)
 
     slider_df["commentTime_comments"] = pd.to_datetime(slider_df["commentTime_comments"], format="%Y-%m-%d %H:%M:%S").dt.date
     slider_df = slider_df[slider_df["commentTime_comments"] >= date.today()-timedelta(days=365*2)]
@@ -749,8 +767,8 @@ def update_line_chart_slider(child_value):
         max_date = slider_df["commentTime_comments"].max()
         date_range = range((max_date - min_date).days + 1)
     except:
-        min_date = datetime.now() - timedelta(days=365)
-        max_date = datetime.now()
+        min_date = todays_date - timedelta(days=365)
+        max_date = todays_date
         date_range = range((max_date - min_date).days + 1)
 
     maximum_mark = max(date_range)
@@ -766,16 +784,16 @@ def update_line_chart_slider(child_value):
 # Comment Classification Pie Chart
 @app.callback(
     Output("comment_classification_pie_chart", "children"),
-    [Input("child_control", "value"), Input("time_control", "value"), Input("date_range_picker", "value"), Input("platform_dropdown", "value"), Input("alert_dropdown", "value")]
+    [Input("time_control", "value"), Input("date_range_picker", "value"), Input("member_dropdown", "value"), Input("platform_dropdown", "value"), Input("alert_dropdown", "value")]
 )
-def update_pie_chart(child_value, time_value, date_range_value, platform_value, alert_value):
+def update_pie_chart(time_value, date_range_value, member_value, platform_value, alert_value):
     result_comment_df = df.copy()
     result_comment_df = result_comment_df[(result_comment_df["result_comments"].str.lower() != "no") & (result_comment_df["result_comments"].str.lower() != "") & (result_comment_df["result_comments"].notna())]
     result_comment_df = result_comment_df[(result_comment_df["alert_comments"].str.lower() != "no") & (result_comment_df["alert_comments"].str.lower() != "") & (result_comment_df["alert_comments"].notna())]
 
     # Filters
-    result_comment_df = child_filter(result_comment_df, child_value)
     result_comment_df = time_filter(result_comment_df, time_value, date_range_value)
+    result_comment_df = member_filter(result_comment_df, member_value)
     result_comment_df = platform_filter(result_comment_df, platform_value)
     result_comment_df = alert_filter(result_comment_df, alert_value)
 
@@ -811,19 +829,12 @@ def update_pie_chart(child_value, time_value, date_range_value, platform_value, 
 # Content Classification Sunburst Chart
 @app.callback(
     Output("content_classification_sunburst_chart", "figure"),
-    [Input("time_interval", "n_intervals")]
-    #[Input("child_control", "value"), Input("time_control", "value"), Input("date_range_picker", "value"), Input("platform_dropdown", "value"), Input("alert_dropdown", "value")]
+    Input("time_interval", "n_intervals")
 )
 def update_sunburst_chart(time_interval):
     risk_content_df = df.copy()
     risk_content_df = risk_content_df[(risk_content_df["result_json_contents"].str.lower() != "no") & (risk_content_df["result_json_contents"].str.lower() != "") & (risk_content_df["result_json_contents"].notna())]
     risk_content_df = risk_content_df[(risk_content_df["alert_contents"].str.lower() != "no") & (risk_content_df["alert_contents"].str.lower() != "") & (risk_content_df["alert_contents"].notna())]
-
-    # Filters
-    # risk_content_df = child_filter(risk_content_df, child_value)
-    # risk_content_df = time_filter(risk_content_df, time_value, date_range_value)
-    # risk_content_df = platform_filter(risk_content_df, platform_value)
-    # risk_content_df = alert_filter(risk_content_df, alert_value)
 
     sunburst_data = {"category": [], "subcategory": [], "value": []}
     for index, row in risk_content_df.iterrows():
