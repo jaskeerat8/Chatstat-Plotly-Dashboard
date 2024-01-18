@@ -18,7 +18,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 # Global Variables
 global date_dict
-todays_date = datetime(2023, 12, 31)
+todays_date = datetime(2023, 10, 31)
 
 # Reading static Data, later read from AWS after user authentication
 df = pd.read_csv("Data/final_30-11-2023_14_11_18.csv")
@@ -48,7 +48,7 @@ def time_filter(dataframe, time_value, date_range_value):
             start_date = end_date - timedelta(days=end_date.weekday())
         elif(time_value == "M"):
             start_date = end_date.replace(day=1)
-        elif(time_value == "3M"):
+        elif(time_value == "Q"):
             start_date = end_date.replace(day=1).replace(month=3*round((end_date.month - 1) // 3 + 1) - 2)
         elif(time_value == "A"):
             start_date = end_date.replace(day=1).replace(month=1)
@@ -157,7 +157,7 @@ control = dmc.Group([
                     {"label": "Daily", "value": "D"},
                     {"label": "Weekly", "value": "W"},
                     {"label": "Monthly", "value": "M"},
-                    {"label": "Quarterly", "value": "3M"},
+                    {"label": "Quarterly", "value": "Q"},
                     {"label": "Yearly", "value": "A"},
                     {"label": "Custom Range", "value": "all"}
                 ]
@@ -287,7 +287,7 @@ def display_page(pathname):
 )
 def update_time_control_information(time_interval):
     information = html.Div(children=[
-        html.Div(DashIconify(icon="mingcute:information-line", color="#002147", width=30), style={"text-align": "right", "position": "absolute", "top": "10px", "right": "10px"}),
+        html.Div(DashIconify(icon="mingcute:information-line", color="#002147", width=30), style={"position": "absolute", "top": "10px", "right": "10px"}),
         html.Ul(children=[
             html.Li([html.Strong("Daily: "), f"For Today's Date {todays_date.strftime('%d %b, %Y')}"]),
             html.Li([html.Strong("Weekly: "), f"From Monday to Sunday"]),
@@ -467,7 +467,7 @@ def update_kpi_count(time_value, date_range_value, member_value):
             today = todays_date.date()
             date_comparison = datetime(today.year, today.month, calendar.monthrange(today.year, today.month)[-1]).date()
             metric_text = "vs Last Month"
-        elif(time_value == "3M"):
+        elif(time_value == "Q"):
             today = todays_date.date()
             date_comparison = (today + pd.tseries.offsets.QuarterEnd(0)).date()
             metric_text = "vs Last Quarter"
@@ -485,8 +485,8 @@ def update_kpi_count(time_value, date_range_value, member_value):
                 dmc.Group(children=[
                     dmc.Text(alert_count_df["count"].iloc[0], style={"color": "#052F5F", "fontSize": "40px", "fontFamily": "Poppins", "fontWeight": 600}),
                     dmc.Stack([
-                        dmc.Text("▲"+str(alert_count_df["increase"].iloc[0]) if alert_count_df["increase"].iloc[0] >= 0 else "▼"+str(alert_count_df["increase"].iloc[0]),
-                                 style={"color": "#25D366" if alert_count_df["increase"].iloc[0] >= 0 else "#FF5100", "fontSize": "20px", "fontFamily": "Poppins", "fontWeight": 600}),
+                        dmc.Text("▲"+str(alert_count_df["increase"].iloc[0]) if alert_count_df["increase"].iloc[0] > 0 else "▼"+str(abs(alert_count_df["increase"].iloc[0])),
+                                 style={"color": "#FF5100" if alert_count_df["increase"].iloc[0] > 0 else "#25D366", "fontSize": "20px", "fontFamily": "Poppins", "fontWeight": 600}),
                         dmc.Text(metric_text, color="dimmed", style={"fontSize": "12px", "fontFamily": "Poppins", "text-align": "right"})
                         ], align="center", justify="center", spacing="0px")
                 ], position="center", style={"margin": "0px", "padding": "0px"}),
@@ -528,11 +528,39 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value)
         kpi_list = []
         number_of_platforms = len(kpi_platform_df["platform"].unique())
         for platform in kpi_platform_df["platform"].unique():
+
+            # Producing Increase for each Platform
+            if(time_value != "all"):
+                kpi_platform_count_df = df.copy()
+                kpi_platform_count_df = kpi_platform_count_df[(kpi_platform_count_df["alert_contents"].str.lower() != "no") & (kpi_platform_count_df["alert_contents"].str.lower() != "") & (kpi_platform_count_df["alert_contents"].notna())]
+                kpi_platform_count_df = kpi_platform_count_df[(kpi_platform_count_df["result_contents"].str.lower() != "no") & (kpi_platform_count_df["result_contents"].str.lower() != "") & (kpi_platform_count_df["result_contents"].notna())]
+                kpi_platform_count_df["createTime_contents"] = pd.to_datetime(kpi_platform_count_df["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f")
+
+                # Filters
+                kpi_platform_count_df = kpi_platform_count_df[kpi_platform_count_df["platform_contents"] == platform]
+                kpi_platform_count_df = member_filter(kpi_platform_count_df, member_value)
+                kpi_platform_count_df = alert_filter(kpi_platform_count_df, alert_value)
+
+                kpi_platform_count_df.set_index("createTime_contents", inplace=True)
+                kpi_platform_count_df = kpi_platform_count_df.resample(time_value)["id_contents"].nunique()
+                kpi_platform_count_df = kpi_platform_count_df.reset_index()
+                kpi_platform_count_df.columns = ["date", "count"]
+                if(len(kpi_platform_count_df) == 1):
+                    kpi_platform_count_df["increase"] = kpi_platform_count_df["count"].diff().fillna(kpi_platform_count_df["count"].iloc[0]).astype(int)
+                else:
+                    kpi_platform_count_df["increase"] = kpi_platform_count_df["count"].diff().fillna(0).astype(int)
+                kpi_platform_count_df["date"] = kpi_platform_count_df["date"].dt.date
+                kpi_platform_count_df = kpi_platform_count_df.sort_values(by="date", ascending=False)
+
             platform_df = kpi_platform_df[kpi_platform_df["platform"] == platform]
             title = platform.title()+f" - {alert_value} Alerts" if ((alert_value is not None) and (alert_value != "all")) else platform.title()
             kpi_list.append(
                 dmc.Card(children=[
-                    dbc.Row(dbc.Col(dmc.Text(title, style={"color": "black", "fontSize": "18px", "fontFamily": "Poppins, verdana", "fontWeight": "bold"}))),
+                    dbc.Row([dbc.Col(dmc.Text(title, style={"color": "black", "fontSize": "18px", "fontFamily": "Poppins", "fontWeight": "bold"}), width="auto"),
+                             dbc.Col(dmc.Text("▲"+str(kpi_platform_count_df["increase"].iloc[0]) if kpi_platform_count_df["increase"].iloc[0] > 0 else "▼"+str(abs(kpi_platform_count_df["increase"].iloc[0])),
+                                    style={"color": "#FF5100" if kpi_platform_count_df["increase"].iloc[0] > 0 else "#25D366", "fontSize": "16px", "fontFamily": "Poppins", "fontWeight": 600}
+                                    ), width="auto", align="end")
+                    ], className="g-1"),
                     dbc.Row([
                         dbc.Col(dmc.Image(src=f"assets/images/{platform}.png", height="50px", width="50px"), align="center", width=2),
                         dbc.Col(dmc.Stack(children=[
