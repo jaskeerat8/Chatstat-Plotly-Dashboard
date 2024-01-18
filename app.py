@@ -18,7 +18,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 # Global Variables
 global date_dict
-todays_date = datetime(2023, 10, 31)
+todays_date = datetime(2023, 11, 30)
 
 # Reading static Data, later read from AWS after user authentication
 df = pd.read_csv("Data/final_30-11-2023_14_11_18.csv")
@@ -139,7 +139,16 @@ sidebar = html.Div(className="sidebar", children=[
 
 # Header
 dashboard_header = dmc.Header(className="header", height="60px", fixed=False, children=[
-    dmc.Text("Dashboard", className="header_title")
+    dmc.Text("Dashboard", className="header_title"),
+    dmc.Menu(trigger="hover", children=[
+        dmc.MenuTarget(dmc.Badge("Lawrence", size="xl", radius="xl", color="teal",
+                    leftSection=dmc.Avatar(src="assets/images/user.jpeg", size=24, radius="xl", mr=5)
+        )),
+        dmc.MenuDropdown(children=[
+            dmc.MenuItem("Account", icon=DashIconify(icon="mdi-light:account")),
+            dmc.MenuItem("Settings", icon=DashIconify(icon="tabler:settings"))
+        ])
+    ])
 ])
 
 analytics_header = dmc.Header(className="header", height="60px", fixed=False, children=[
@@ -557,8 +566,9 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value)
             kpi_list.append(
                 dmc.Card(children=[
                     dbc.Row([dbc.Col(dmc.Text(title, style={"color": "black", "fontSize": "18px", "fontFamily": "Poppins", "fontWeight": "bold"}), width="auto"),
-                             dbc.Col(dmc.Text("▲"+str(kpi_platform_count_df["increase"].iloc[0]) if kpi_platform_count_df["increase"].iloc[0] > 0 else "▼"+str(abs(kpi_platform_count_df["increase"].iloc[0])),
-                                    style={"color": "#FF5100" if kpi_platform_count_df["increase"].iloc[0] > 0 else "#25D366", "fontSize": "16px", "fontFamily": "Poppins", "fontWeight": 600}
+                             dbc.Col(dmc.Text("" if time_value == "all" else ("▲"+str(kpi_platform_count_df["increase"].iloc[0]) if kpi_platform_count_df["increase"].iloc[0] > 0 else "▼"+str(abs(kpi_platform_count_df["increase"].iloc[0]))),
+                                    style={"color": "#25D366" if time_value == "all" else ("#FF5100" if kpi_platform_count_df["increase"].iloc[0] > 0 else "#25D366"),
+                                           "fontSize": "14px", "fontFamily": "Poppins", "fontWeight": 600}
                                     ), width="auto", align="end")
                     ], className="g-1"),
                     dbc.Row([
