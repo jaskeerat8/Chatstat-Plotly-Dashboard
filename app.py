@@ -151,7 +151,7 @@ analytics_header = dmc.Header(className="header", height="60px", fixed=False, ch
 control = dmc.Group([
     dmc.Group(className="filter_container", children=[
         html.P("FILTERS", className="filter_label", id="filter_label"),
-        dmc.HoverCard(openDelay=1000, children=[
+        dmc.HoverCard(openDelay=1200, position="right", children=[
             dmc.HoverCardTarget(
                 dmc.SegmentedControl(id="time_control", className="time_control", value="A", radius="md", size="xs", data=[
                     {"label": "Daily", "value": "D"},
@@ -286,13 +286,16 @@ def display_page(pathname):
     Input("time_interval", "n_intervals")
 )
 def update_time_control_information(time_interval):
-    information = html.Ul(children=[
-        html.Li(f"Daily: For Today's Date {todays_date.strftime('%d %b, %Y')}"),
-        html.Li(f"weekly: From Monday to Sunday"),
-        html.Li(f"Monthly: From the 1st of {todays_date.strftime('%B')}"),
-        html.Li(f"Quarterly: For this Quarter starting from {todays_date.replace(month=3*round((todays_date.month - 1) // 3 + 1) - 2).strftime('%B')}"),
-        html.Li(f"Yearly: From the Beginning of {todays_date.year}"),
-        html.Li("Custom Range: Select from Date Picker")
+    information = html.Div(children=[
+        html.Div(DashIconify(icon="mingcute:information-line", color="#002147", width=30), style={"text-align": "right", "position": "absolute", "top": "10px", "right": "10px"}),
+        html.Ul(children=[
+            html.Li([html.Strong("Daily: "), f"For Today's Date {todays_date.strftime('%d %b, %Y')}"]),
+            html.Li([html.Strong("Weekly: "), f"From Monday to Sunday"]),
+            html.Li([html.Strong("Monthly: "), f"From the 1st of {todays_date.strftime('%B')}"]),
+            html.Li([html.Strong("Quarterly: "), f"For this Quarter starting from {todays_date.replace(month=3*round((todays_date.month - 1) // 3 + 1) - 2).strftime('%B')}"]),
+            html.Li([html.Strong("Yearly: "), f"From the Beginning of {todays_date.year}"]),
+            html.Li([html.Strong("Custom Range: "), "Select from Date Picker"])
+        ])
     ])
     return information
 
