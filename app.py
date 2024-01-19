@@ -145,8 +145,8 @@ dashboard_header = dmc.Header(className="header", height="60px", fixed=False, ch
                     leftSection=dmc.Avatar(src="assets/images/user.jpeg", size=24, radius="xl", mr=5)
         )),
         dmc.MenuDropdown(children=[
-            dmc.MenuItem("Account", icon=DashIconify(icon="mdi-light:account")),
-            dmc.MenuItem("Settings", icon=DashIconify(icon="tabler:settings"))
+            dmc.MenuItem("Account", icon=DashIconify(icon="line-md:account-small", width=20)),
+            dmc.MenuItem("Settings", icon=DashIconify(icon="tabler:settings", width=20))
         ])
     ])
 ])
@@ -160,7 +160,7 @@ analytics_header = dmc.Header(className="header", height="60px", fixed=False, ch
 control = dmc.Group([
     dmc.Group(className="filter_container", children=[
         html.P("FILTERS", className="filter_label", id="filter_label"),
-        dmc.HoverCard(openDelay=1200, position="right", children=[
+        dmc.HoverCard(openDelay=1200, position="right", transition="pop", children=[
             dmc.HoverCardTarget(
                 dmc.SegmentedControl(id="time_control", className="time_control", value="A", radius="md", size="xs", data=[
                     {"label": "Daily", "value": "D"},
@@ -296,7 +296,7 @@ def display_page(pathname):
 )
 def update_time_control_information(time_interval):
     information = html.Div(children=[
-        html.Div(DashIconify(icon="mingcute:information-line", color="#002147", width=30), style={"position": "absolute", "top": "10px", "right": "10px"}),
+        DashIconify(icon="ion:information-circle-outline", color="#0b71aa", width=30, style={"position": "absolute", "top": "10px", "right": "10px"}),
         html.Ul(children=[
             html.Li([html.Strong("Daily: "), f"For Today's Date {todays_date.strftime('%d %b, %Y')}"]),
             html.Li([html.Strong("Weekly: "), f"From Monday to Sunday"]),
@@ -565,24 +565,25 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value)
             title = platform.title()+f" - {alert_value} Alerts" if ((alert_value is not None) and (alert_value != "all")) else platform.title()
             kpi_list.append(
                 dmc.Card(children=[
-                    dbc.Row([dbc.Col(dmc.Text(title, style={"color": "black", "fontSize": "18px", "fontFamily": "Poppins", "fontWeight": "bold"}), width="auto"),
-                             dbc.Col(dmc.Text("" if time_value == "all" else ("▲"+str(kpi_platform_count_df["increase"].iloc[0]) if kpi_platform_count_df["increase"].iloc[0] > 0 else "▼"+str(abs(kpi_platform_count_df["increase"].iloc[0]))),
-                                    style={"color": "#25D366" if time_value == "all" else ("#FF5100" if kpi_platform_count_df["increase"].iloc[0] > 0 else "#25D366"),
-                                           "fontSize": "14px", "fontFamily": "Poppins", "fontWeight": 600}
-                                    ), width="auto", align="end")
-                    ], className="g-1"),
+                    dbc.Row(dbc.Col(dmc.Text(title, style={"color": "black", "fontSize": "18px", "fontFamily": "Poppins", "fontWeight": "bold"}), width="auto")),
                     dbc.Row([
-                        dbc.Col(dmc.Image(src=f"assets/images/{platform}.png", height="50px", width="50px"), align="center", width=2),
+                        dbc.Col(html.Img(src=f"assets/images/{platform}.png", style={"width": "120%", "height": "120%"}),
+                        align="center", width=2),
                         dbc.Col(dmc.Stack(children=[
                             html.Div(children=[
-                                dmc.Text(row["result"], style={"color": "#979797", "fontSize": "12px", "fontFamily": "Poppins", "margin": "0px 15px 0px 0px"}),
+                                dmc.Text(row["result"], style={"color": "#979797", "fontSize": "12px", "fontFamily": "Poppins", "margin": "0px 10px"}),
                                 dmc.Text(row["count"], style={"color": "#052F5F", "fontSize": "12px", "fontFamily": "Poppins", "fontWeight": "bold"})
                             ], style={"display": "flex", "justifyContent": "space-between", "width": "100%"})
-                            for index, row in platform_df.iterrows()], align="flex-start", justify="flex-end", spacing="0px"
-                        ), align="center", width=7),
-                        dbc.Col(dmc.Text(platform_df["count"].sum(), style={"color": "#052F5F", "fontSize": "40px", "fontFamily": "Poppins", "fontWeight": 600, "text-align": "right"}), align="center", width=2)
-                    ], justify="between"
-                    )
+                            for index, row in platform_df.iterrows()], align="flex-start", justify="flex-end", spacing="0px"),
+                        align="center", width=8),
+                        dbc.Col(html.Div(children=[
+                            dmc.Text(str(platform_df["count"].sum()), style={"color": "#052F5F", "fontSize": "40px", "fontFamily": "Poppins", "fontWeight": 600}),
+                            dmc.Text("" if time_value == "all" else ("▲"+str(kpi_platform_count_df["increase"].iloc[0]) if kpi_platform_count_df["increase"].iloc[0] > 0 else "▼"+str(abs(kpi_platform_count_df["increase"].iloc[0]))),
+                                     style={"color": "#25D366" if time_value == "all" else ("#FF5100" if kpi_platform_count_df["increase"].iloc[0] > 0 else "#25D366"),
+                                            "fontSize": "12px", "fontFamily": "Poppins", "fontWeight": 600, "position": "absolute", "top": "75%", "right": "6.75%"})
+                            ], style={"text-align": "center"}),
+                        align="center", width=2)
+                    ])
                 ], withBorder=True, radius="5px", style={"width": f"""calc((100% - {10*(number_of_platforms-1)}px) / {number_of_platforms})""", "height": "100%", "box-shadow": ""}
                 )
             )

@@ -59,6 +59,7 @@ body {
 
 /* date segment control filter */
 .mantine-SegmentedControl-root {
+    border-radius: 5px;
     background-color: #c7e4ff;
     align-items: center;
 }
@@ -130,6 +131,7 @@ body {
 .time_control_information {
     font-size: 12px;
     font-family: "Poppins";
+    border: 1px solid black;
 }
 
 /* member dropdown */
@@ -547,6 +549,9 @@ body {
     background-color: white;
     border-radius: 5px 0px 0px 5px;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
 }
 
 /* Progress Bar */
