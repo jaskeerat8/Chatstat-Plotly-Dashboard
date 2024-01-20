@@ -114,45 +114,72 @@ def text_width(font_path="assets/fonts/Poppins-Bold.ttf", font_size=16):
 
 # SideBar
 sidebar = html.Div(className="sidebar", children=[
+    html.Div(children=[
+        html.A(html.Div(className="sidebar_header", children=[
+            html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/chatstatlogo.png"),
+            html.H2("chatstat")
+            ]), href="https://chatstat.com/", target="_blank", style={"color": "black", "textDecoration": "none"}
+        ),
+        html.Hr(style={"height": "8px", "width": "100%", "backgroundColor": "#25d366", "opacity": "1", "borderRadius": "5px", "margin": " 0px 0px 10px 0px"}),
 
-    html.A(html.Div(className="sidebar_header", children=[
-        html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/chatstatlogo.png"),
-        html.H2("chatstat")
-    ]), href="https://chatstat.com/", target="_blank", style={"color": "black", "textDecoration": "none"}
-    ),
+        html.P("Main Menu", style={"color": "white", "margin": "10px 0px 0px 0px", "padding": 0, "fontFamily": "Poppins", "fontSize": 12}),
+        dbc.Nav(className="sidebar_navlink", children=[
+            dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/dashboard.png"), html.Span("Dashboard")],
+                        href="/dashboard", active="exact", className="sidebar_navlink_option"),
+            dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/analytics.png"), html.Span("Analytics")],
+                        href="/analytics", active="exact", className="sidebar_navlink_option"),
+            dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/report.png"), html.Span("Report & Logs")],
+                        href="/report", active="exact", className="sidebar_navlink_option")
+            ],
+        vertical=True, pills=True),
 
-    html.Hr(style={"height": "8px", "width": "100%", "backgroundColor": "#25d366", "opacity": "1", "borderRadius": "5px", "margin-top": "0px", "margin-left": "0px", "margin-right": "0px"}),
-
-    html.P("Main Menu", style={"color": "white", "margin": 0, "padding": 0, "fontFamily": "Poppins", "fontSize": 12}),
-    dbc.Nav(className="sidebar_navlink", children=[
-        dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/dashboard.png"), html.Span("Dashboard")],
-                    href="/dashboard", active="exact", className="sidebar_navlink_option"),
-        dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/analytics.png"), html.Span("Analytics")],
-                    href="/analytics", active="exact", className="sidebar_navlink_option"),
-        dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/report.png"), html.Span("Report & Logs")],
-                    href="/report", active="exact", className="sidebar_navlink_option")
-        ],
+        html.P("General", style={"color": "white", "margin": "10px 0px 0px 0px", "padding": 0, "fontFamily": "Poppins", "fontSize": 12}),
+        dbc.Nav(className="sidebar_navlink", children=[
+            dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/account.png"), html.Span("My Account")],
+                        href="/account", active="exact", className="sidebar_navlink_option"),
+            dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/setting.png"), html.Span("Settings")],
+                        href="/settings", active="exact", className="sidebar_navlink_option")
+            ],
         vertical=True, pills=True)
-    ]
-)
+    ]),
+
+    html.Img(id="sidebar_help", className="sidebar_help", src="assets/images/help_circle.png", width="90%", style={"align-items": "center", "padding": "5px", "border-radius": "100%", "background-color": "#25D366"}),
+    html.Div(id="sidebar_help_container", className="sidebar_help_container", children=[
+        html.Img(src="assets/images/help_circle.png", width="20%", style={"position": "absolute", "top": "-15%", "padding": "5px", "border-radius": "100%", "background-color": "#25D366"}),
+        html.P("Need Help?"),
+        html.A(html.P("Go to Learning Centre", style={"padding": "5px", "background-color": "#052F5F", "border-radius": "5px"}),
+               href="https://chatstat.com/faq/", target="_blank", style={"color": "white", "textDecoration": "none"})
+    ])
+])
 
 
 # Header
 dashboard_header = dmc.Header(className="header", height="60px", fixed=False, children=[
     dmc.Text("Dashboard", className="header_title"),
-    dmc.Menu(trigger="hover", children=[
-        dmc.MenuTarget(dmc.Badge("Lawrence", size="xl", radius="xl", color="teal",
-                    leftSection=dmc.Avatar(src="assets/images/user.jpeg", size=24, radius="xl", mr=5)
-        )),
+    dmc.Menu(id="user_container", className="user_container", trigger="hover", children=[
+        dmc.MenuTarget(html.Div(id="user_information", className="user_information", children=[
+            dmc.Avatar(id="user_avatar", className="user_avatar", src="assets/images/user.jpeg", size=35, radius="xl"),
+            dmc.Text("Lawrence", id="user_name", className="user_name")
+        ])),
         dmc.MenuDropdown(children=[
-            dmc.MenuItem("Account", icon=DashIconify(icon="line-md:account-small", width=20)),
-            dmc.MenuItem("Settings", icon=DashIconify(icon="tabler:settings", width=20))
+            dmc.MenuItem("My Account", icon=DashIconify(icon="material-symbols:account-box-outline", width=30), href="https://www.linkedin.com/company/chatstat/mycompany/", target="_blank"),
+            dmc.MenuItem("Settings", icon=DashIconify(icon="lets-icons:setting-alt-line", width=30), href="https://www.linkedin.com/company/chatstat/mycompany/", target="_blank")
         ])
     ])
 ])
 
 analytics_header = dmc.Header(className="header", height="60px", fixed=False, children=[
-    dmc.Text("Analytics", className="header_title")
+    dmc.Text("Analytics", className="header_title"),
+    dmc.Menu(trigger="hover", children=[
+        dmc.MenuTarget(html.Div(id="user_container", className="user_container", children=[
+            dmc.Avatar(id="user_avatar", className="user_avatar", src="assets/images/user.jpeg", size=35, radius="xl"),
+            dmc.Text("Lawrence", id="user_name", className="user_name")
+        ])),
+        dmc.MenuDropdown(children=[
+            dmc.MenuItem("My Account", icon=DashIconify(icon="material-symbols:account-box-outline", width=30), href="https://www.linkedin.com/company/chatstat/mycompany/", target="_blank"),
+            dmc.MenuItem("Settings", icon=DashIconify(icon="lets-icons:setting-alt-line", width=30), href="https://www.linkedin.com/company/chatstat/mycompany/", target="_blank")
+        ])
+    ])
 ])
 
 
@@ -179,27 +206,27 @@ control = dmc.Group([
             dmc.DateRangePicker(id="date_range_picker", className="date_range_picker", clearable=False, inputFormat="MMM DD, YYYY", icon=DashIconify(icon=f"arcticons:calendar-{todays_date.day}", color="black", width=30),
                                 value=[todays_date.date()-timedelta(days=60), todays_date.date()]
             )
-        ], target="time_control", placement="bottom", trigger="legacy", hide_arrow=True
+            ], target="time_control", placement="bottom", trigger="legacy", hide_arrow=True
         ),
         html.Div(className="member_dropdown_container", children=[
             html.P("Members", className="member_dropdown_label"),
             dmc.Select(className="member_dropdown", id="member_dropdown", clearable=False, searchable=False, value="all",
-               rightSection=DashIconify(icon="radix-icons:chevron-down", color="black"), style={"width": f"{text_width()}px"}
+               rightSection=DashIconify(icon="radix-icons:chevron-down", color="black")
             ),
         ]),
         html.Div(className="platform_dropdown_container", children=[
             html.P("Social Platform", className="platform_dropdown_label"),
             dmc.Select(className="platform_dropdown", id="platform_dropdown", clearable=False, searchable=False, value="all",
-                rightSection=DashIconify(icon="radix-icons:chevron-down", color="black"), style={"width": f"{text_width()}px"}
+                rightSection=DashIconify(icon="radix-icons:chevron-down", color="black")
             )
         ]),
         html.Div(className="alert_dropdown_container", children=[
             html.P("Alert Level", className="alert_dropdown_label"),
             dmc.Select(className="alert_dropdown", id="alert_dropdown", clearable=False, searchable=False, value="all",
-                rightSection=DashIconify(icon="radix-icons:chevron-down", color="black"), style={"width": f"{text_width()}px"}
+                rightSection=DashIconify(icon="radix-icons:chevron-down", color="black")
             )
         ]),
-        dmc.ActionIcon(DashIconify(icon="grommet-icons:power-reset", color="white", width=25, flip="horizontal"), id="reset_filter_container", n_clicks=0, variant="transparent")
+        dmc.ActionIcon(DashIconify(icon="grommet-icons:power-reset", color="white", width=25, flip="horizontal"), id="reset_filter_container", className="reset_filter_container", n_clicks=0, variant="transparent")
     ], spacing="10px"
     ),
     html.Div(className="searchbar_container", id="searchbar_container", children=[

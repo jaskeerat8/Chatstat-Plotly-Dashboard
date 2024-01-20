@@ -36,16 +36,37 @@ body {
     margin-left: 9.5rem;
 }
 
+/* user container */
+.user_information {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.user_name {
+    color: #25D366;
+    font-size: 20px;
+    font-family: "Poppins";
+    font-weight: 600;
+    margin-left: 10px;
+}
+.user_avatar {
+    border: 2px solid gold;
+}
+.mantine-Menu-dropdown {
+    border: 1.5px solid black;
+}
+
 /* filter container */
 .filter_container {
-    padding: 5px 10px 5px 5px;
-    border-radius: 5px;
-    background-color: #0b71aa;
-}
-.filter_label {
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 5px 10px 5px 5px;
+    border-radius: 5px;
+    background-color: #0b71aa;
+    width: 85%;
+}
+.filter_label {
     font-family: "Poppins";
     color: white;
     font-size: 14px;
@@ -55,13 +76,16 @@ body {
     margin: 0px;
     padding: 0px;
     border-left: 3px solid black;
+    width: auto;
 }
 
 /* date segment control filter */
 .mantine-SegmentedControl-root {
     border-radius: 5px;
     background-color: #c7e4ff;
+    border: 2px solid #052F5F;
     align-items: center;
+    width: auto;
 }
 .mantine-SegmentedControl-active {
     color: #0074e2;
@@ -137,6 +161,7 @@ body {
 /* member dropdown */
 .member_dropdown_container {
     position: relative;
+    flex: 1;
 }
 .member_dropdown_label {
     z-index: 1;
@@ -165,13 +190,13 @@ body {
     font-size: 16px;
     font-weight: 600;
     text-align: center;
-    border: 1px solid black;
+    border: 2px solid black;
 }
 .member_dropdown .mantine-Select-input:focus {
-    border: 1px solid black;
+    border: 2px solid black;
 }
 .member_dropdown .mantine-Select-dropdown {
-    border: 1px solid black;
+    border: 2px solid black;
 }
 .member_dropdown .mantine-Select-item {
     font-family: "Poppins";
@@ -190,6 +215,7 @@ body {
 /* platform dropdown */
 .platform_dropdown_container {
     position: relative;
+    flex: 1;
 }
 .platform_dropdown_label {
     z-index: 1;
@@ -214,13 +240,13 @@ body {
     font-size: 16px;
     font-weight: 600;
     text-align: center;
-    border: 1px solid black;
+    border: 2px solid black;
 }
 .platform_dropdown .mantine-Select-input:focus {
-    border: 1px solid black;
+    border: 2px solid black;
 }
 .platform_dropdown .mantine-Select-dropdown {
-    border: 1px solid black;
+    border: 2px solid black;
 }
 .platform_dropdown .mantine-Select-item {
     font-family: "Poppins";
@@ -239,6 +265,7 @@ body {
 /* alert dropdown */
 .alert_dropdown_container {
     position: relative;
+    flex: 1;
 }
 .alert_dropdown_label {
     z-index: 1;
@@ -263,13 +290,13 @@ body {
     font-size: 16px;
     font-weight: 600;
     text-align: center;
-    border: 1px solid black;
+    border: 2px solid black;
 }
 .alert_dropdown .mantine-Select-input:focus {
-    border: 1px solid black;
+    border: 2px solid black;
 }
 .alert_dropdown .mantine-Select-dropdown {
-    border: 1px solid black;
+    border: 2px solid black;
 }
 .alert_dropdown .mantine-Select-item {
     font-family: "Poppins";
@@ -283,6 +310,11 @@ body {
 .alert_dropdown .mantine-Select-input:focus + .mantine-Select-rightSection {
     transform: rotate(180deg);
     transition: transform 0.3s;
+}
+
+/* Reset the Filters */
+.reset_filter_container {
+    width: auto;
 }
 
 /* Search Bar */
@@ -433,12 +465,15 @@ body {
 
 /* This creates a skinny side bar fixed to the left of the page */
 .sidebar {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     position: fixed;
     top: 0;
     left: 0;
     bottom: 0;
     width: 4.5rem;
-    padding: 0rem 1rem;
+    padding: 0rem 1rem 1rem 1rem;
     background-color: #052F5F;
     z-index: 1050;
     transition: width 0.1s ease-in-out;
@@ -447,6 +482,27 @@ body {
     display: flex;
     justify-content: left;
     align-items: center;
+}
+.sidebar_help_container {
+    position: relative;
+    height: 15%;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: "Poppins";
+    padding: 25% 10px 10px 10px;
+    color: white;
+    background-color: #2D96FF;
+    border-radius: 5px;
+    display: none;
+}
+.sidebar:hover .sidebar_help_container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+}
+.sidebar:hover .sidebar_help {
+    display: none;
 }
 
 /* when the user hovers on the sidebar, expand it */
