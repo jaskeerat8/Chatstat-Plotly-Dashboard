@@ -14,7 +14,6 @@ import dash_mantine_components as dmc
 import dash_bootstrap_components as dbc
 from dash_iconify import DashIconify
 from dash.dependencies import Input, Output
-from PIL import Image, ImageDraw, ImageFont
 
 # Global Variables
 global date_dict
@@ -94,24 +93,6 @@ def no_data_graph():
     return message
 
 
-# Function for Text Width
-def text_width(font_path="assets/fonts/Poppins-Bold.ttf", font_size=16):
-    data = ["All Members", "All Platforms", "All Alerts"] + \
-           [i.split(" ")[0].title() for i in df["name_childrens"].unique() if ((str(i).lower() != "nan") and (str(i).lower() != "no"))] + \
-           [i.title() for i in df["platform_contents"].unique() if ((str(i).lower() != "nan") and (str(i).lower() != "no"))] + \
-           [i.title() for i in df["alert_contents"].unique() if ((str(i).lower() != "nan") and (str(i).lower() != "no"))]
-
-    max_dropdown_width = float("-inf")
-    for label in data:
-        canvas = ImageDraw.Draw(Image.new("RGB", (1, 1), (255, 255, 255)))
-        bbox = canvas.textbbox((0, 0), label, font=ImageFont.truetype(font_path, font_size))
-        width = bbox[2] - bbox[0]
-        del canvas
-        if(width > max_dropdown_width):
-            max_dropdown_width = width
-    return max_dropdown_width+100
-
-
 # SideBar
 sidebar = html.Div(className="sidebar", children=[
     html.Div(children=[
@@ -143,9 +124,9 @@ sidebar = html.Div(className="sidebar", children=[
         vertical=True, pills=True)
     ]),
 
-    html.Img(id="sidebar_help", className="sidebar_help", src="assets/images/help_circle.png", width="90%", style={"align-items": "center", "padding": "5px", "border-radius": "100%", "background-color": "#25D366"}),
+    html.Img(id="sidebar_help", className="sidebar_help", src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/help_circle.png", width="90%", style={"align-items": "center", "padding": "5px", "border-radius": "100%", "background-color": "#25D366"}),
     html.Div(id="sidebar_help_container", className="sidebar_help_container", children=[
-        html.Img(src="assets/images/help_circle.png", width="20%", style={"position": "absolute", "top": "-15%", "padding": "5px", "border-radius": "100%", "background-color": "#25D366"}),
+        html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/help_circle.png", width="20%", style={"position": "absolute", "top": "-15%", "padding": "5px", "border-radius": "100%", "background-color": "#25D366"}),
         html.P("Need Help?"),
         html.A(html.P("Go to Learning Centre", style={"padding": "5px", "background-color": "#052F5F", "border-radius": "5px"}),
                href="https://chatstat.com/faq/", target="_blank", style={"color": "white", "textDecoration": "none"})
