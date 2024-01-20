@@ -43,7 +43,7 @@ def radial_chart(result_contents_df):
         ax.grid(False)
 
         legend_elements = [Patch(color=color, label=label) for color, label in zip(colors, labels)]
-        legend = plt.legend(handles=legend_elements, loc="lower center", bbox_to_anchor=(0.5, -0.15), ncol=2, frameon=False, labelcolor="#052F5F")
+        legend = plt.legend(handles=legend_elements, loc="lower center", bbox_to_anchor=(0.5, -0.2), ncol=2, frameon=False, labelcolor="#052F5F")
         for text in legend.get_texts():
             text.set_fontproperties(legend_prop)
     except Exception as e:

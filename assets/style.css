@@ -50,7 +50,7 @@ body {
     margin-left: 10px;
 }
 .user_avatar {
-    border: 2px solid gold;
+    border: 3px solid gold;
 }
 .mantine-Menu-dropdown {
     border: 1.5px solid black;
@@ -363,10 +363,22 @@ body {
     padding: 0px;
     color: #2D96FF;
 }
+.kpi_alert_count {
+    transition: transform 0.3s ease-in-out;
+}
+.kpi_alert_count:hover {
+    transform: translateY(-5px);
+}
 
 /* kpi_platform_count */
 .kpi_platform_count {
     flex: 1;
+}
+.kpi_platform_count_elements {
+    transition: transform 0.3s ease-in-out;
+}
+.kpi_platform_count_elements:hover {
+    transform: translateY(-5px);
 }
 
 /* progress bar */
@@ -476,7 +488,7 @@ body {
     padding: 0rem 1rem 1rem 1rem;
     background-color: #052F5F;
     z-index: 1050;
-    transition: width 0.1s ease-in-out;
+    transition: width 0.2s ease-in-out;
 }
 .sidebar_navlink_option {
     display: flex;
@@ -515,15 +527,15 @@ body {
     width: 100%;
     overflow: hidden;
     white-space: nowrap;
-    margin: 0; /* Remove any margin */
-    padding: 0; /* Remove any padding */
+    margin: 0;
+    padding: 0;
 }
 
 /* hide the navlink labels by default */
 .sidebar .nav-link span {
     visibility: hidden;
-    opacity: 1;
-    transition: opacity 0.1s ease-in-out;
+    transition: visibility 0.2s ease-in-out;
+    color: white;
 }
 .sidebar .nav-link img {
     width: 2.5rem;
@@ -535,9 +547,8 @@ body {
 /* when the sidebar is hovered, reveal the labels */
 .sidebar:hover .nav-link span {
     visibility: visible;
-    opacity: 1;
-    color: black;
-    color: #FFFFFF;
+    transition: visibility 0.2s ease-in-out;
+    color: white;
     font-family: "Poppins";
     font-weight: 450;
     margin-left: 1rem;
@@ -607,7 +618,17 @@ body {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    justify-content: space-evenly;
+    justify-content: space-around;
+    transition: transform 0.3s ease-in-out;
+}
+.content_classification_radial_chart:hover {
+    transform: translateY(-5px);
+}
+.risk_categories_horizontal_bar:hover + .content_classification_radial_chart {
+    transform: translateY(-5px);
+}
+.content_classification_radial_chart:hover + .risk_categories_horizontal_bar {
+    transform: translateY(-5px);
 }
 
 /* Progress Bar */
@@ -620,6 +641,10 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    transition: transform 0.3s ease-in-out;
+}
+.risk_categories_horizontal_bar:hover {
+    transform: translateY(-5px);
 }
 
 /* Risk Bar Chart */
@@ -628,16 +653,28 @@ body {
     background-color: white;
     border-radius: 5px;
     overflow: hidden;
+    transition: transform 0.3s ease-in-out;
+}
+.content_risk_bar_chart:hover {
+    transform: translateY(-5px);
 }
 
 /* Comment Alert Line Chart */
 .comment_alert_line_chart_container {
     border-radius: 5px;
     overflow: hidden;
+    transition: transform 0.3s ease-in-out;
+}
+.comment_alert_line_chart_container:hover {
+    transform: translateY(-5px);
 }
 
 /* Comment Classification Pie Chart */
 .comment_classification_pie_chart {
     border-radius: 5px;
     overflow: hidden;
+    transition: transform 0.3s ease-in-out;
+}
+.comment_classification_pie_chart:hover {
+    transform: translateY(-5px);
 }

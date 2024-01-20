@@ -99,7 +99,7 @@ sidebar = html.Div(className="sidebar", children=[
         html.A(html.Div(className="sidebar_header", children=[
             html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/chatstatlogo.png"),
             html.H2("chatstat")
-            ]), href="https://chatstat.com/", target="_blank", style={"color": "black", "textDecoration": "none"}
+            ]), href="https://chatstat.com/", target="_blank", style={"color": "#25D366", "textDecoration": "none"}
         ),
         html.Hr(style={"height": "8px", "width": "100%", "backgroundColor": "#25d366", "opacity": "1", "borderRadius": "5px", "margin": " 0px 0px 10px 0px"}),
 
@@ -572,7 +572,7 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value)
             platform_df = kpi_platform_df[kpi_platform_df["platform"] == platform]
             title = platform.title()+f" - {alert_value} Alerts" if ((alert_value is not None) and (alert_value != "all")) else platform.title()
             kpi_list.append(
-                dmc.Card(children=[
+                dmc.Card(id="kpi_platform_count_elements", className="kpi_platform_count_elements", children=[
                     dbc.Row(dbc.Col(dmc.Text(title, style={"color": "black", "fontSize": "18px", "fontFamily": "Poppins", "fontWeight": "bold"}), width="auto")),
                     dbc.Row([
                         dbc.Col(html.Img(src=f"assets/images/{platform}.png", style={"width": "120%", "height": "120%"}),
@@ -631,10 +631,10 @@ def update_radial_chart(time_value, date_range_value, member_value, platform_val
             title = f"Content Risk Classification - {alert_value} Alerts"
         else:
             title = "Content Risk Classification"
-        return [
+        return html.Div(id="", className="", children=[
             html.P(title, style={"color": "#052F5F", "fontWeight": "bold", "fontSize": 17, "margin": "10px 25px 0px 25px"}),
             html.Img(src=radial_bar_chart.radial_chart(result_contents_df), width="100%")
-        ]
+        ])
 
 
 # Risk Categories Horizontal Bar
