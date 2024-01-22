@@ -28,6 +28,7 @@ def radial_chart(result_contents_df):
         labels = result_contents_df["classification"]
         colors = [content_classification_colors[category] for category in categories]
 
+        plt.figure().set_figheight(5.2)
         ax = plt.subplot(projection="polar")
         total_radial_bars = ax.barh(categories, total_radial, color="#d8dce2", height=0.8)
         radial_bars = ax.barh(categories, radial, color=colors, edgecolor="black", linewidth=1.5, height=0.77)
@@ -56,10 +57,11 @@ def radial_chart(result_contents_df):
 
     image_buffer = BytesIO()
     plt.tight_layout()
-    plt.savefig(image_buffer, format="png")
+    plt.savefig(image_buffer, format="png", dpi=400)
     plt.close()
-    image_data = base64.b64encode(image_buffer.getvalue()).decode("ascii")
-    matplotlib_image = f"data:image/png;base64,{image_data}"
+    image_data = base64.b64encode(image_buffer.getvalue()).decode("utf8")
+    image_buffer.close()
+    matplotlib_image = f"data:image/image/png;base64,{image_data}"
 
     return matplotlib_image
 

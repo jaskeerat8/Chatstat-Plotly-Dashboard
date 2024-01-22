@@ -124,11 +124,11 @@ sidebar = html.Div(className="sidebar", children=[
         vertical=True, pills=True)
     ]),
 
-    html.Img(id="sidebar_help", className="sidebar_help", src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/help_circle.png", width="90%", style={"align-items": "center", "padding": "5px", "border-radius": "100%", "background-color": "#25D366"}),
+    html.Img(id="sidebar_help", className="sidebar_help", src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/help_circle.png", width="90%", style={"align-items": "center", "border-radius": "100%", "background-color": "#25D366"}),
     html.Div(id="sidebar_help_container", className="sidebar_help_container", children=[
         html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/help_circle.png", width="20%", style={"position": "absolute", "top": "-15%", "padding": "5px", "border-radius": "100%", "background-color": "#25D366"}),
         html.P("Need Help?"),
-        html.A(html.P("Go to Learning Centre", style={"padding": "5px", "background-color": "#052F5F", "border-radius": "5px"}),
+        html.A(html.P("Go to Learning Centre", style={"padding": "0px 10px", "background-color": "#052F5F", "border-radius": "5px"}),
                href="https://chatstat.com/faq/", target="_blank", style={"color": "white", "textDecoration": "none"})
     ])
 ])
@@ -184,7 +184,8 @@ control = dmc.Group([
         ]),
         dbc.Popover(id="popover_date_picker", className="popover_date_picker", children=[
             dbc.PopoverHeader("Selected Date Range", className="popover_date_picker_label"),
-            dmc.DateRangePicker(id="date_range_picker", className="date_range_picker", clearable=False, inputFormat="MMM DD, YYYY", icon=DashIconify(icon=f"arcticons:calendar-{todays_date.day}", color="black", width=30),
+            dmc.DateRangePicker(id="date_range_picker", className="date_range_picker", clearable=False, inputFormat="MMM DD, YYYY",
+                                icon=DashIconify(icon=f"arcticons:calendar-simple-{todays_date.day}", color="black", width=30),
                                 value=[todays_date.date()-timedelta(days=60), todays_date.date()]
             )
             ], target="time_control", placement="bottom", trigger="legacy", hide_arrow=True
@@ -214,7 +215,8 @@ control = dmc.Group([
         html.P("Member Overview", className="searchbar_label", id="searchbar_label"),
         dmc.Select(className="searchbar", id="searchbar", clearable=True, searchable=True, placeholder=" Search...", nothingFound="Nothing Found", limit=5, iconWidth=50,
                icon=html.Img(src="assets/images/chatstatlogo_black.png", width="40%"), rightSection=DashIconify(icon="radix-icons:chevron-right", color="black"),
-               data=list(df["name_childrens"].unique()) + list(df["id_childrens"].unique())
+               data=[{"group": "Members", "label": member.title(), "value": member} for member in list(df["name_childrens"].unique())] +
+                    [{"group": "ID", "label": id.title(), "value": id} for id in list(df["id_childrens"].unique())]
         )
     ])
 ], style={"margin": "10px"}, spacing="10px"
@@ -234,7 +236,7 @@ overview = html.Div(children=[
 
 # KPI Card
 kpi_cards = html.Div([
-    dmc.Card(id="kpi_alert_count", className="kpi_alert_count", withBorder=True, radius="5px", style={"width": "auto", "margin": "0px 10px 0px 0px", "box-shadow": ""}),
+    dmc.Card(id="kpi_alert_count", className="kpi_alert_count", withBorder=True, radius="5px", style={"width": "auto", "margin": "0px 10px 0px 0px"}),
     dmc.Group(id="kpi_platform_count", className="kpi_platform_count", position="center", spacing="10px")
     ], style={"display": "flex", "flexDirection": "row", "margin": "10px", "padding": "0px"}
 )
@@ -242,20 +244,23 @@ kpi_cards = html.Div([
 
 # Page Charts
 dashboard_charts = html.Div(children=[
-    dbc.Row([
-        dbc.Col(id="content_classification_radial_chart", className="content_classification_radial_chart", style={"margin": "0px 0px 0px 0px", "padding": "0px", "box-shadow": ""}),
-        dbc.Col(id="risk_categories_horizontal_bar", className="risk_categories_horizontal_bar", style={"margin": "0px 5px 0px 0px", "padding": "0px", "box-shadow": ""}),
-        dbc.Col(id="content_risk_bar_chart", className="content_risk_bar_chart", style={"margin": "0px 0px 0px 5px", "padding": "0px", "box-shadow": ""})
+    html.Div(id="row1", className="row1", children=[
+        html.Div(id="content_risk_classification_container", className="content_risk_classification_container", children=[
+            html.Div(id="content_classification_radial_chart", className="content_classification_radial_chart"),
+            html.Div(id="risk_categories_horizontal_bar", className="risk_categories_horizontal_bar")
+            ], style={"width": "calc(65% - 5px)"}
+        ),
+        html.Div(id="content_risk_bar_chart", className="content_risk_bar_chart", style={"width": "calc(35% - 5px)"})
     ], style={"margin": "10px", "padding": "0px"}
     ),
-    dmc.Group([
+    html.Div(id="row2", className="row2", children=[
         html.Div(id="comment_alert_line_chart_container", className="comment_alert_line_chart_container", children=[
             html.Div(id="comment_alert_line_chart"),
             html.Div(dcc.RangeSlider(id="comment_alert_line_chart_slider", updatemode="drag", pushable=1, min=0, max=730, value=[0, 730]), style={"height": "50px"})
-            ], style={"width": "calc(65% - 5px)", "background-color": "white", "box-shadow": ""}
+            ], style={"width": "calc(65% - 5px)"}
         ),
-        html.Div(id="comment_classification_pie_chart", className="comment_classification_pie_chart", style={"width": "calc(35% - 5px)", "background-color": "white", "box-shadow": ""})
-    ], spacing="10px", style={"margin": "10px", "padding": "0px"}
+        html.Div(id="comment_classification_pie_chart", className="comment_classification_pie_chart", style={"width": "calc(35% - 5px)"})
+    ], style={"margin": "10px", "padding": "0px"}
     )
 ], style={"height": "100%", "width": "100%", "margin": "0px", "padding": "0px"})
 
@@ -276,6 +281,7 @@ app.layout = html.Div(
     children=[
         dcc.Interval(id="time_interval", disabled=True),
         dcc.Location(id="url_path", refresh=False),
+        html.Div(children=[], style={"height": "60px"}),
         html.Div(children=[], style={"width": "4.5rem", "display": "inline-block"}),
         html.Div(id="page_content", style={"display": "inline-block", "width": "calc(100% - 4.5rem)"})
     ]
@@ -340,7 +346,7 @@ def update_member_dropdown(member_value):
         data = [{"value": "all", "label": i.split(" ")[0].title()} for i in user_list if ((str(i).lower() != "nan") and (str(i).lower() != "no"))]
     else:
         data = [{"value": "all", "label": "All Members"}] + [{"value": i, "label": i.split(" ")[0].title()} for i in user_list if ((str(i).lower() != "nan") and (str(i).lower() != "no"))]
-    return data, DashIconify(icon=f"tabler:square-letter-{member_value[0].lower()}", width=25, color="#FFC000")
+    return data, DashIconify(icon=f"tabler:square-letter-{member_value[0].lower()}", width=25, color="#25D366")
 
 
 # Platform Dropdown
@@ -534,7 +540,7 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value)
     if(len(kpi_platform_df) == 0):
         card = dmc.Card(children=[
             dmc.Text("No Cards to Display", color="black", style={"fontSize": 17, "fontFamily": "Poppins", "fontWeight": "bold"})
-            ], withBorder=True, radius="5px", style={"height": "100%", "width": "100%", "display": "flex", "justify-content": "center", "align-items": "center", "box-shadow": ""}
+            ], withBorder=True, radius="5px", style={"height": "100%", "width": "100%", "display": "flex", "justify-content": "center", "align-items": "center"}
         )
         return card
     else:
@@ -592,7 +598,7 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value)
                             ], style={"text-align": "center"}),
                         align="center", width=2)
                     ])
-                ], withBorder=True, radius="5px", style={"width": f"""calc((100% - {10*(number_of_platforms-1)}px) / {number_of_platforms})""", "height": "100%", "box-shadow": ""}
+                ], withBorder=True, radius="5px", style={"flex": 1, "height": "100%"}
                 )
             )
         return kpi_list
@@ -631,10 +637,10 @@ def update_radial_chart(time_value, date_range_value, member_value, platform_val
             title = f"Content Risk Classification - {alert_value} Alerts"
         else:
             title = "Content Risk Classification"
-        return html.Div(id="", className="", children=[
+        return [
             html.P(title, style={"color": "#052F5F", "fontWeight": "bold", "fontSize": 17, "margin": "10px 25px 0px 25px"}),
             html.Img(src=radial_bar_chart.radial_chart(result_contents_df), width="100%")
-        ])
+        ]
 
 
 # Risk Categories Horizontal Bar

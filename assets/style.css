@@ -25,15 +25,20 @@ body {
     background-color: #F5F5F5;
     padding: 10px;
     border-bottom: 3px solid black;
+    position: fixed;
+    z-index: 1050;
+    margin-left: 4.5rem;
+    transition: margin-left 0.2s ease-in-out;
+}
+.sidebar:hover + .header {
+    margin-left: 14rem;
+    transition: margin-left 0.2s ease-in-out;
 }
 .header_title {
     color: #25D366;
     font-size: 32px;
     font-family: "Poppins";
     font-weight: 600;
-}
-.sidebar:hover + .header .header_title {
-    margin-left: 9.5rem;
 }
 
 /* user container */
@@ -119,9 +124,10 @@ body {
     text-align: center;
     width: 300px;
     border-radius: 5px;
-    border: 1px solid black;
+    position: relative;
 }
 .popover_date_picker_label {
+    color: black;
     font-size: 16px;
     font-weight: 600;
     text-align: center;
@@ -132,23 +138,24 @@ body {
 }
 .date_range_picker .mantine-DateRangePicker-icon {
     background-color: white;
-    border-top: 2px solid black;
-    border-bottom: 1px solid black;
-    border-left: 1px solid black;
+    border: 2px solid black;
     border-right: 2px solid black;
     border-radius: 0px 0px 0px 5px;
 }
 .date_range_picker .mantine-DateRangePicker-input {
     text-align: center;
     border-radius: 0px 0px 5px 5px;
-    border: 1px solid black;
-    border-top: 2px solid black;
+    border: 2px solid black;
     background-color: #25D366;
     font-size: 16px;
     font-weight: 600;
 }
 .date_range_picker .mantine-DateRangePicker-dropdown {
     border: 2px solid black;
+    position: absolute !important;
+    top: 110% !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
 }
 
 /* time control information */
@@ -156,6 +163,7 @@ body {
     font-size: 12px;
     font-family: "Poppins";
     border: 1px solid black;
+    z-index: 2000 !important;
 }
 
 /* member dropdown */
@@ -206,10 +214,10 @@ body {
 .member_dropdown .mantine-Select-rightSection {
     background-color: transparent;
     pointer-events: none;
+    transition: transform 0.3s ease-in-out;
 }
 .member_dropdown .mantine-Select-input:focus + .mantine-Select-rightSection {
     transform: rotate(180deg);
-    transition: transform 0.3s;
 }
 
 /* platform dropdown */
@@ -256,10 +264,10 @@ body {
 .platform_dropdown .mantine-Select-rightSection {
     background-color: transparent;
     pointer-events: none;
+    transition: transform 0.3s ease-in-out;
 }
 .platform_dropdown .mantine-Select-input:focus + .mantine-Select-rightSection {
     transform: rotate(180deg);
-    transition: transform 0.3s;
 }
 
 /* alert dropdown */
@@ -306,15 +314,19 @@ body {
 .alert_dropdown .mantine-Select-rightSection {
     background-color: transparent;
     pointer-events: none;
+    transition: transform 0.3s ease-in-out;
 }
 .alert_dropdown .mantine-Select-input:focus + .mantine-Select-rightSection {
     transform: rotate(180deg);
-    transition: transform 0.3s;
 }
 
 /* Reset the Filters */
 .reset_filter_container {
     width: auto;
+}
+.reset_filter_container:hover {
+    transition: transform 1s ease;
+    transform: rotate(-360deg);
 }
 
 /* Search Bar */
@@ -364,7 +376,7 @@ body {
     color: #2D96FF;
 }
 .kpi_alert_count {
-    transition: transform 0.3s ease-in-out;
+    transition: transform 0.2s ease-in-out;
 }
 .kpi_alert_count:hover {
     transform: translateY(-5px);
@@ -375,7 +387,7 @@ body {
     flex: 1;
 }
 .kpi_platform_count_elements {
-    transition: transform 0.3s ease-in-out;
+    transition: transform 0.2s ease-in-out;
 }
 .kpi_platform_count_elements:hover {
     transform: translateY(-5px);
@@ -501,7 +513,7 @@ body {
     font-size: 14px;
     font-weight: 500;
     font-family: "Poppins";
-    padding: 25% 10px 10px 10px;
+    padding: 20% 0px 10px 0px;
     color: white;
     background-color: #2D96FF;
     border-radius: 5px;
@@ -510,8 +522,22 @@ body {
 .sidebar:hover .sidebar_help_container {
     display: flex;
     flex-direction: column;
-    justify-content: space-evenly;
+    justify-content: center;
     align-items: center;
+}
+@keyframes borderAnimation {
+    0% {
+    padding: 0px;
+    }
+    50% {
+    padding: 5px;
+    }
+    100% {
+    padding: 0px;
+    }
+}
+.sidebar_help {
+    animation: borderAnimation 1.8s infinite;
 }
 .sidebar:hover .sidebar_help {
     display: none;
@@ -583,10 +609,10 @@ body {
 /* position the header relative to the logo and hide by default */
 .sidebar_header h2 {
     font-family: "Poppins";
-    opacity: 1;
     margin-left: 1rem;
     margin-bottom: 0;
-    transition: opacity 0.1s ease-in-out;
+    visibility: hidden;
+    transition: visibility 0.2s ease-in-out;
 }
 
 /* fix the width of the header logo */
@@ -596,7 +622,8 @@ body {
 
 /* reveal the header when the sidebar is toggled */
 .sidebar:hover .sidebar_header h2 {
-    opacity: 1;
+    visibility: visible;
+    transition: visibility 0.2s ease-in-out;
     color: #25D366;
     font-family: "Poppins";
     font-weight: "bold";
@@ -610,41 +637,44 @@ body {
     padding: 2rem 1rem;
 }
 
+/* Row 1 */
+.row1{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+/* Content Categories*/
+.content_risk_classification_container {
+    display: flex;
+    flex-direction: row;
+    border-radius: 5px;
+    overflow: hidden;
+    transition: transform 0.2s ease-in-out;
+}
+.content_risk_classification_container:hover {
+    transform: translateY(-5px);
+}
+
 /* Radial Chart */
 .content_classification_radial_chart {
     font-family: "Poppins";
     background-color: white;
-    border-radius: 5px 0px 0px 5px;
-    overflow: hidden;
     display: flex;
     flex-direction: column;
+    flex: 1;
     justify-content: space-around;
-    transition: transform 0.3s ease-in-out;
-}
-.content_classification_radial_chart:hover {
-    transform: translateY(-5px);
-}
-.risk_categories_horizontal_bar:hover + .content_classification_radial_chart {
-    transform: translateY(-5px);
-}
-.content_classification_radial_chart:hover + .risk_categories_horizontal_bar {
-    transform: translateY(-5px);
 }
 
 /* Progress Bar */
 .risk_categories_horizontal_bar {
     font-family: "Poppins";
     background-color: white;
-    border-radius: 0px 5px 5px 0px;
-    overflow: hidden;
     display: flex;
     flex-direction: column;
+    flex: 1;
     justify-content: center;
     align-items: center;
-    transition: transform 0.3s ease-in-out;
-}
-.risk_categories_horizontal_bar:hover {
-    transform: translateY(-5px);
 }
 
 /* Risk Bar Chart */
@@ -653,17 +683,25 @@ body {
     background-color: white;
     border-radius: 5px;
     overflow: hidden;
-    transition: transform 0.3s ease-in-out;
+    transition: transform 0.2s ease-in-out;
 }
 .content_risk_bar_chart:hover {
     transform: translateY(-5px);
 }
 
+/* Row 2 */
+.row2{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
 /* Comment Alert Line Chart */
 .comment_alert_line_chart_container {
     border-radius: 5px;
+    background-color: white;
     overflow: hidden;
-    transition: transform 0.3s ease-in-out;
+    transition: transform 0.2s ease-in-out;
 }
 .comment_alert_line_chart_container:hover {
     transform: translateY(-5px);
@@ -673,7 +711,7 @@ body {
 .comment_classification_pie_chart {
     border-radius: 5px;
     overflow: hidden;
-    transition: transform 0.3s ease-in-out;
+    transition: transform 0.2s ease-in-out;
 }
 .comment_classification_pie_chart:hover {
     transform: translateY(-5px);
