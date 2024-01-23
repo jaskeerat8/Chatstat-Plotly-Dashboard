@@ -101,9 +101,11 @@ sidebar = html.Div(className="sidebar", children=[
             html.H2("chatstat")
             ]), href="https://chatstat.com/", target="_blank", style={"color": "#25D366", "textDecoration": "none"}
         ),
-        html.Hr(style={"height": "8px", "width": "100%", "backgroundColor": "#25d366", "opacity": "1", "borderRadius": "5px", "margin": " 0px 0px 10px 0px"}),
 
-        html.P("Main Menu", style={"color": "white", "margin": "10px 0px 0px 0px", "padding": 0, "fontFamily": "Poppins", "fontSize": 12}),
+        html.Div(id="sidebar_navlink_menu", className="sidebar_navlink_menu", children=[
+            html.P("Main Menu", style={"margin": "0px 0.2rem", "font-family": "Poppins", "font-size": "12px", "color": "white"}),
+            html.Hr(style={"flex": "1", "border": "1.5px solid white", "borderRadius": "5px", "margin": "0px 0.5rem", "opacity": "unset"})
+        ]),
         dbc.Nav(className="sidebar_navlink", children=[
             dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/dashboard.png"), html.Span("Dashboard")],
                         href="/dashboard", active="exact", className="sidebar_navlink_option"),
@@ -114,7 +116,10 @@ sidebar = html.Div(className="sidebar", children=[
             ],
         vertical=True, pills=True),
 
-        html.P("General", style={"color": "white", "margin": "10px 0px 0px 0px", "padding": 0, "fontFamily": "Poppins", "fontSize": 12}),
+        html.Div(id="sidebar_navlink_menu", className="sidebar_navlink_menu", children=[
+            html.P("General", style={"margin": "0px 0.2rem", "font-family": "Poppins", "font-size": "12px", "color": "white"}),
+            html.Hr(style={"flex": "1", "border": "1.5px solid white", "borderRadius": "5px", "margin": "0px 0.5rem", "opacity": "unset"})
+        ]),
         dbc.Nav(className="sidebar_navlink", children=[
             dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/account.png"), html.Span("My Account")],
                         href="/account", active="exact", className="sidebar_navlink_option"),
@@ -124,9 +129,10 @@ sidebar = html.Div(className="sidebar", children=[
         vertical=True, pills=True)
     ]),
 
-    html.Img(id="sidebar_help", className="sidebar_help", src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/help_circle.png", width="90%", style={"align-items": "center", "border-radius": "100%", "background-color": "#25D366"}),
+    html.Img(id="sidebar_help", className="sidebar_help", src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/help_circle.png"),
     html.Div(id="sidebar_help_container", className="sidebar_help_container", children=[
-        html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/help_circle.png", width="20%", style={"position": "absolute", "top": "-15%", "padding": "5px", "border-radius": "100%", "background-color": "#25D366"}),
+        html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/help_circle.png", width="20%",
+                 style={"position": "absolute", "top": "-15%", "padding": "5px", "border-radius": "100%", "background-color": "#25D366"}),
         html.P("Need Help?"),
         html.A(html.P("Go to Learning Centre", style={"padding": "0px 10px", "background-color": "#052F5F", "border-radius": "5px"}),
                href="https://chatstat.com/faq/", target="_blank", style={"color": "white", "textDecoration": "none"})
@@ -579,7 +585,15 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value)
             title = platform.title()+f" - {alert_value} Alerts" if ((alert_value is not None) and (alert_value != "all")) else platform.title()
             kpi_list.append(
                 dmc.Card(id="kpi_platform_count_elements", className="kpi_platform_count_elements", children=[
-                    dbc.Row(dbc.Col(dmc.Text(title, style={"color": "black", "fontSize": "18px", "fontFamily": "Poppins", "fontWeight": "bold"}), width="auto")),
+                    dbc.Row([
+                        dbc.Col(dmc.Text(title, style={"color": "black", "fontSize": "18px", "fontFamily": "Poppins", "fontWeight": "bold"}),
+                        align="center", width=10),
+                        dbc.Col(dmc.Text(id="kpi_platform_comparison", className="kpi_platform_comparison", children=["▲"+str(kpi_platform_count_df["increase"].iloc[0])
+                                        if kpi_platform_count_df["increase"].iloc[0] > 0 else "▼"+str(abs(kpi_platform_count_df["increase"].iloc[0]))],
+                                    style={"color": "#FF5100" if kpi_platform_count_df["increase"].iloc[0] > 0 else "#25D366",
+                                           "background-color": "rgba(255, 81, 0, 0.3)" if kpi_platform_count_df["increase"].iloc[0] > 0 else "rgba(37, 211, 102, 0.3)"}),
+                        align="center", width=2)
+                    ]),
                     dbc.Row([
                         dbc.Col(html.Img(src=f"assets/images/{platform}.png", style={"width": "120%", "height": "120%"}),
                         align="center", width=2),
@@ -591,10 +605,7 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value)
                             for index, row in platform_df.iterrows()], align="flex-start", justify="flex-end", spacing="0px"),
                         align="center", width=8),
                         dbc.Col(html.Div(children=[
-                            dmc.Text(str(platform_df["count"].sum()), style={"color": "#052F5F", "fontSize": "40px", "fontFamily": "Poppins", "fontWeight": 600}),
-                            dmc.Text("" if time_value == "all" else ("▲"+str(kpi_platform_count_df["increase"].iloc[0]) if kpi_platform_count_df["increase"].iloc[0] > 0 else "▼"+str(abs(kpi_platform_count_df["increase"].iloc[0]))),
-                                     style={"color": "#25D366" if time_value == "all" else ("#FF5100" if kpi_platform_count_df["increase"].iloc[0] > 0 else "#25D366"),
-                                            "fontSize": "12px", "fontFamily": "Poppins", "fontWeight": 600, "position": "absolute", "top": "75%", "right": "6.75%"})
+                            dmc.Text(str(platform_df["count"].sum()), style={"color": "#052F5F", "fontSize": "40px", "fontFamily": "Poppins", "fontWeight": 600})
                             ], style={"text-align": "center"}),
                         align="center", width=2)
                     ])
@@ -692,7 +703,7 @@ def update_horizontal_bar(time_value, date_range_value, member_value):
             html.Div(className="risk_categories_progress_bar_label", children=[
                 html.Hr(style={"width": "30%", "borderTop": "2px solid", "borderBottom": "2px solid", "opacity": "unset"}),
                 dmc.Text("Categories", style={"fontFamily": "Poppins"}),
-                html.Hr(style={"width": "30%", "borderTop": "2px solid", "borderBottom": "2px solid", "opacity": "unset"}),
+                html.Hr(style={"width": "30%", "borderTop": "2px solid", "borderBottom": "2px solid", "opacity": "unset"})
             ], style={"width": "100%"}),
             dmc.Progress(className="risk_categories_progress_bar", sections=bar_sections, radius=10, size=25, animate=False, striped=False, style={"width": "95%"}),
             dmc.Grid(className="risk_categories_progress_legend", children=sum(bar_legend, []), gutter="xs", justify="center", align="center")
