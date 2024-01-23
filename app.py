@@ -103,8 +103,8 @@ sidebar = html.Div(className="sidebar", children=[
         ),
 
         html.Div(id="sidebar_navlink_menu", className="sidebar_navlink_menu", children=[
-            html.P("Main Menu", style={"margin": "0px 0.2rem", "font-family": "Poppins", "font-size": "12px", "color": "white"}),
-            html.Hr(style={"flex": "1", "border": "1.5px solid white", "borderRadius": "5px", "margin": "0px 0.5rem", "opacity": "unset"})
+            html.P("Main Menu", style={"margin": "0px 0.2rem", "font-family": "Poppins", "font-size": "12px", "font-weight": "500", "color": "white"}),
+            html.Hr(style={"flex": "1", "border": "1px solid white", "borderRadius": "5px", "margin": "0px 0.5rem", "opacity": "unset"})
         ]),
         dbc.Nav(className="sidebar_navlink", children=[
             dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/dashboard.png"), html.Span("Dashboard")],
@@ -117,8 +117,8 @@ sidebar = html.Div(className="sidebar", children=[
         vertical=True, pills=True),
 
         html.Div(id="sidebar_navlink_menu", className="sidebar_navlink_menu", children=[
-            html.P("General", style={"margin": "0px 0.2rem", "font-family": "Poppins", "font-size": "12px", "color": "white"}),
-            html.Hr(style={"flex": "1", "border": "1.5px solid white", "borderRadius": "5px", "margin": "0px 0.5rem", "opacity": "unset"})
+            html.P("General", style={"margin": "0px 0.2rem", "font-family": "Poppins", "font-size": "12px", "font-weight": "500", "color": "white"}),
+            html.Hr(style={"flex": "1", "border": "1px solid white", "borderRadius": "5px", "margin": "0px 0.5rem", "opacity": "unset"})
         ]),
         dbc.Nav(className="sidebar_navlink", children=[
             dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/account.png"), html.Span("My Account")],
@@ -183,8 +183,7 @@ control = dmc.Group([
                     {"label": "Quarterly", "value": "Q"},
                     {"label": "Yearly", "value": "A"},
                     {"label": "Custom Range", "value": "all"}
-                ]
-                )
+                ])
             ),
             dmc.HoverCardDropdown(id="time_control_information", className="time_control_information")
         ]),
@@ -317,14 +316,14 @@ def display_page(pathname):
 def update_time_control_information(time_interval):
     information = html.Div(children=[
         DashIconify(icon="ion:information-circle-outline", color="#0b71aa", width=30, style={"position": "absolute", "top": "10px", "right": "10px"}),
-        html.Ul(children=[
-            html.Li([html.Strong("Daily: "), f"For Today's Date {todays_date.strftime('%d %b, %Y')}"]),
-            html.Li([html.Strong("Weekly: "), f"From Monday to Sunday"]),
-            html.Li([html.Strong("Monthly: "), f"From the 1st of {todays_date.strftime('%B')}"]),
-            html.Li([html.Strong("Quarterly: "), f"For this Quarter starting from {todays_date.replace(month=3*round((todays_date.month - 1) // 3 + 1) - 2).strftime('%B')}"]),
-            html.Li([html.Strong("Yearly: "), f"From the Beginning of {todays_date.year}"]),
-            html.Li([html.Strong("Custom Range: "), "Select from Date Picker"])
-        ])
+        dmc.Stack(children=[
+            html.Div([html.Strong("Daily:"), dmc.Space(w=5), html.P(f"For Today's Date {todays_date.strftime('%d %b, %Y')}")], style={"display": "flex"}),
+            html.Div([html.Strong("Weekly:"), dmc.Space(w=5), html.P(f"From Monday to Sunday")], style={"display": "flex"}),
+            html.Div([html.Strong("Monthly:"), dmc.Space(w=5), html.P(f"From the 1st of {todays_date.strftime('%B')}")], style={"display": "flex"}),
+            html.Div([html.Strong("Quarterly:"), dmc.Space(w=5), html.P(f"For this Quarter starting from {todays_date.replace(month=3*round((todays_date.month - 1) // 3 + 1) - 2).strftime('%B')}")], style={"display": "flex"}),
+            html.Div([html.Strong("Yearly:"), dmc.Space(w=5), html.P(f"From the Beginning of {todays_date.year}")], style={"display": "flex"}),
+            html.Div([html.Strong("Custom Range:"), dmc.Space(w=5), html.P("Select from Date Picker")], style={"display": "flex"})
+        ], spacing=0)
     ])
     return information
 
@@ -555,7 +554,6 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value)
         kpi_platform_df.sort_values(by=["platform", "count"], ascending=[True, False], inplace=True)
 
         kpi_list = []
-        number_of_platforms = len(kpi_platform_df["platform"].unique())
         for platform in kpi_platform_df["platform"].unique():
 
             # Producing Increase for each Platform
@@ -587,28 +585,28 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value)
                 dmc.Card(id="kpi_platform_count_elements", className="kpi_platform_count_elements", children=[
                     dbc.Row([
                         dbc.Col(dmc.Text(title, style={"color": "black", "fontSize": "18px", "fontFamily": "Poppins", "fontWeight": "bold"}),
-                        align="center", width=10),
+                        align="center", width=9),
                         dbc.Col(dmc.Text(id="kpi_platform_comparison", className="kpi_platform_comparison", children=["▲"+str(kpi_platform_count_df["increase"].iloc[0])
                                         if kpi_platform_count_df["increase"].iloc[0] > 0 else "▼"+str(abs(kpi_platform_count_df["increase"].iloc[0]))],
                                     style={"color": "#FF5100" if kpi_platform_count_df["increase"].iloc[0] > 0 else "#25D366",
                                            "background-color": "rgba(255, 81, 0, 0.3)" if kpi_platform_count_df["increase"].iloc[0] > 0 else "rgba(37, 211, 102, 0.3)"}),
-                        align="center", width=2)
-                    ]),
+                        align="center", width="auto")
+                    ], justify="between"),
                     dbc.Row([
-                        dbc.Col(html.Img(src=f"assets/images/{platform}.png", style={"width": "120%", "height": "120%"}),
+                        dbc.Col(html.Img(src=f"assets/images/{platform}.png", style={"width": "100%", "height": "100%"}),
                         align="center", width=2),
                         dbc.Col(dmc.Stack(children=[
                             html.Div(children=[
-                                dmc.Text(row["result"], style={"color": "#979797", "fontSize": "12px", "fontFamily": "Poppins", "margin": "0px 10px"}),
+                                dmc.Text(row["result"], style={"color": "#979797", "fontSize": "12px", "fontFamily": "Poppins"}),
                                 dmc.Text(row["count"], style={"color": "#052F5F", "fontSize": "12px", "fontFamily": "Poppins", "fontWeight": "bold"})
                             ], style={"display": "flex", "justifyContent": "space-between", "width": "100%"})
                             for index, row in platform_df.iterrows()], align="flex-start", justify="flex-end", spacing="0px"),
                         align="center", width=8),
                         dbc.Col(html.Div(children=[
                             dmc.Text(str(platform_df["count"].sum()), style={"color": "#052F5F", "fontSize": "40px", "fontFamily": "Poppins", "fontWeight": 600})
-                            ], style={"text-align": "center"}),
+                            ], style={"text-align": "right"}),
                         align="center", width=2)
-                    ])
+                    ], justify="between")
                 ], withBorder=True, radius="5px", style={"flex": 1, "height": "100%"}
                 )
             )

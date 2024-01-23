@@ -396,8 +396,7 @@ body {
     font-size:12px;
     font-weight:600;
     font-family: "Poppins";
-    text-align: center;
-    padding: 5px;
+    padding: 0px 5px;
     border: 2px solid;
     border-radius: 5px;
 }
