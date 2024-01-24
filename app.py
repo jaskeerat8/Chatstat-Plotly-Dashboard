@@ -806,7 +806,7 @@ def update_line_chart(member_value, alert_value, slider_value):
         comment_alert.update_layout(yaxis_showgrid=True, yaxis_ticksuffix="  ", yaxis=dict(tickfont=dict(size=12, family="Poppins", color="#8E8E8E"), griddash="dash", gridwidth=1, gridcolor="#DADADA"))
         comment_alert.update_layout(xaxis_showgrid=False, xaxis=dict(tickfont=dict(size=9, family="Poppins", color="#052F5F"), tickangle=0))
         comment_alert.update_traces(mode="lines+markers", line=dict(width=2), marker=dict(sizemode="diameter", size=8, color="white", line=dict(width=2)))
-        comment_alert.update_xaxes(fixedrange=True)
+        comment_alert.update_xaxes(fixedrange=True, linecolor="#9f9f9f", linewidth=2)
         comment_alert.update_yaxes(fixedrange=True)
         comment_alert.add_vline(x=alert_comment_df[alert_comment_df["count"] == alert_comment_df["count"].max()]["commentTime"].iloc[0], line_width=2, line_dash="dashdot", line_color="#017EFA")
 
