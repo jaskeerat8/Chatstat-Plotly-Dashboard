@@ -741,17 +741,20 @@ def update_bar_chart(time_value, date_range_value, member_value, platform_value)
         risk_content_df = risk_content_df.sort_values(by="alert")
 
         if((platform_value is None) or (platform_value == "all")):
-            content_risk = px.bar(risk_content_df, x="alert", y="count", color="platform", text_auto=True, color_discrete_map=platform_colors, pattern_shape_sequence=None)
+            content_risk = px.bar(risk_content_df, x="alert", y="count", hover_name="platform", color="platform", text_auto=True, color_discrete_map=platform_colors, pattern_shape_sequence=None)
             content_risk.update_layout(title="<b>Alerts on User Content</b>", title_font_color="#052F5F", title_font=dict(size=17, family="Poppins"))
+            content_risk.update_traces(hovertemplate="<b>%{hovertext}</b><br><b>Alert Severity:</b> %{x}<br><b>Number of Alerts:</b> %{y}<extra></extra>")
         else:
             content_risk = px.bar(risk_content_df, x="alert", y="count", color="alert", color_discrete_map=alert_colors, pattern_shape_sequence=None)
             content_risk.update_layout(title=f"<b>Alerts on User Content - {platform_value}</b>", title_font_color="#052F5F", title_font=dict(size=17, family="Poppins"))
+            content_risk.update_traces(hovertemplate="<b>Alert Severity:</b> %{x}<br><b>Number of Alerts:</b> %{y}<extra></extra>")
 
         content_risk.update_layout(margin=dict(l=25, r=25, b=0), barmode="relative")
         content_risk.update_layout(legend=dict(font=dict(family="Poppins"), traceorder="grouped", orientation="h", x=1, y=1, xanchor="right", yanchor="bottom", title_text="", bgcolor="rgba(0,0,0,0)"))
         content_risk.update_layout(xaxis_title="", yaxis_title="", legend_title_text="", plot_bgcolor="rgba(0, 0, 0, 0)")
         content_risk.update_layout(yaxis_showgrid=True, yaxis=dict(tickfont=dict(size=12, family="Poppins", color="#8E8E8E"), griddash="dash", gridwidth=1, gridcolor="#DADADA"))
         content_risk.update_layout(xaxis_showgrid=False, xaxis=dict(tickfont=dict(size=18, family="Poppins", color="#052F5F")))
+        content_risk.update_layout(hoverlabel=dict(bgcolor="white", font_size=12, font_family="Poppins"))
         content_risk.update_traces(width=0.4, marker_line=dict(color="black", width=1.5))
         content_risk.update_traces(textfont=dict(color="#052F5F", size=16, family="Poppins"), textangle=0)
         content_risk.update_xaxes(fixedrange=True)
@@ -761,11 +764,14 @@ def update_bar_chart(time_value, date_range_value, member_value, platform_value)
         if(platform_value not in [None, "all"]):
             risk_content_df = risk_content_df.groupby(by=["alert"], as_index=False)["count"].sum()
             scatter_trace = px.scatter(risk_content_df, x="alert", y="count", color="alert", color_discrete_map=alert_colors, text="count")
+            scatter_trace.update_layout(hoverlabel=dict(bgcolor="white", font_size=12, font_family="Poppins"))
+            scatter_trace.update_traces(hovertemplate="<b>Alert Severity:</b> %{x}<br><b>Number of Alerts:</b> %{y}<extra></extra>")
             scatter_trace.update_traces(textfont=dict(color="#052F5F", size=16, family="Poppins"))
             scatter_trace.update_traces(marker=dict(size=65, symbol="circle", line=dict(width=2, color="black")), showlegend=False)
             content_risk.add_trace(scatter_trace.data[0])
             content_risk.add_trace(scatter_trace.data[1])
             content_risk.add_trace(scatter_trace.data[2])
+
 
         return dcc.Graph(figure=content_risk, responsive=True, config=plot_config, style={"height": "100%", "width": "100%"})
 
@@ -793,7 +799,7 @@ def update_line_chart(member_value, alert_value, slider_value):
         alert_comment_df["commentTime"] = pd.to_datetime(alert_comment_df["commentTime"], format="%b %Y")
         alert_comment_df.sort_values(by="commentTime", inplace=True)
 
-        comment_alert = px.line(alert_comment_df, x="commentTime", y="count", color="platform", color_discrete_map=platform_colors, symbol_sequence=[])
+        comment_alert = px.line(alert_comment_df, x="commentTime", y="count", hover_name="platform", color="platform", color_discrete_map=platform_colors)
         comment_alert.update_layout(margin=dict(l=25, r=25, b=0), height=400)
         comment_alert.update_layout(legend=dict(font=dict(family="Poppins"), traceorder="grouped", orientation="h", x=1, y=1, xanchor="right", yanchor="bottom", title_text=""))
         comment_alert.update_layout(xaxis_title="", yaxis_title="", legend_title_text="", plot_bgcolor="rgba(0, 0, 0, 0)")
@@ -803,6 +809,10 @@ def update_line_chart(member_value, alert_value, slider_value):
         comment_alert.update_xaxes(fixedrange=True)
         comment_alert.update_yaxes(fixedrange=True)
         comment_alert.add_vline(x=alert_comment_df[alert_comment_df["count"] == alert_comment_df["count"].max()]["commentTime"].iloc[0], line_width=2, line_dash="dashdot", line_color="#017EFA")
+
+        # Hover Label
+        comment_alert.update_layout(hoverlabel=dict(font_size=12, font_family="Poppins"))
+        comment_alert.update_traces(hovertemplate="<b>%{hovertext}</b><br><b>On:</b> %{x}<br><b>Total Alerts:</b> %{y}<extra></extra>")
 
         if((alert_value is not None) and (alert_value != "all")):
             comment_alert.update_layout(title=f"<b>Alerts on Comments Received - {alert_value} Alerts</b>", title_font_color="#052F5F", title_font=dict(size=17, family="Poppins"))
@@ -879,6 +889,10 @@ def update_pie_chart(time_value, date_range_value, member_value, platform_value,
         comment_classification.update_traces(textinfo="percent", texttemplate="<b>%{percent}</b>", textposition="outside")
         comment_classification.update_traces(outsidetextfont=dict(family="Poppins", size=14, color="black"), insidetextorientation="horizontal")
         comment_classification.update_traces(hole=0.65, marker=dict(line=dict(color="white", width=2.5)))
+
+        # Hover Label
+        comment_classification.update_layout(hoverlabel=dict(bgcolor="white", font_size=12, font_family="Poppins"))
+        comment_classification.update_traces(hovertemplate="<b>Category:</b> %{customdata[0]}<br><b>Total Comments:</b> %{value}<br><b>% of Total:</b> %{percent}<extra></extra>")
 
         if(((platform_value is not None) and (platform_value != "all")) and ((alert_value is not None) and (alert_value != "all"))):
             comment_classification.update_layout(title={"text": f"<b>Comment Classification - {platform_value} &<br>{alert_value} Alerts</b>"}, title_font_color="#052F5F", title_font=dict(family="Poppins", size=17))
