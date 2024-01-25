@@ -572,7 +572,7 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value)
                     ], justify="between"),
                     dbc.Row([
                         dbc.Col(html.Img(src=f"assets/images/{platform}.png", style={"width": "100%", "height": "100%"}),
-                        align="center", width=2),
+                        align="center", width=2, style={"padding": "0px 0px 0px 12px"}),
                         dbc.Col(dmc.Stack(children=[
                             html.Div(children=[
                                 dmc.Text(row["result"], style={"color": "#979797", "fontSize": "12px", "fontFamily": "Poppins"}),
