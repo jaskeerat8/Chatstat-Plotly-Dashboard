@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import calendar
 from datetime import datetime, date, timedelta
-import dash
+from dash import Dash
 from dash import dcc
 from dash import html
 import plotly.express as px
@@ -145,7 +145,7 @@ dashboard_header = dmc.Header(className="header", height="8.5vh", fixed=False, c
     dmc.Text("Dashboard", className="header_title"),
     dmc.Menu(id="user_container", className="user_container", trigger="hover", children=[
         dmc.MenuTarget(html.Div(id="user_information", className="user_information", children=[
-            dmc.Avatar(id="user_avatar", className="user_avatar", src="assets/images/user.jpeg", size=35, radius="xl"),
+            dmc.Avatar(id="user_avatar", className="user_avatar", src="assets/images/user.jpeg", size="6vh", radius="100%"),
             dmc.Text("Lawrence", id="user_name", className="user_name")
         ])),
         dmc.MenuDropdown(children=[
@@ -159,7 +159,7 @@ analytics_header = dmc.Header(className="header", height="8.5vh", fixed=False, c
     dmc.Text("Analytics", className="header_title"),
     dmc.Menu(id="user_container", className="user_container", trigger="hover", children=[
         dmc.MenuTarget(html.Div(id="user_information", className="user_information", children=[
-            dmc.Avatar(id="user_avatar", className="user_avatar", src="assets/images/user.jpeg", size=35, radius="xl"),
+            dmc.Avatar(id="user_avatar", className="user_avatar", src="assets/images/user.jpeg", size="6vh", radius="100%"),
             dmc.Text("Lawrence", id="user_name", className="user_name")
         ])),
         dmc.MenuDropdown(children=[
@@ -230,9 +230,15 @@ filters = dmc.Group([
 
 # Overview Card
 overview = html.Div(children=[
-    dmc.Modal(title="Child Overview", id="child_overview", zIndex=10000, centered=True, overflow="inside", children=[
-        dmc.Avatar(size="lg", radius="xl"),
-        dmc.Text("Name"),
+    dmc.Modal(title="Member Overview", id="child_overview", zIndex=10000, centered=True, overflow="inside", children=[
+        dmc.Group(children=[
+            dmc.Avatar(id="user_avatar", className="user_avatar", src="assets/images/user.jpeg", size=100, radius="100%"),
+            html.P(children=[
+                html.Strong("Name: "), html.Span(), html.Br(),
+                html.Strong("Email: "), html.Span(), html.Br(),
+                html.Strong("ID: "), html.Span()
+            ])
+        ]),
         html.Div(id="overview_platform")
     ]),
     dmc.Button("Open modal", id="button")
@@ -279,7 +285,7 @@ analytics_charts = html.Div(children=[
 
 
 # Designing Main App
-app = dash.Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=["https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap", dbc.themes.BOOTSTRAP, dbc.themes.MATERIA, dbc.icons.FONT_AWESOME])
+app = Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=["https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap", dbc.themes.BOOTSTRAP, dbc.themes.MATERIA, dbc.icons.FONT_AWESOME])
 server = app.server
 app.css.config.serve_locally = True
 app.title = "Parent Dashboard"
@@ -409,44 +415,15 @@ def update_overview_card(n_clicks):
     overview_platform_df["createTime_contents"] = pd.to_datetime(overview_platform_df["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f")
     overview_platform_df = overview_platform_df.groupby(by=["platform_contents"], as_index=False)["id_contents"].nunique()
     overview_platform_df.columns = ["platform", "count"]
+    overview_platform_df["percentage_count"] = (overview_platform_df["count"]/overview_platform_df["count"].sum()) * 100
+    print(overview_platform_df)
 
-    platform_elements = [html.Div([
-        html.Div(
-            html.P(row["platform"],
-                   style={"text-align": "center", "font-size": "14px", "margin": "0px"}),
-            style={"display": "flex", "justify-content": "center"}
-        ),
-        html.Div(
-            html.P(row["count"],
-                   style={"text-align": "center", "font-weight": "bold", "font-size": "18px", "margin": "auto"}),
-            style={"background-color": "lightblue", "width": "50px", "height": "50px", "border-radius": "10px",
-                   "display": "flex", "flex-direction": "column", "align-items": "center", "justify-content": "center"}
-        )
-    ], style={"display": "flex", "flex-direction": "column", "align-items": "center", "margin-right": "20px"}) for
-        index, row in overview_platform_df.iterrows()]
-
-    overview_alert_df = df.copy()
-    overview_alert_df["createTime_contents"] = pd.to_datetime(overview_alert_df["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f")
-    overview_alert_df = overview_alert_df[(overview_alert_df["result_contents"].str.lower() != "no") & (overview_alert_df["result_contents"].str.lower() != "") & (overview_alert_df["result_contents"].notna())]
-    overview_alert_df = overview_alert_df.groupby(by=["result_contents"], as_index=False)["id_contents"].nunique()
-    overview_alert_df.columns = ["category", "count"]
-
-    category_elements = [
-        html.Div([
-            html.P(row["count"],
-                   style={"text-align": "left", "font-size": "14px", "font-weight": "bold", "margin": "0"}),
-            html.P(row["category"], style={"text-align": "left", "font-size": "15px", "margin": "auto"})
-        ], style={"width": "50%"}) for index, row in overview_alert_df.iterrows()
-    ]
-
-    category_elements = [
-        html.Div(category_elements[i:i + 2], style={"display": "flex", "flex-direction": "row", "margin": "10px"}) for i in range(0, len(category_elements), 2)
-    ]
-    return True, html.Div(children=[
-        html.Div(platform_elements, style={"margin": "auto", "display": "flex", "flex-direction": "row"}),
-        html.Div(category_elements)
-        ]
+    platform_ring = dmc.RingProgress(size=130, thickness=12,
+        sections=[{"value": row["percentage_count"], "color": platform_colors[row["platform"]]} for index, row in overview_platform_df.iterrows()],
+        label=dmc.Center(html.P(children=[html.Strong(overview_platform_df["count"].sum()), html.Br(), html.Strong("Alerts")],
+                                style={"text-align": "center"}))
     )
+    return True, platform_ring
 
 
 # KPI Count Card
@@ -772,7 +749,6 @@ def update_bar_chart(time_value, date_range_value, member_value, platform_value)
             content_risk.add_trace(scatter_trace.data[0])
             content_risk.add_trace(scatter_trace.data[1])
             content_risk.add_trace(scatter_trace.data[2])
-
 
         return dcc.Graph(figure=content_risk, responsive=True, config=plot_config, style={"height": "100%", "width": "100%"})
 
