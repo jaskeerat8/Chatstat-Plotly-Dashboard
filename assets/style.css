@@ -385,8 +385,15 @@ body {
 /* kpi_platform_count */
 .kpi_platform_count {
     flex: 1;
+    display: flex;
+    flexDirection: row;
 }
 .kpi_platform_count_elements {
+    margin-right: 10px;
+    transition: transform 0.2s ease-in-out;
+}
+.kpi_platform_count_elements:last-child {
+    margin-right: 0px;
     transition: transform 0.2s ease-in-out;
 }
 .kpi_platform_count_elements:hover {

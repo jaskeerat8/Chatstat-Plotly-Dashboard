@@ -17,7 +17,7 @@ from dash.dependencies import Input, Output
 
 # Global Variables
 global date_dict
-todays_date = datetime(2023, 11, 30)
+todays_date = datetime(2023, 12, 31)
 
 # Reading static Data, later read from AWS after user authentication
 df = pd.read_csv("Data/final_30-11-2023_14_11_18.csv")
@@ -248,7 +248,8 @@ overview = html.Div(children=[
 # KPI Card
 kpi_cards = html.Div([
     dmc.Card(id="kpi_alert_count", className="kpi_alert_count", withBorder=True, radius="5px", style={"width": "auto", "margin": "0px 10px 0px 0px"}),
-    dmc.Group(id="kpi_platform_count", className="kpi_platform_count", position="center", spacing="10px")
+    #dmc.Group(id="kpi_platform_count", className="kpi_platform_count", position="center", spacing="10px")
+    html.Div(id="kpi_platform_count", className="kpi_platform_count")
     ], style={"display": "flex", "flexDirection": "row", "margin": "10px", "padding": "0px"}
 )
 
@@ -521,7 +522,7 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value)
     kpi_platform_df = alert_filter(kpi_platform_df, alert_value)
 
     if(len(kpi_platform_df) == 0):
-        card = dmc.Card(children=[
+        card = dmc.Card(id="kpi_platform_count_elements", className="kpi_platform_count_elements", children=[
             dmc.Text("No Cards to Display", color="black", style={"fontSize": 17, "fontFamily": "Poppins", "fontWeight": "bold"})
             ], withBorder=True, radius="5px", style={"height": "100%", "width": "100%", "display": "flex", "justify-content": "center", "align-items": "center"}
         )
@@ -564,10 +565,11 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value)
                     dbc.Row([
                         dbc.Col(dmc.Text(title, style={"color": "black", "fontSize": "18px", "fontFamily": "Poppins", "fontWeight": "bold"}),
                         align="center", width=9),
-                        dbc.Col(dmc.Text(id="kpi_platform_comparison", className="kpi_platform_comparison", children=["▲"+str(kpi_platform_count_df["increase"].iloc[0])
-                                        if kpi_platform_count_df["increase"].iloc[0] > 0 else "▼"+str(abs(kpi_platform_count_df["increase"].iloc[0]))],
-                                    style={"color": "#FF5100" if kpi_platform_count_df["increase"].iloc[0] > 0 else "#25D366",
-                                           "background-color": "rgba(255, 81, 0, 0.3)" if kpi_platform_count_df["increase"].iloc[0] > 0 else "rgba(37, 211, 102, 0.3)"}),
+                        dbc.Col(dmc.Text(id="kpi_platform_comparison", className="kpi_platform_comparison", children=["-" if time_value == "all"
+                                        else ("▲"+str(kpi_platform_count_df["increase"].iloc[0]) if kpi_platform_count_df["increase"].iloc[0] > 0
+                                              else "▼"+str(abs(kpi_platform_count_df["increase"].iloc[0])))],
+                                    style={"color": "#25D366" if time_value == "all" else ("#FF5100" if kpi_platform_count_df["increase"].iloc[0] > 0 else "#25D366"),
+                                           "background-color": "rgba(37, 211, 102, 0.3)" if time_value == "all" else ("rgba(255, 81, 0, 0.3)" if kpi_platform_count_df["increase"].iloc[0] > 0 else "rgba(37, 211, 102, 0.3)")}),
                         align="center", width="auto")
                     ], justify="between"),
                     dbc.Row([
@@ -711,21 +713,22 @@ def update_bar_chart(time_value, date_range_value, member_value, platform_value)
         # Handling Missing Values
         for platform in risk_content_df["platform"].unique():
             for cat in categories:
-                if(cat not in risk_content_df["platform"].unique()):
+                if(cat not in risk_content_df[risk_content_df["platform"] == platform]["alert"].unique()):
                     new_row = {"alert": cat, "platform": platform.title(), "count": 0}
                     risk_content_df = pd.concat([risk_content_df, pd.DataFrame(new_row, index=[len(risk_content_df)])])
 
         risk_content_df["alert"] = pd.Categorical(risk_content_df["alert"], categories=categories, ordered=True)
+        risk_content_df["percentage_alert"] = risk_content_df.groupby("alert")["count"].transform(lambda x: (x / x.sum()) * 100).round()
         risk_content_df = risk_content_df.sort_values(by="alert")
 
         if((platform_value is None) or (platform_value == "all")):
-            content_risk = px.bar(risk_content_df, x="alert", y="count", hover_name="platform", color="platform", text_auto=True, color_discrete_map=platform_colors, pattern_shape_sequence=None)
-            content_risk.update_layout(title="<b>Alerts on User Content</b>", title_font_color="#052F5F", title_font=dict(size=17, family="Poppins"))
-            content_risk.update_traces(hovertemplate="<i><b>%{hovertext}</b></i><br>Alert Severity: <b>%{x}</b><br>Total Alerts: <b>%{y}</b><extra></extra>")
+            content_risk = px.bar(risk_content_df, x="alert", y="percentage_alert", text="count", hover_name="platform", color="platform", color_discrete_map=platform_colors, pattern_shape_sequence=None)
+            content_risk.update_layout(title="<b>Alerts on User Content</b>", title_font_color="#052F5F", title_font=dict(size=17, family="Poppins"), yaxis_ticksuffix="% ")
+            content_risk.update_traces(width=1, hovertemplate="<i><b>%{hovertext}</b></i><br>Alert Severity: <b>%{x}</b><br>Total Alerts: <b>%{text}</b><br>% of Total: <b>%{y}</b><extra></extra>")
         else:
             content_risk = px.bar(risk_content_df, x="alert", y="count", color="alert", color_discrete_map=alert_colors, pattern_shape_sequence=None)
             content_risk.update_layout(title=f"<b>Alerts on User Content - {platform_value}</b>", title_font_color="#052F5F", title_font=dict(size=17, family="Poppins"))
-            content_risk.update_traces(hovertemplate="Alert Severity: <b>%{x}</b><br>Total Alerts: <b>%{y}</b><extra></extra>")
+            content_risk.update_traces(width=0.4, hovertemplate="Alert Severity: <b>%{x}</b><br>Total Alerts: <b>%{y}</b><extra></extra>")
 
         content_risk.update_layout(margin=dict(l=25, r=25, b=0), barmode="relative")
         content_risk.update_layout(legend=dict(font=dict(family="Poppins"), traceorder="grouped", orientation="h", x=1, y=1, xanchor="right", yanchor="bottom", title_text="", bgcolor="rgba(0,0,0,0)"))
@@ -733,8 +736,7 @@ def update_bar_chart(time_value, date_range_value, member_value, platform_value)
         content_risk.update_layout(yaxis_showgrid=True, yaxis=dict(tickfont=dict(size=12, family="Poppins", color="#8E8E8E"), griddash="dash", gridwidth=1, gridcolor="#DADADA"))
         content_risk.update_layout(xaxis_showgrid=False, xaxis=dict(tickfont=dict(size=18, family="Poppins", color="#052F5F")))
         content_risk.update_layout(hoverlabel=dict(bgcolor="#c1dfff", font_size=12, font_family="Poppins", align="left"))
-        content_risk.update_traces(width=0.4, marker_line=dict(color="black", width=1.5))
-        content_risk.update_traces(textfont=dict(color="#052F5F", size=16, family="Poppins"), textangle=0)
+        content_risk.update_traces(marker_line=dict(color="black", width=1.5), textfont=dict(color="#052F5F", size=16, family="Poppins"), textangle=0)
         content_risk.update_xaxes(fixedrange=True)
         content_risk.update_yaxes(fixedrange=True)
 
@@ -745,7 +747,7 @@ def update_bar_chart(time_value, date_range_value, member_value, platform_value)
             scatter_trace.update_layout(hoverlabel=dict(bgcolor="#c1dfff", font_size=12, font_family="Poppins", align="left"))
             scatter_trace.update_traces(hovertemplate="Alert Severity: <b>%{x}</b><br>Total Alerts: <b>%{y}</b><extra></extra>")
             scatter_trace.update_traces(textfont=dict(color="#052F5F", size=16, family="Poppins"))
-            scatter_trace.update_traces(marker=dict(size=65, symbol="circle", line=dict(width=2, color="black")), showlegend=False)
+            scatter_trace.update_traces(marker=dict(size=75, symbol="circle", line=dict(width=2, color="black")), showlegend=False)
             content_risk.add_trace(scatter_trace.data[0])
             content_risk.add_trace(scatter_trace.data[1])
             content_risk.add_trace(scatter_trace.data[2])
