@@ -141,7 +141,7 @@ sidebar = html.Div(className="sidebar", children=[
 
 
 # Header
-dashboard_header = dmc.Header(className="header", height="60px", fixed=False, children=[
+dashboard_header = dmc.Header(className="header", height="8.5vh", fixed=False, children=[
     dmc.Text("Dashboard", className="header_title"),
     dmc.Menu(id="user_container", className="user_container", trigger="hover", children=[
         dmc.MenuTarget(html.Div(id="user_information", className="user_information", children=[
@@ -155,7 +155,7 @@ dashboard_header = dmc.Header(className="header", height="60px", fixed=False, ch
     ])
 ])
 
-analytics_header = dmc.Header(className="header", height="60px", fixed=False, children=[
+analytics_header = dmc.Header(className="header", height="8.5vh", fixed=False, children=[
     dmc.Text("Analytics", className="header_title"),
     dmc.Menu(id="user_container", className="user_container", trigger="hover", children=[
         dmc.MenuTarget(html.Div(id="user_information", className="user_information", children=[
@@ -219,7 +219,7 @@ filters = dmc.Group([
     html.Div(className="searchbar_container", id="searchbar_container", children=[
         html.P("Member Overview", className="searchbar_label", id="searchbar_label"),
         dmc.Select(className="searchbar", id="searchbar", clearable=True, searchable=True, placeholder=" Search...", nothingFound="Nothing Found", limit=5, iconWidth=50,
-               icon=html.Img(src="assets/images/chatstatlogo_black.png", width="40%"), rightSection=DashIconify(icon="radix-icons:chevron-right", color="black"),
+               icon=html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/chatstatlogo_black.png", width="50%"), rightSection=DashIconify(icon="radix-icons:chevron-right", color="black"),
                data=[{"group": "Members", "label": member.title(), "value": member} for member in list(df["name_childrens"].unique())] +
                     [{"group": "ID", "label": id.title(), "value": id} for id in list(df["id_childrens"].unique())]
         )
@@ -253,7 +253,7 @@ dashboard_charts = html.Div(children=[
         html.Div(id="content_risk_classification_container", className="content_risk_classification_container", children=[
             html.Div(id="content_classification_radial_chart", className="content_classification_radial_chart"),
             html.Div(id="risk_categories_horizontal_bar", className="risk_categories_horizontal_bar"),
-            dmc.ActionIcon(DashIconify(icon="f7:camera-fill"), id="save_as_image", className="save_as_image", n_clicks=0, variant="transparent")
+            dmc.ActionIcon(DashIconify(icon="f7:camera-fill", color="rgba(68, 68, 68, 0.3)", width=16), id="save_as_image", className="save_as_image", n_clicks=0, variant="transparent")
             ], style={"width": "calc(65% - 5px)"}
         ),
         html.Div(id="content_risk_bar_chart", className="content_risk_bar_chart", style={"width": "calc(35% - 5px)"})
@@ -287,7 +287,7 @@ app.layout = html.Div(
     children=[
         dcc.Interval(id="time_interval", disabled=True),
         dcc.Location(id="url_path", refresh=False),
-        html.Div(children=[], style={"height": "60px"}),
+        html.Div(children=[], style={"height": "8.5vh"}),
         html.Div(children=[], style={"width": "4.5rem", "display": "inline-block"}),
         html.Div(id="page_content", style={"display": "inline-block", "width": "calc(100% - 4.5rem)"})
     ]
@@ -315,17 +315,17 @@ def display_page(pathname):
     Input("time_interval", "n_intervals")
 )
 def update_time_control_information(time_interval):
-    information = html.Div(children=[
+    information = [
         DashIconify(icon="ion:information-circle-outline", color="#0b71aa", width=30, style={"position": "absolute", "top": "10px", "right": "10px"}),
-        dmc.Stack(children=[
-            html.Div([html.Strong("Daily:"), dmc.Space(w=5), html.P(f"For Today's Date {todays_date.strftime('%d %b, %Y')}")], style={"display": "flex"}),
-            html.Div([html.Strong("Weekly:"), dmc.Space(w=5), html.P(f"From Monday to Sunday")], style={"display": "flex"}),
-            html.Div([html.Strong("Monthly:"), dmc.Space(w=5), html.P(f"From the 1st of {todays_date.strftime('%B')}")], style={"display": "flex"}),
-            html.Div([html.Strong("Quarterly:"), dmc.Space(w=5), html.P(f"For this Quarter starting from {todays_date.replace(month=3*round((todays_date.month - 1) // 3 + 1) - 2).strftime('%B')}")], style={"display": "flex"}),
-            html.Div([html.Strong("Yearly:"), dmc.Space(w=5), html.P(f"From the Beginning of {todays_date.year}")], style={"display": "flex"}),
-            html.Div([html.Strong("Custom Range:"), dmc.Space(w=5), html.P("Select from Date Picker")], style={"display": "flex"})
-        ], spacing=0)
-    ])
+        html.P(children=[
+            html.Strong("Daily: "), html.Span(f"For Today's Date {todays_date.strftime('%d %b, %Y')}"), html.Br(),
+            html.Strong("Weekly: "), html.Span(f"From Monday to Sunday"), html.Br(),
+            html.Strong("Monthly: "), html.Span(f"From the 1st of {todays_date.strftime('%B')}"), html.Br(),
+            html.Strong("Quarterly: "), html.Span(f"For this Quarter starting from {todays_date.replace(month=3*round((todays_date.month - 1) // 3 + 1) - 2).strftime('%B')}"), html.Br(),
+            html.Strong("Yearly: "), html.Span(f"From the Beginning of {todays_date.year}"), html.Br(),
+            html.Strong("Custom Range: "), html.Span("Select from Date Picker")
+        ])
+    ]
     return information
 
 
@@ -755,7 +755,7 @@ def update_bar_chart(time_value, date_range_value, member_value, platform_value)
         content_risk.update_layout(xaxis_title="", yaxis_title="", legend_title_text="", plot_bgcolor="rgba(0, 0, 0, 0)")
         content_risk.update_layout(yaxis_showgrid=True, yaxis=dict(tickfont=dict(size=12, family="Poppins", color="#8E8E8E"), griddash="dash", gridwidth=1, gridcolor="#DADADA"))
         content_risk.update_layout(xaxis_showgrid=False, xaxis=dict(tickfont=dict(size=18, family="Poppins", color="#052F5F")))
-        content_risk.update_layout(hoverlabel=dict(bgcolor="white", font_size=12, font_family="Poppins", align="left"))
+        content_risk.update_layout(hoverlabel=dict(bgcolor="#c1dfff", font_size=12, font_family="Poppins", align="left"))
         content_risk.update_traces(width=0.4, marker_line=dict(color="black", width=1.5))
         content_risk.update_traces(textfont=dict(color="#052F5F", size=16, family="Poppins"), textangle=0)
         content_risk.update_xaxes(fixedrange=True)
@@ -765,7 +765,7 @@ def update_bar_chart(time_value, date_range_value, member_value, platform_value)
         if(platform_value not in [None, "all"]):
             risk_content_df = risk_content_df.groupby(by=["alert"], as_index=False)["count"].sum()
             scatter_trace = px.scatter(risk_content_df, x="alert", y="count", color="alert", color_discrete_map=alert_colors, text="count")
-            scatter_trace.update_layout(hoverlabel=dict(bgcolor="white", font_size=12, font_family="Poppins", align="left"))
+            scatter_trace.update_layout(hoverlabel=dict(bgcolor="#c1dfff", font_size=12, font_family="Poppins", align="left"))
             scatter_trace.update_traces(hovertemplate="Alert Severity: <b>%{x}</b><br>Total Alerts: <b>%{y}</b><extra></extra>")
             scatter_trace.update_traces(textfont=dict(color="#052F5F", size=16, family="Poppins"))
             scatter_trace.update_traces(marker=dict(size=65, symbol="circle", line=dict(width=2, color="black")), showlegend=False)
@@ -812,8 +812,8 @@ def update_line_chart(member_value, alert_value, slider_value):
         comment_alert.add_vline(x=alert_comment_df[alert_comment_df["count"] == alert_comment_df["count"].max()]["commentTime"].iloc[0], line_width=2, line_dash="dashdot", line_color="#017EFA")
 
         # Hover Label
-        comment_alert.update_layout(hoverlabel=dict(bgcolor="#9acbff", font_size=12, font_family="Poppins", align="left"))
-        comment_alert.update_traces(hovertemplate="<i><b>%{hovertext}</b></i><br>On: <b>%{x}</b><br>Total Alerts: <b>%{y}</b><extra></extra>")
+        comment_alert.update_layout(hoverlabel=dict(bgcolor="#c1dfff", font_size=12, font_family="Poppins", align="left"))
+        comment_alert.update_traces(hovertemplate="<i><b>%{hovertext}</b></i><br>In: <b>%{x|%b %Y}</b><br>Total Alerts: <b>%{y}</b><extra></extra>")
 
         if((alert_value is not None) and (alert_value != "all")):
             comment_alert.update_layout(title=f"<b>Alerts on Comments Received - {alert_value} Alerts</b>", title_font_color="#052F5F", title_font=dict(size=17, family="Poppins"))
@@ -892,8 +892,8 @@ def update_pie_chart(time_value, date_range_value, member_value, platform_value,
         comment_classification.update_traces(hole=0.65, marker=dict(line=dict(color="white", width=2.5)))
 
         # Hover Label
-        comment_classification.update_layout(hoverlabel=dict(bgcolor="white", font_size=12, font_family="Poppins", align="left"))
-        comment_classification.update_traces(hovertemplate="<b>Category:</b> %{customdata[0]}<br><b>Total Comments:</b> %{value}<br><b>% of Total:</b> %{percent}<extra></extra>")
+        comment_classification.update_layout(hoverlabel=dict(bgcolor="#c1dfff", font_size=12, font_family="Poppins", align="left"))
+        comment_classification.update_traces(hovertemplate="<b><i>%{customdata[0]} Comments</i></b><br>Total Comments: <b>%{value}</b><br>% of Total: <b>%{percent}</b><extra></extra>")
 
         if(((platform_value is not None) and (platform_value != "all")) and ((alert_value is not None) and (alert_value != "all"))):
             comment_classification.update_layout(title={"text": f"<b>Comment Classification - {platform_value} &<br>{alert_value} Alerts</b>"}, title_font_color="#052F5F", title_font=dict(family="Poppins", size=17))
