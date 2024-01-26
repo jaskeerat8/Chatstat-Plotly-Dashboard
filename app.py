@@ -5,15 +5,12 @@ import numpy as np
 import pandas as pd
 import calendar
 from datetime import datetime, date, timedelta
-from dash import Dash
-from dash import dcc
-from dash import html
 import plotly.express as px
 import plotly.graph_objects as go
 import dash_mantine_components as dmc
 import dash_bootstrap_components as dbc
 from dash_iconify import DashIconify
-from dash.dependencies import Input, Output
+from dash import Dash, html, dcc, Input, Output
 
 # Global Variables
 global date_dict
@@ -94,7 +91,7 @@ def no_data_graph():
 
 
 # SideBar
-sidebar = html.Div(className="sidebar", children=[
+sidebar = html.Div(id="sidebar", className="sidebar", children=[
     html.Div(children=[
         html.A(html.Div(className="sidebar_header", children=[
             html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/chatstatlogo.png"),
@@ -141,7 +138,7 @@ sidebar = html.Div(className="sidebar", children=[
 
 
 # Header
-dashboard_header = dmc.Header(className="header", height="8.5vh", fixed=False, children=[
+dashboard_header = dmc.Header(id="header", className="header", height="8.5vh", fixed=False, children=[
     dmc.Text("Dashboard", className="header_title"),
     dmc.Menu(id="user_container", className="user_container", trigger="hover", children=[
         dmc.MenuTarget(html.Div(id="user_information", className="user_information", children=[
@@ -155,7 +152,7 @@ dashboard_header = dmc.Header(className="header", height="8.5vh", fixed=False, c
     ])
 ])
 
-analytics_header = dmc.Header(className="header", height="8.5vh", fixed=False, children=[
+analytics_header = dmc.Header(id="header", className="header", height="8.5vh", fixed=False, children=[
     dmc.Text("Analytics", className="header_title"),
     dmc.Menu(id="user_container", className="user_container", trigger="hover", children=[
         dmc.MenuTarget(html.Div(id="user_information", className="user_information", children=[
@@ -248,7 +245,6 @@ overview = html.Div(children=[
 # KPI Card
 kpi_cards = html.Div([
     dmc.Card(id="kpi_alert_count", className="kpi_alert_count", withBorder=True, radius="5px", style={"width": "auto", "margin": "0px 10px 0px 0px"}),
-    #dmc.Group(id="kpi_platform_count", className="kpi_platform_count", position="center", spacing="10px")
     html.Div(id="kpi_platform_count", className="kpi_platform_count")
     ], style={"display": "flex", "flexDirection": "row", "margin": "10px", "padding": "0px"}
 )
@@ -565,7 +561,7 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value)
                     dbc.Row([
                         dbc.Col(dmc.Text(title, style={"color": "black", "fontSize": "18px", "fontFamily": "Poppins", "fontWeight": "bold"}),
                         align="center", width=9),
-                        dbc.Col(dmc.Text(id="kpi_platform_comparison", className="kpi_platform_comparison", children=["-" if time_value == "all"
+                        dbc.Col(dmc.Text(id="kpi_platform_comparison", className="kpi_platform_comparison", children=["--" if time_value == "all"
                                         else ("▲"+str(kpi_platform_count_df["increase"].iloc[0]) if kpi_platform_count_df["increase"].iloc[0] > 0
                                               else "▼"+str(abs(kpi_platform_count_df["increase"].iloc[0])))],
                                     style={"color": "#25D366" if time_value == "all" else ("#FF5100" if kpi_platform_count_df["increase"].iloc[0] > 0 else "#25D366"),
@@ -719,14 +715,15 @@ def update_bar_chart(time_value, date_range_value, member_value, platform_value)
 
         risk_content_df["alert"] = pd.Categorical(risk_content_df["alert"], categories=categories, ordered=True)
         risk_content_df["percentage_alert"] = risk_content_df.groupby("alert")["count"].transform(lambda x: (x / x.sum()) * 100).round()
+        risk_content_df["percentage_total"] = ((risk_content_df["count"] / risk_content_df["count"].sum()) * 100).round()
         risk_content_df = risk_content_df.sort_values(by="alert")
 
         if((platform_value is None) or (platform_value == "all")):
-            content_risk = px.bar(risk_content_df, x="alert", y="percentage_alert", text="count", hover_name="platform", color="platform", color_discrete_map=platform_colors, pattern_shape_sequence=None)
+            content_risk = px.bar(risk_content_df, x="alert", y="percentage_alert", text="count", hover_name="platform", custom_data=["percentage_total"], color="platform", color_discrete_map=platform_colors)
             content_risk.update_layout(title="<b>Alerts on User Content</b>", title_font_color="#052F5F", title_font=dict(size=17, family="Poppins"), yaxis_ticksuffix="% ")
-            content_risk.update_traces(width=1, hovertemplate="<i><b>%{hovertext}</b></i><br>Alert Severity: <b>%{x}</b><br>Total Alerts: <b>%{text}</b><br>% of Total: <b>%{y}</b><extra></extra>")
+            content_risk.update_traces(width=0.5, hovertemplate="<i><b>%{hovertext}</b></i><br>Alert Severity: <b>%{x}</b><br>Total Alerts: <b>%{text}</b><br>% of Total: <b>%{customdata}%</b><extra></extra>")
         else:
-            content_risk = px.bar(risk_content_df, x="alert", y="count", color="alert", color_discrete_map=alert_colors, pattern_shape_sequence=None)
+            content_risk = px.bar(risk_content_df, x="alert", y="count", color="alert", color_discrete_map=alert_colors)
             content_risk.update_layout(title=f"<b>Alerts on User Content - {platform_value}</b>", title_font_color="#052F5F", title_font=dict(size=17, family="Poppins"))
             content_risk.update_traces(width=0.4, hovertemplate="Alert Severity: <b>%{x}</b><br>Total Alerts: <b>%{y}</b><extra></extra>")
 
@@ -734,7 +731,7 @@ def update_bar_chart(time_value, date_range_value, member_value, platform_value)
         content_risk.update_layout(legend=dict(font=dict(family="Poppins"), traceorder="grouped", orientation="h", x=1, y=1, xanchor="right", yanchor="bottom", title_text="", bgcolor="rgba(0,0,0,0)"))
         content_risk.update_layout(xaxis_title="", yaxis_title="", legend_title_text="", plot_bgcolor="rgba(0, 0, 0, 0)")
         content_risk.update_layout(yaxis_showgrid=True, yaxis=dict(tickfont=dict(size=12, family="Poppins", color="#8E8E8E"), griddash="dash", gridwidth=1, gridcolor="#DADADA"))
-        content_risk.update_layout(xaxis_showgrid=False, xaxis=dict(tickfont=dict(size=18, family="Poppins", color="#052F5F")))
+        content_risk.update_layout(xaxis_showgrid=False, xaxis=dict(tickfont=dict(size=16, family="Poppins", color="#052F5F")))
         content_risk.update_layout(hoverlabel=dict(bgcolor="#c1dfff", font_size=12, font_family="Poppins", align="left"))
         content_risk.update_traces(marker_line=dict(color="black", width=1.5), textfont=dict(color="#052F5F", size=16, family="Poppins"), textangle=0)
         content_risk.update_xaxes(fixedrange=True)
@@ -747,7 +744,7 @@ def update_bar_chart(time_value, date_range_value, member_value, platform_value)
             scatter_trace.update_layout(hoverlabel=dict(bgcolor="#c1dfff", font_size=12, font_family="Poppins", align="left"))
             scatter_trace.update_traces(hovertemplate="Alert Severity: <b>%{x}</b><br>Total Alerts: <b>%{y}</b><extra></extra>")
             scatter_trace.update_traces(textfont=dict(color="#052F5F", size=16, family="Poppins"))
-            scatter_trace.update_traces(marker=dict(size=75, symbol="circle", line=dict(width=2, color="black")), showlegend=False)
+            scatter_trace.update_traces(marker=dict(size=70, symbol="circle", line=dict(width=2, color="black")), showlegend=False)
             content_risk.add_trace(scatter_trace.data[0])
             content_risk.add_trace(scatter_trace.data[1])
             content_risk.add_trace(scatter_trace.data[2])

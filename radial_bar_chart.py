@@ -28,7 +28,7 @@ def radial_chart(result_contents_df):
         labels = result_contents_df["classification"]
         colors = [content_classification_colors[category] for category in categories]
 
-        plt.figure().set_figheight(5.2)
+        plt.figure().set_figheight(5.5)
         ax = plt.subplot(projection="polar")
         total_radial_bars = ax.barh(categories, total_radial, color="#d8dce2", height=0.8)
         radial_bars = ax.barh(categories, radial, color=colors, edgecolor="black", linewidth=1.5, height=0.77)
@@ -44,7 +44,7 @@ def radial_chart(result_contents_df):
         ax.grid(False)
 
         legend_elements = [Patch(color=color, label=label) for color, label in zip(colors, labels)]
-        legend = plt.legend(handles=legend_elements, loc="lower center", bbox_to_anchor=(0.5, -0.2), ncol=2, frameon=False, labelcolor="#052F5F")
+        legend = plt.legend(handles=legend_elements, loc="lower center", bbox_to_anchor=(0.5, -0.25), ncol=2, frameon=False, labelcolor="#052F5F")
         for text in legend.get_texts():
             text.set_fontproperties(legend_prop)
     except Exception as e:
@@ -57,7 +57,7 @@ def radial_chart(result_contents_df):
 
     image_buffer = BytesIO()
     plt.tight_layout()
-    plt.savefig(image_buffer, format="png", dpi=400)
+    plt.savefig(image_buffer, format="png", dpi=300)
     plt.close()
     image_data = base64.b64encode(image_buffer.getvalue()).decode("utf8")
     image_buffer.close()
