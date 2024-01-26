@@ -624,7 +624,7 @@ def update_radial_chart(time_value, date_range_value, member_value, platform_val
             title = "Content Risk Classification"
         return [
             html.P(title, style={"color": "#052F5F", "fontWeight": "bold", "fontSize": 17, "margin": "10px 25px 0px 25px"}),
-            html.Img(src=radial_bar_chart.radial_chart(result_contents_df), width="100%")
+            html.Img(src=radial_bar_chart.radial_chart(result_contents_df), width="100%", style={"object-fit": "cover"})
         ]
 
 

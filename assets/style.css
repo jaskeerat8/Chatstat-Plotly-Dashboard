@@ -650,7 +650,7 @@ body {
 /* Radial Chart */
 .content_classification_radial_chart {
     font-family: "Poppins";
-    background-color: white;
+    background-color: red;
     display: flex;
     flex-direction: column;
     flex: 1;
