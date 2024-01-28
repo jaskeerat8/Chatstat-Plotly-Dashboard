@@ -244,7 +244,7 @@ overview = html.Div(children=[
 
 # KPI Card
 kpi_cards = html.Div([
-    dmc.Card(id="kpi_alert_count", className="kpi_alert_count", withBorder=True, radius="5px", style={"width": "auto", "margin": "0px 10px 0px 0px"}),
+    dmc.Card(id="kpi_alert_count_container", className="kpi_alert_count_container", withBorder=True, radius="5px", style={"width": "auto", "margin": "0px 10px 0px 0px"}),
     html.Div(id="kpi_platform_count", className="kpi_platform_count")
     ], style={"display": "flex", "flexDirection": "row", "margin": "10px", "padding": "0px"}
 )
@@ -425,7 +425,7 @@ def update_overview_card(n_clicks):
 
 # KPI Count Card
 @app.callback(
-    Output("kpi_alert_count", "children"),
+    Output("kpi_alert_count_container", "children"),
     [Input("time_control", "value"), Input("date_range_picker", "value"), Input("member_dropdown", "value")]
 )
 def update_kpi_count(time_value, date_range_value, member_value):
@@ -436,8 +436,9 @@ def update_kpi_count(time_value, date_range_value, member_value):
     alert_count_df = member_filter(alert_count_df, member_value)
     if(time_value == "all"):
         alert_count_df = time_filter(alert_count_df, time_value, date_range_value)
-        card = dmc.Stack(children=[
-                dmc.Text("Number of Alerts", id="kpi_alert_count_label", className="kpi_alert_count_label"),
+        card = [
+            dmc.Text("Number of Alerts", id="kpi_alert_count_label", className="kpi_alert_count_label"),
+            html.Div(id="kpi_alert_count", className="kpi_alert_count", children=[
                 dmc.Group(children=[
                     dmc.Text(alert_count_df["id_contents"].nunique(), style={"color": "#052F5F", "fontSize": "40px", "fontFamily": "Poppins", "fontWeight": 600}),
                     dmc.Stack([
@@ -446,7 +447,8 @@ def update_kpi_count(time_value, date_range_value, member_value):
                         dmc.Text("& " + datetime.strptime(date_range_value[1], "%Y-%m-%d").strftime("%b %d, %Y"), color="dimmed", style={"fontSize": "12px", "fontFamily": "Poppins", "text-align": "right"})
                         ], align="center", justify="center", spacing="0px")
                 ], position="center", style={"margin": "0px", "padding": "0px"}),
-            ], spacing="0px")
+            ])
+        ]
         return card
 
     else:
@@ -483,22 +485,26 @@ def update_kpi_count(time_value, date_range_value, member_value):
             metric_text = "vs Last Day"
 
         if(date_comparison in alert_count_df["date"].values):
-            card = dmc.Stack(children=[
+            card = [
                 dmc.Text("Number of Alerts", id="kpi_alert_count_label", className="kpi_alert_count_label"),
-                dmc.Group(children=[
-                    dmc.Text(alert_count_df["count"].iloc[0], style={"color": "#052F5F", "fontSize": "40px", "fontFamily": "Poppins", "fontWeight": 600}),
-                    dmc.Stack([
-                        dmc.Text("▲"+str(alert_count_df["increase"].iloc[0]) if alert_count_df["increase"].iloc[0] > 0 else "▼"+str(abs(alert_count_df["increase"].iloc[0])),
-                                 style={"color": "#FF5100" if alert_count_df["increase"].iloc[0] > 0 else "#25D366", "fontSize": "20px", "fontFamily": "Poppins", "fontWeight": 600}),
-                        dmc.Text(metric_text, color="dimmed", style={"fontSize": "12px", "fontFamily": "Poppins", "text-align": "right"})
-                        ], align="center", justify="center", spacing="0px")
-                ], position="center", style={"margin": "0px", "padding": "0px"}),
-            ], spacing=0)
+                html.Div(id="kpi_alert_count", className="kpi_alert_count", children=[
+                    dmc.Group(children=[
+                        dmc.Text(alert_count_df["count"].iloc[0], style={"color": "#052F5F", "fontSize": "40px", "fontFamily": "Poppins", "fontWeight": 600}),
+                        dmc.Stack([
+                            dmc.Text("▲"+str(alert_count_df["increase"].iloc[0]) if alert_count_df["increase"].iloc[0] > 0 else "▼"+str(abs(alert_count_df["increase"].iloc[0])),
+                                     style={"color": "#FF5100" if alert_count_df["increase"].iloc[0] > 0 else "#25D366", "fontSize": "20px", "fontFamily": "Poppins", "fontWeight": 600}),
+                            dmc.Text(metric_text, color="dimmed", style={"fontSize": "12px", "fontFamily": "Poppins", "text-align": "right"})
+                            ], align="center", justify="center", spacing="0px")
+                    ], position="center", style={"margin": "0px", "padding": "0px"}),
+                ])
+            ]
         else:
-            card = dmc.Stack(children=[
+            card = [
                 dmc.Text("Number of Alerts", id="kpi_alert_count_label", className="kpi_alert_count_label"),
-                dmc.Text("No Data Found", color="black", style={"fontSize": 17, "fontFamily": "Poppins", "fontWeight": "bold", "text-align": "center"})
-            ], spacing=0)
+                html.Div(id="kpi_alert_count", className="kpi_alert_count", children=[
+                    dmc.Text("No Data Found", color="black", style={"fontSize": 17, "fontFamily": "Poppins", "fontWeight": "bold", "text-align": "center"})
+                ])
+            ]
         return card
 
 
@@ -569,7 +575,7 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value)
                         align="center", width="auto")
                     ], justify="between"),
                     dbc.Row([
-                        dbc.Col(html.Img(src=f"assets/images/{platform}.png", style={"width": "100%", "height": "100%"}),
+                        dbc.Col(html.Img(id="kpi_platform_image", className="kpi_platform_image", src=f"assets/images/{platform}.png"),
                         align="center", width=2, style={"padding": "0px 0px 0px 12px"}),
                         dbc.Col(dmc.Stack(children=[
                             html.Div(children=[

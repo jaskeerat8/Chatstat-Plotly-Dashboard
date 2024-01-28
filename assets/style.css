@@ -366,6 +366,14 @@ body {
 }
 
 /* kpi_alert_count */
+.kpi_alert_count_container {
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease-in-out;
+}
+.kpi_alert_count_container:hover {
+    transform: translateY(-5px);
+}
 .kpi_alert_count_label {
     font-size:18px;
     font-weight:600;
@@ -376,13 +384,18 @@ body {
     color: #2D96FF;
 }
 .kpi_alert_count {
-    transition: transform 0.2s ease-in-out;
-}
-.kpi_alert_count:hover {
-    transform: translateY(-5px);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 /* kpi_platform_count */
+.kpi_platform_image {
+    width: 3.5vw;
+    aspect-ratio: 1 / 1;
+}
 .kpi_platform_count {
     flex: 1;
     display: flex;
