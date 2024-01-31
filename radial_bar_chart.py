@@ -66,4 +66,4 @@ def radial_chart(result_contents_df):
     return matplotlib_image
 
 if __name__ == "__main__":
-    print("File for Develolping Radial Bar Chart")
+    print("File For Develolping Radial Bar Chart")

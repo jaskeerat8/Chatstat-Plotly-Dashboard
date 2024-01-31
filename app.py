@@ -1,4 +1,5 @@
 # Importing Libraries
+import s3
 import radial_bar_chart
 import json, ast
 import numpy as np
@@ -14,10 +15,14 @@ from dash import Dash, html, dcc, Input, Output
 
 # Global Variables
 global date_dict
-todays_date = datetime(2023, 12, 31)
+todays_date = datetime.now()
+# todays_date = datetime(2023, 12, 31)
 
-# Reading static Data, later read from AWS after user authentication
-df = pd.read_csv("Data/final_30-11-2023_14_11_18.csv")
+# Read the latest Data from AWS else read the static Data
+try:
+    df = s3.get_data()
+except Exception as e:
+    df = pd.read_csv("Data/final_30-11-2023_14_11_18.csv")
 
 # Defining Colors and Plotly Graph Options
 plot_config = {"modeBarButtonsToRemove": ["zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d", "resetScale2d", "hoverClosestCartesian", "hoverCompareCartesian"],
@@ -173,7 +178,7 @@ filters = dmc.Group([
         html.P("FILTERS", className="filter_label", id="filter_label"),
         dmc.HoverCard(openDelay=1200, position="right", transition="pop", children=[
             dmc.HoverCardTarget(
-                dmc.SegmentedControl(id="time_control", className="time_control", value="A", radius="md", size="xs", data=[
+                dmc.SegmentedControl(id="time_control", className="time_control", value="all", radius="md", size="xs", data=[
                     {"label": "Daily", "value": "D"},
                     {"label": "Weekly", "value": "W"},
                     {"label": "Monthly", "value": "M"},
@@ -188,11 +193,11 @@ filters = dmc.Group([
             dbc.PopoverHeader("Selected Date Range", className="popover_date_picker_label"),
             dmc.DateRangePicker(id="date_range_picker", className="date_range_picker", clearable=False, inputFormat="MMM DD, YYYY",
                                 icon=DashIconify(icon=f"arcticons:calendar-simple-{todays_date.day}", color="black", width=30),
-                                value=[todays_date.date()-timedelta(days=60), todays_date.date()]
+                                value=[todays_date.date()-timedelta(days=500), todays_date.date()]
             )
             ], target="time_control", placement="bottom", trigger="legacy", hide_arrow=True
         ),
-        html.Div(className="member_dropdown_container", children=[
+        html.Div(id="member_dropdown_container", className="member_dropdown_container", children=[
             html.P("Members", className="member_dropdown_label"),
             dmc.Select(className="member_dropdown", id="member_dropdown", clearable=False, searchable=False, value="all",
                rightSection=DashIconify(icon="radix-icons:chevron-down", color="black")
@@ -346,16 +351,18 @@ def update_popover_date_picker(time_value):
 
 # Member Dropdown
 @app.callback(
-    [Output("member_dropdown", "data"), Output("member_dropdown", "icon")],
+    [Output("member_dropdown", "data"), Output("member_dropdown", "icon"), Output("member_dropdown_container", "style")],
     Input("member_dropdown", "value")
 )
 def update_member_dropdown(member_value):
     user_list = df["name_childrens"].unique()
     if(len(user_list) == 1):
+        style_flag = "none"
         data = [{"value": "all", "label": i.split(" ")[0].title()} for i in user_list if ((str(i).lower() != "nan") and (str(i).lower() != "no"))]
     else:
+        style_flag = "block"
         data = [{"value": "all", "label": "All Members"}] + [{"value": i, "label": i.split(" ")[0].title()} for i in user_list if ((str(i).lower() != "nan") and (str(i).lower() != "no"))]
-    return data, DashIconify(icon=f"tabler:square-letter-{member_value[0].lower()}", width=25, color="#25D366")
+    return data, DashIconify(icon=f"tabler:square-letter-{member_value[0].lower()}", width=25, color="#25D366"), {"display": style_flag}
 
 
 # Platform Dropdown
