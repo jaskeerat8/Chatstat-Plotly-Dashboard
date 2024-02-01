@@ -1,5 +1,6 @@
 # Importing Libraries
 import s3
+import mysql_database
 import radial_bar_chart
 import json, ast
 import numpy as np
@@ -16,11 +17,10 @@ from dash import Dash, html, dcc, Input, Output
 # Global Variables
 global date_dict
 todays_date = datetime.now()
-# todays_date = datetime(2023, 12, 31)
 
 # Read the latest Data from AWS else read the static Data
 try:
-    df = s3.get_data()
+    df = mysql_database.get_data()
 except Exception as e:
     df = pd.read_csv("Data/final_30-11-2023_14_11_18.csv")
 
@@ -351,32 +351,38 @@ def update_popover_date_picker(time_value):
 
 # Member Dropdown
 @app.callback(
-    [Output("member_dropdown", "data"), Output("member_dropdown", "icon"), Output("member_dropdown_container", "style")],
+    [Output("member_dropdown", "data"), Output("member_dropdown", "icon"), Output("member_dropdown", "disabled")],
     Input("member_dropdown", "value")
 )
 def update_member_dropdown(member_value):
-    user_list = df["name_childrens"].unique()
+    user_list = df[(df["name_childrens"].astype(str) != "nan") & (df["name_childrens"].astype(str) != "no")]["name_childrens"].unique()
     if(len(user_list) == 1):
-        style_flag = "none"
-        data = [{"value": "all", "label": i.split(" ")[0].title()} for i in user_list if ((str(i).lower() != "nan") and (str(i).lower() != "no"))]
+        disable_flag = True
+        data = [{"value": "all", "label": i.split(" ")[0].title()} for i in user_list]
     else:
-        style_flag = "block"
-        data = [{"value": "all", "label": "All Members"}] + [{"value": i, "label": i.split(" ")[0].title()} for i in user_list if ((str(i).lower() != "nan") and (str(i).lower() != "no"))]
-    return data, DashIconify(icon=f"tabler:square-letter-{member_value[0].lower()}", width=25, color="#25D366"), {"display": style_flag}
+        disable_flag = False
+        data = [{"value": "all", "label": "All Members"}] + [{"value": i, "label": i.split(" ")[0].title()} for i in user_list]
+    return data, DashIconify(icon=f"tabler:square-letter-{member_value[0].lower()}", width=25, color="#25D366"), disable_flag
 
 
 # Platform Dropdown
 @app.callback(
-    [Output("platform_dropdown", "data"), Output("platform_dropdown", "icon")],
+    [Output("platform_dropdown", "data"), Output("platform_dropdown", "icon"), Output("platform_dropdown", "disabled")],
     Input("platform_dropdown", "value")
 )
 def update_platform_dropdown(platform_value):
-    platform_list = df["platform_contents"].unique()
-    data = [{"label": "All Platforms", "value": "all"}] + [{"label": i.title(), "value": i} for i in platform_list if ((str(i).lower() != "nan") and (str(i).lower() != "no"))]
-    if(platform_value in ["all", None]):
-        return data, DashIconify(icon="emojione-v1:globe-showing-asia-australia", width=20)
+    platform_list = df[(df["platform_contents"].astype(str) != "nan") & (df["platform_contents"].astype(str) != "no")]["platform_contents"].unique()
+    if(len(platform_list) == 1):
+        disable_flag = True
+        data = [{"value": "all", "label": i.title()} for i in platform_list]
+        return data, DashIconify(icon=platform_icons[platform_list[0].title()], width=20), disable_flag
     else:
-        return data, DashIconify(icon=platform_icons[platform_value.title()], width=20)
+        disable_flag = False
+        data = [{"value": "all", "label": "All Platforms"}] + [{"value": i, "label": i.title()} for i in platform_list]
+        if(platform_value in ["all", None]):
+            return data, DashIconify(icon="emojione-v1:globe-showing-asia-australia", width=20), disable_flag
+        else:
+            return data, DashIconify(icon=platform_icons[platform_value.title()], width=20), disable_flag
 
 
 # Alert Dropdown
@@ -403,7 +409,7 @@ def update_alert_dropdown(alert_value):
     prevent_initial_call=True
 )
 def reset_filters(n_clicks):
-    return "A", "all", "all", "all"
+    return "all", "all", "all", "all"
 
 
 # Generate Overview Card

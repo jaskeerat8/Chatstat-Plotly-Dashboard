@@ -3,15 +3,15 @@ import os
 import json
 import boto3
 import pandas as pd
+from sqlalchemy import create_engine
 
 def get_data():
     # Setting up Boto3 Client
     region_name = "ap-southeast-2"
-    secret_name = "dashboard"
+    secret_name = "rdsMYSQL"
     session = boto3.session.Session(region_name=region_name, aws_access_key_id=os.environ.get("aws_access_key_id"),
                                     aws_secret_access_key=os.environ.get("aws_secret_access_key"))
     sm_client = session.client(service_name="secretsmanager")
-    s3_client = session.client(service_name="s3")
 
     # Reading Data from Secrets Manager
     try:
@@ -20,17 +20,18 @@ def get_data():
     except Exception as e:
         print(e)
 
-    final_location = value["final_location"]
-    bucket_name = final_location.split("/")[2]
-    folder_prefix = "/".join(final_location.split("/")[3:])
+    # Establish Connection to MySQL
+    mysql_user = value["user"]
+    mysql_password = value["password"]
+    mysql_host = value["endpoint"]
+    mysql_db = value["database"]
 
-    file_list = s3_client.list_objects_v2(Bucket=bucket_name, Prefix=folder_prefix)
-    file = file_list["Contents"][0]
-    file_key = file["Key"]
+    mysql_connection = f"mysql+pymysql://{mysql_user}:{mysql_password}@{mysql_host}/{mysql_db}"
+    mysql_engine = create_engine(mysql_connection)
 
-    obj = s3_client.get_object(Bucket=bucket_name, Key=file_key)
-    df = pd.read_csv(obj["Body"])
+    table_name = value["parent_table"]
+    df = pd.read_sql(f"SELECT * FROM {table_name}", con=mysql_engine)
     return df
 
 if __name__ == "__main__":
-    print("File For Reading Final AWS Data")
+    print("File For Reading AWS MySQL Data")
