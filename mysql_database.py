@@ -29,8 +29,11 @@ def get_data():
     mysql_connection = f"mysql+pymysql://{mysql_user}:{mysql_password}@{mysql_host}/{mysql_db}"
     mysql_engine = create_engine(mysql_connection)
 
-    table_name = value["parent_table"]
-    df = pd.read_sql(f"SELECT * FROM {table_name}", con=mysql_engine)
+    try:
+        table_name = value["parent_table"]
+        df = pd.read_sql(f"SELECT * FROM {table_name}", con=mysql_engine)
+    finally:
+        mysql_engine.dispose()
     return df
 
 if __name__ == "__main__":

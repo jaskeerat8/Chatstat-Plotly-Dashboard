@@ -18,11 +18,12 @@ from dash import Dash, html, dcc, Input, Output
 global date_dict
 todays_date = datetime.now()
 
-# Read the latest Data from AWS else read the static Data
+# Read the latest Data directly from AWS or MySQL Database
 try:
-    df = mysql_database.get_data()
+    df = s3.get_data()
+    #df = pd.read_csv("Data/final_30-11-2023_14_11_18.csv")
 except Exception as e:
-    df = pd.read_csv("Data/final_30-11-2023_14_11_18.csv")
+    df = mysql_database.get_data()
 
 # Defining Colors and Plotly Graph Options
 plot_config = {"modeBarButtonsToRemove": ["zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d", "resetScale2d", "hoverClosestCartesian", "hoverCompareCartesian"],
@@ -749,7 +750,7 @@ def update_bar_chart(time_value, date_range_value, member_value, platform_value)
             content_risk.update_traces(width=0.4, hovertemplate="Alert Severity: <b>%{x}</b><br>Total Alerts: <b>%{y}</b><extra></extra>")
 
         content_risk.update_layout(margin=dict(l=25, r=25, b=0), barmode="relative")
-        content_risk.update_layout(legend=dict(font=dict(family="Poppins"), traceorder="grouped", orientation="h", x=1, y=1, xanchor="right", yanchor="bottom", title_text="", bgcolor="rgba(0,0,0,0)"))
+        content_risk.update_layout(legend=dict(font=dict(family="Poppins"), traceorder="grouped", orientation="h", x=0.5, y=-0.2, xanchor="center", yanchor="bottom", title_text="", bgcolor="rgba(0,0,0,0)"))
         content_risk.update_layout(xaxis_title="", yaxis_title="", legend_title_text="", plot_bgcolor="rgba(0, 0, 0, 0)")
         content_risk.update_layout(yaxis_showgrid=True, yaxis_ticksuffix=" ", yaxis=dict(tickfont=dict(size=12, family="Poppins", color="#8E8E8E"), griddash="dash", gridwidth=1, gridcolor="#DADADA"))
         content_risk.update_layout(xaxis_showgrid=False, xaxis=dict(tickfont=dict(size=16, family="Poppins", color="#052F5F")))
@@ -849,7 +850,7 @@ def update_line_chart_slider(member_value):
 
     global date_dict
     date_dict = {i: d.strftime("%Y-%m-%d") for i, d in enumerate(date_list)}
-    marks = {i: {"label": d.strftime("%b %Y"), "style": {"fontFamily": "Poppins", "fontWeight": "bold", "fontSize": 10}} for i, d in enumerate(date_list) if ((d.month in [1, 4, 7, 10]) and (d.day == 1))}
+    marks = {i: {"label": d.strftime("%b\n%Y"), "style": {"fontFamily": "Poppins", "fontWeight": "bold", "fontSize": 10, "whiteSpace": "pre-line"}} for i, d in enumerate(date_list) if ((d.month in [1, 4, 7, 10]) and (d.day == 1))}
     return marks, maximum_mark, minimum_mark, [minimum_mark, maximum_mark]
 
 
