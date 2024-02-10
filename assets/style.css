@@ -392,14 +392,56 @@ body {
 }
 
 /* kpi_platform_count */
-.kpi_platform_image {
-    width: 3.5vw;
-    aspect-ratio: 1 / 1;
+.kpi_platform_count_container {
+    flex: 1;
+    display: flex;
+    flexDirection: row;
+    align-items: center;
+    justify-content: center;
+    position: relative;
 }
 .kpi_platform_count {
     flex: 1;
     display: flex;
     flexDirection: row;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+.kpi_platform_backward{
+    position: absolute;
+    left: -12.5px;
+    z-index: 1000;
+    border-radius: 100%;
+    background-color: white;
+    box-shadow: 0px 0px 1px black;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+.kpi_platform_count_container:hover .kpi_platform_backward {
+    opacity: 1;
+}
+.kpi_platform_forward{
+    position: absolute;
+    right: -12.5px;
+    z-index: 1000;
+    border-radius: 100%;
+    background-color: white;
+    box-shadow: 0px 0px 1px black;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+.kpi_platform_count_container:hover .kpi_platform_forward {
+    opacity: 1;
+}
+.kpi_platform_count {
+    flex: 1;
+    display: flex;
+    flexDirection: row;
+}
+.kpi_platform_image {
+    width: 3.5vw;
+    aspect-ratio: 1 / 1;
 }
 .kpi_platform_count_elements {
     margin-right: 10px;

@@ -12,10 +12,9 @@ import plotly.graph_objects as go
 import dash_mantine_components as dmc
 import dash_bootstrap_components as dbc
 from dash_iconify import DashIconify
-from dash import Dash, html, dcc, Input, Output
+from dash import Dash, html, dcc, Input, Output, State, callback_context
 
 # Global Variables
-global date_dict
 todays_date = datetime.now()
 
 # Read the latest Data directly from AWS or MySQL Database
@@ -78,6 +77,7 @@ def alert_filter(dataframe, alert_value):
     return dataframe
 
 def slider_filter(dataframe, slider_value):
+    global date_dict
     start_date = pd.to_datetime(date_dict[slider_value[0]], format="%Y-%m-%d").date()
     end_date = pd.to_datetime(date_dict[slider_value[1]], format="%Y-%m-%d").date()
     dataframe["commentTime_comments"] = pd.to_datetime(dataframe["commentTime_comments"], format="%Y-%m-%d %H:%M:%S").dt.date
@@ -251,7 +251,14 @@ overview = html.Div(children=[
 # KPI Card
 kpi_cards = html.Div([
     dmc.Card(id="kpi_alert_count_container", className="kpi_alert_count_container", withBorder=True, radius="5px", style={"width": "auto", "margin": "0px 10px 0px 0px"}),
-    html.Div(id="kpi_platform_count", className="kpi_platform_count")
+    html.Div(id="kpi_platform_count_container", className="kpi_platform_count_container", children=[
+        dcc.Store(id="kpi_platform_store", data=0),
+        dmc.ActionIcon(DashIconify(icon="ep:arrow-left-bold", color="black", width=20), id="kpi_platform_backward", className="kpi_platform_backward",
+                       variant="transparent", n_clicks=0),
+        html.Div(id="kpi_platform_count", className="kpi_platform_count"),
+        dmc.ActionIcon(DashIconify(icon="ep:arrow-right-bold", color="black", width=20), id="kpi_platform_forward", className="kpi_platform_forward",
+                       variant="transparent", n_clicks=0)
+    ])
     ], style={"display": "flex", "flexDirection": "row", "margin": "10px", "padding": "0px"}
 )
 
@@ -524,10 +531,12 @@ def update_kpi_count(time_value, date_range_value, member_value):
 
 # KPI Platform Card
 @app.callback(
-    Output("kpi_platform_count", "children"),
-    [Input("time_control", "value"), Input("date_range_picker", "value"), Input("member_dropdown", "value"), Input("alert_dropdown", "value")]
+    [Output("kpi_platform_count", "children"), Output("kpi_platform_store", "data")],
+    [Input("time_control", "value"), Input("date_range_picker", "value"), Input("member_dropdown", "value"), Input("alert_dropdown", "value"),
+     Input("kpi_platform_backward", "n_clicks"), Input("kpi_platform_forward", "n_clicks")],
+    State("kpi_platform_store", "data")
 )
-def update_kpi_platform(time_value, date_range_value, member_value, alert_value):
+def update_kpi_platform(time_value, date_range_value, member_value, alert_value, n_clicks_backward, n_clicks_forward, current_index):
     kpi_platform_df = df.copy()
     kpi_platform_df = kpi_platform_df[(kpi_platform_df["alert_contents"].str.lower() != "no") & (kpi_platform_df["alert_contents"].str.lower() != "") & (kpi_platform_df["alert_contents"].notna())]
     kpi_platform_df = kpi_platform_df[(kpi_platform_df["result_contents"].str.lower() != "no") & (kpi_platform_df["result_contents"].str.lower() != "") & (kpi_platform_df["result_contents"].notna())]
@@ -542,13 +551,14 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value)
             dmc.Text("No Cards to Display", color="black", style={"fontSize": 17, "fontFamily": "Poppins", "fontWeight": "bold"})
             ], withBorder=True, radius="5px", style={"height": "100%", "width": "100%", "display": "flex", "justify-content": "center", "align-items": "center"}
         )
-        return card
+        current_index = 0
+        return card, current_index
     else:
         kpi_platform_df = kpi_platform_df.groupby(by=["platform_contents", "result_contents"], as_index=False)["id_contents"].nunique()
         kpi_platform_df.columns = ["platform", "result", "count"]
         kpi_platform_df.sort_values(by=["platform", "count"], ascending=[True, False], inplace=True)
 
-        kpi_list = []
+        kpi_platform_list = []
         for platform in kpi_platform_df["platform"].unique():
 
             # Producing Increase for each Platform
@@ -576,7 +586,7 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value)
 
             platform_df = kpi_platform_df[kpi_platform_df["platform"] == platform]
             title = platform.title()+f" - {alert_value} Alerts" if ((alert_value is not None) and (alert_value != "all")) else platform.title()
-            kpi_list.append(
+            kpi_platform_list.append(
                 dmc.Card(id="kpi_platform_count_elements", className="kpi_platform_count_elements", children=[
                     dbc.Row([
                         dbc.Col(dmc.Text(title, style={"color": "black", "fontSize": "18px", "fontFamily": "Poppins", "fontWeight": "bold"}),
@@ -606,7 +616,18 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value)
                 ], withBorder=True, radius="5px", style={"flex": 1, "height": "100%"}
                 )
             )
-        return kpi_list
+
+        # Producing Carousel
+        if(len(kpi_platform_list) == 1):
+            kpi_group_list = kpi_platform_list
+        else:
+            kpi_group_list = [[kpi_platform_list[i], kpi_platform_list[i + 1]] for i in range(len(kpi_platform_list) - 1)]
+        button_id = callback_context.triggered[0]["prop_id"].split(".")[0]
+        if(button_id == "kpi_platform_backward"):
+            current_index = max(0, current_index - 1)
+        elif(button_id == "kpi_platform_forward"):
+            current_index = min(len(kpi_group_list) - 1, current_index + 1)
+        return kpi_group_list[current_index], current_index
 
 
 # Content Classification Radial Chart
