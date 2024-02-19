@@ -2,6 +2,7 @@
 import s3
 import mysql_database
 import radial_bar_chart
+import invoke_lambda
 import json, ast
 import numpy as np
 import pandas as pd
@@ -221,10 +222,11 @@ filters = dmc.Group([
     ),
     html.Div(className="searchbar_container", id="searchbar_container", children=[
         html.P("Member Overview", className="searchbar_label", id="searchbar_label"),
-        dmc.Select(className="searchbar", id="searchbar", clearable=True, searchable=True, placeholder=" Search...", nothingFound="Nothing Found", limit=5, iconWidth=50,
-               icon=html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/chatstatlogo_black.png", width="50%"), rightSection=DashIconify(icon="radix-icons:chevron-right", color="black"),
-               data=[{"group": "Members", "label": member.title(), "value": member} for member in list(df["name_childrens"].unique())] +
-                    [{"group": "ID", "label": id.title(), "value": id} for id in list(df["id_childrens"].unique())]
+        dmc.Select(className="searchbar", id="searchbar", clearable=True, searchable=True, placeholder="Search...", nothingFound="Nothing Found",
+            limit=5, iconWidth=40, icon=html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/chatstatlogo_black.png", width="60%"),
+            rightSection=DashIconify(icon="radix-icons:chevron-right", color="black"),
+            data=[{"group": "Members", "label": child_name.title(), "value": child_name} for child_name in list(df["name_childrens"].unique())] +
+                 [{"group": "ID", "label": child_id.title(), "value": child_id} for child_id in list(df["id_childrens"].unique())]
         )
     ])
 ], style={"margin": "10px"}, spacing="10px"
@@ -234,17 +236,21 @@ filters = dmc.Group([
 # Overview Card
 overview = html.Div(children=[
     dmc.Modal(title="Member Overview", id="child_overview", zIndex=10000, centered=True, overflow="inside", children=[
-        dmc.Group(children=[
-            dmc.Avatar(id="user_avatar", className="user_avatar", src="assets/images/user.jpeg", size=100, radius="100%"),
-            html.P(children=[
-                html.Strong("Name: "), html.Span(), html.Br(),
-                html.Strong("Email: "), html.Span(), html.Br(),
-                html.Strong("ID: "), html.Span()
-            ])
+        html.Div(className="overview_info_container", id="overview_info_container", children=[
+            dmc.Avatar(id="overview_avatar", className="overview_avatar", size=70, radius="100%"),
+            html.Div(className="overview_info", id="overview_info")
         ]),
-        html.Div(id="overview_platform")
-    ]),
-    dmc.Button("Open modal", id="button")
+        html.Hr(style={"width": "99%", "border": "1px solid black", "borderRadius": "5px", "align-items": "center", "opacity": "unset"}),
+        html.Div(id="overview_platform"),
+        html.Hr(style={"width": "99%", "border": "1px solid black", "borderRadius": "5px", "align-items": "center", "opacity": "unset"})
+    ])
+])
+
+
+# Generate Report
+report = html.Div(children=[
+    dmc.ActionIcon(DashIconify(icon="icon-park-twotone:table-report", width=20), size="lg", variant="gradient", id="report_button", n_clicks=0),
+    dcc.Markdown(id="report", style={"display": "none"})
 ])
 
 
@@ -316,13 +322,31 @@ app.layout = html.Div(
 )
 def display_page(pathname):
     if pathname == "/dashboard":
-        return [sidebar, dashboard_header, filters, kpi_cards, dashboard_charts]
+        return [sidebar, dashboard_header, filters, overview, kpi_cards, dashboard_charts]
     elif pathname == "/analytics":
         return [sidebar, analytics_header, filters, analytics_charts]
     elif pathname == "/report":
         return [sidebar]
     else:
-        return [sidebar, overview]
+        return [sidebar, report]
+
+
+# Report Data
+@app.callback(
+    [Output("report", "children"), Output("report", "style")],
+    [Input("report_button", "n_clicks")],
+    prevent_initial_call=True
+)
+def update_report_data(n_clicks):
+    payload = {
+        "name": "tengteng1",
+        "email": "j.teng@chatstat.com",
+        "children": ["test"],
+        "platform": ["instagram", "twitter"],
+        "timerange": ["2022-01-01T00:00:00", "2025-01-01T00:00:00"]
+    }
+    content_comments = invoke_lambda.invoke(payload)
+    return content_comments, {"display": "block"}
 
 
 # Time Control Information
@@ -422,39 +446,55 @@ def reset_filters(n_clicks):
 
 # Generate Overview Card
 @app.callback(
-    [Output("child_overview", "opened"), Output("overview_platform", "children")],
-    Input("button", "n_clicks"),
+    [Output("child_overview", "opened"), Output("overview_avatar", "children"), Output("overview_info", "children"), Output("overview_platform", "children")],
+    Input("searchbar", "value"),
     prevent_initial_call=True
 )
-def update_overview_card(n_clicks):
+def update_overview_card(searchbar_value):
+    overview_info_children = [
+        html.Div(className="overview_info_option", children=[html.Strong("Name:", style={"margin": "0"}), dmc.Space(w=10), html.P(searchbar_value, style={"margin": "0"})]),
+        html.Div(className="overview_info_option", children=[html.Strong("Email:", style={"margin": "0"}), dmc.Space(w=10), html.P(df.loc[df["name_childrens"] == searchbar_value, "email_users"].iloc[0], style={"margin": "0"})]),
+        html.Div(className="overview_info_option", children=[html.Strong("ID:", style={"margin": "0"}), dmc.Space(w=10), html.P(df.loc[df["name_childrens"] == searchbar_value, "id_childrens"].iloc[0], style={"margin": "0"})])
+    ]
+
     overview_platform_df = df.copy()
     overview_platform_df = overview_platform_df[(overview_platform_df["alert_contents"].str.lower() != "no") & (overview_platform_df["alert_contents"].str.lower() != "") & (overview_platform_df["alert_contents"].notna())]
-
     overview_platform_df["createTime_contents"] = pd.to_datetime(overview_platform_df["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f")
     overview_platform_df = overview_platform_df.groupby(by=["platform_contents"], as_index=False)["id_contents"].nunique()
     overview_platform_df.columns = ["platform", "count"]
     overview_platform_df["percentage_count"] = (overview_platform_df["count"]/overview_platform_df["count"].sum()) * 100
-    print(overview_platform_df)
+    overview_platform_df["percentage_count"] = overview_platform_df["percentage_count"].round().astype(int)
+    overview_platform_df.loc[overview_platform_df["percentage_count"].idxmax(), "percentage_count"] += 100 - overview_platform_df["percentage_count"].sum()
 
-    platform_ring = dmc.RingProgress(size=130, thickness=12,
-        sections=[{"value": row["percentage_count"], "color": platform_colors[row["platform"]]} for index, row in overview_platform_df.iterrows()],
-        label=dmc.Center(html.P(children=[html.Strong(overview_platform_df["count"].sum()), html.Br(), html.Strong("Alerts")],
-                                style={"text-align": "center"}))
+    bar_legend = []
+    for index, row in overview_platform_df.iterrows():
+        bar_legend.append([
+            dbc.Col(DashIconify(icon="material-symbols:circle", width=12, color=platform_colors[row["platform"]]), width={"size": 2, "offset": 1}),
+            dbc.Col(dmc.Text(children=row["platform"]), width=6),
+            dbc.Col(html.Header(str(row["percentage_count"]) + "%", style={"color": "#081A51", "fontFamily": "Poppins", "fontWeight": "bold", "fontSize": 14, "text-align": "right"}), width=3),
+            ]
+        )
+    platform_ring_legend = dmc.Grid(children=sum(bar_legend, []), gutter="xs", justify="center", align="center")
+    platform_ring = dmc.RingProgress(size=120, thickness=10, label=dmc.Center(html.Strong(overview_platform_df["count"].sum(), style={"font-size": "24px"})),
+        sections=[{"value": row["percentage_count"], "color": platform_colors[row["platform"]]} for index, row in overview_platform_df.iterrows()]
     )
-    return True, platform_ring
+    platform_div = dbc.Row([dbc.Col(platform_ring_legend, width=7, align="center"), dbc.Col(platform_ring, width={"size": 4, "offset": 1}, align="center")])
+    return True, searchbar_value[0].upper(), overview_info_children, platform_div
 
 
 # KPI Count Card
 @app.callback(
     Output("kpi_alert_count_container", "children"),
-    [Input("time_control", "value"), Input("date_range_picker", "value"), Input("member_dropdown", "value")]
+    [Input("time_control", "value"), Input("date_range_picker", "value"), Input("member_dropdown", "value"), Input("alert_dropdown", "value")]
 )
-def update_kpi_count(time_value, date_range_value, member_value):
+def update_kpi_count(time_value, date_range_value, member_value, alert_value):
     alert_count_df = df.copy()
     alert_count_df = alert_count_df[(alert_count_df["alert_contents"].str.lower() != "no") & (alert_count_df["alert_contents"].str.lower() != "") & (alert_count_df["alert_contents"].notna())]
 
     # Filters
     alert_count_df = member_filter(alert_count_df, member_value)
+    alert_count_df = alert_filter(alert_count_df, alert_value)
+
     if(time_value == "all"):
         alert_count_df = time_filter(alert_count_df, time_value, date_range_value)
         card = [
@@ -618,10 +658,10 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value,
             )
 
         # Producing Carousel
-        if(len(kpi_platform_list) == 1):
-            kpi_group_list = kpi_platform_list
+        if(len(kpi_platform_list) in [1, 2]):
+            kpi_group_list = [kpi_platform_list[i:i+len(kpi_platform_list)] for i in range(len(kpi_platform_list) - (len(kpi_platform_list)-1))]
         else:
-            kpi_group_list = [[kpi_platform_list[i], kpi_platform_list[i + 1]] for i in range(len(kpi_platform_list) - 1)]
+            kpi_group_list = [kpi_platform_list[i:i+3] for i in range(len(kpi_platform_list) - 2)]
         button_id = callback_context.triggered[0]["prop_id"].split(".")[0]
         if(button_id == "kpi_platform_backward"):
             current_index = max(0, current_index - 1)
