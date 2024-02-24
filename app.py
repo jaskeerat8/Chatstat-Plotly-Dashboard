@@ -2,14 +2,11 @@
 import s3
 import mysql_database
 import radial_bar_chart
-import invoke_lambda
-import json, ast
-import numpy as np
 import pandas as pd
+import math
 import calendar
 from datetime import datetime, date, timedelta
 import plotly.express as px
-import plotly.graph_objects as go
 import dash_mantine_components as dmc
 import dash_bootstrap_components as dbc
 from dash_iconify import DashIconify
@@ -21,7 +18,7 @@ todays_date = datetime.now()
 # Read the latest Data directly from AWS or MySQL Database
 try:
     df = s3.get_data()
-    #df = pd.read_csv("Data/final_30-11-2023_14_11_18.csv")
+    #df = pd.read_csv("Data/final_24-02-2024_02_05_40.csv")
 except Exception as e:
     df = mysql_database.get_data()
 
@@ -30,6 +27,7 @@ plot_config = {"modeBarButtonsToRemove": ["zoom2d", "pan2d", "select2d", "lasso2
                "staticPlot": False, "displaylogo": False}
 platform_colors = {"Instagram": "#25D366", "Twitter": "#2D96FF", "Facebook": "#FF5100", "Tiktok": "#f6c604"}
 alert_colors = {"High": "#FF5100", "Medium": "#f6c604", "Low": "#25D366"}
+alert_overview_colors = {"High": "red", "Medium": "yellow", "Low": "green"}
 comment_classification_colors = {"Offensive": "#FFD334", "Sexually Explicit": "#2D96FF", "Sexually Suggestive": "#FF5100", "Other": "#25D366", "Self Harm & Death": "#f77d07"}
 category_bar_colors = {"Mental & Emotional Health": "rgb(255,211,52)", "Other Toxic Content": "rgb(45,150,255)", "Violence & Threats": "rgb(236,88,0)", "Cyberbullying": "rgb(37,211,102)", "Self Harm & Death": "rgb(255,81,0)", "Sexual & Inappropriate Content": "rgb(160,32,240)"}
 image_location = {"Instagram": "assets/Instagram.png", "Twitter": "assets/twitter.png", "Facebook": "assets/facebook.png", "Tiktok": "assets/tiktok.png"}
@@ -112,11 +110,11 @@ sidebar = html.Div(id="sidebar", className="sidebar", children=[
         ]),
         dbc.Nav(className="sidebar_navlink", children=[
             dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/dashboard.png"), html.Span("Dashboard")],
-                        href="/dashboard", active="exact", className="sidebar_navlink_option"),
+                        href="/Dashboard", active="exact", className="sidebar_navlink_option", id="sidebar_navlink_option"),
             dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/analytics.png"), html.Span("Analytics")],
-                        href="/analytics", active="exact", className="sidebar_navlink_option"),
+                        href="/Analytics", active="exact", className="sidebar_navlink_option", id="sidebar_navlink_option"),
             dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/report.png"), html.Span("Report & Logs")],
-                        href="/report", active="exact", className="sidebar_navlink_option")
+                        href="/Report&Logs", active="exact", className="sidebar_navlink_option", id="sidebar_navlink_option")
             ],
         vertical=True, pills=True),
 
@@ -126,9 +124,9 @@ sidebar = html.Div(id="sidebar", className="sidebar", children=[
         ]),
         dbc.Nav(className="sidebar_navlink", children=[
             dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/account.png"), html.Span("My Account")],
-                        href="/account", active="exact", className="sidebar_navlink_option"),
+                        external_link=True, href="https://au.linkedin.com/in/lawrence-kusz", target="_blank", className="sidebar_navlink_option"),
             dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/setting.png"), html.Span("Settings")],
-                        href="/settings", active="exact", className="sidebar_navlink_option")
+                        external_link=True, href="https://www.linkedin.com/company/chatstat/mycompany/", target="_blank", className="sidebar_navlink_option")
             ],
         vertical=True, pills=True)
     ]),
@@ -145,29 +143,15 @@ sidebar = html.Div(id="sidebar", className="sidebar", children=[
 
 
 # Header
-dashboard_header = dmc.Header(id="header", className="header", height="8.5vh", fixed=False, children=[
-    dmc.Text("Dashboard", className="header_title"),
+header = dmc.Header(id="header", className="header", height="8.5vh", fixed=False, children=[
+    dmc.Text(className="header_title", id="header_title"),
     dmc.Menu(id="user_container", className="user_container", trigger="hover", children=[
         dmc.MenuTarget(html.Div(id="user_information", className="user_information", children=[
             dmc.Avatar(id="user_avatar", className="user_avatar", src="assets/images/user.jpeg", size="6vh", radius="100%"),
             dmc.Text("Lawrence", id="user_name", className="user_name")
         ])),
         dmc.MenuDropdown(children=[
-            dmc.MenuItem("My Account", icon=DashIconify(icon="material-symbols:account-box-outline", width=30), href="https://www.linkedin.com/company/chatstat/mycompany/", target="_blank"),
-            dmc.MenuItem("Settings", icon=DashIconify(icon="lets-icons:setting-alt-line", width=30), href="https://www.linkedin.com/company/chatstat/mycompany/", target="_blank")
-        ])
-    ])
-])
-
-analytics_header = dmc.Header(id="header", className="header", height="8.5vh", fixed=False, children=[
-    dmc.Text("Analytics", className="header_title"),
-    dmc.Menu(id="user_container", className="user_container", trigger="hover", children=[
-        dmc.MenuTarget(html.Div(id="user_information", className="user_information", children=[
-            dmc.Avatar(id="user_avatar", className="user_avatar", src="assets/images/user.jpeg", size="6vh", radius="100%"),
-            dmc.Text("Lawrence", id="user_name", className="user_name")
-        ])),
-        dmc.MenuDropdown(children=[
-            dmc.MenuItem("My Account", icon=DashIconify(icon="material-symbols:account-box-outline", width=30), href="https://www.linkedin.com/company/chatstat/mycompany/", target="_blank"),
+            dmc.MenuItem("My Account", icon=DashIconify(icon="material-symbols:account-box-outline", width=30), href="https://au.linkedin.com/in/lawrence-kusz", target="_blank"),
             dmc.MenuItem("Settings", icon=DashIconify(icon="lets-icons:setting-alt-line", width=30), href="https://www.linkedin.com/company/chatstat/mycompany/", target="_blank")
         ])
     ])
@@ -235,27 +219,24 @@ filters = dmc.Group([
 
 # Overview Card
 overview = html.Div(children=[
-    dmc.Modal(title="Member Overview", id="child_overview", zIndex=10000, centered=True, overflow="inside", children=[
+    dmc.Modal(id="child_overview", title="Member Overview", zIndex=10000, centered=True, overflow="outside", children=[
         html.Div(className="overview_info_container", id="overview_info_container", children=[
             dmc.Avatar(id="overview_avatar", className="overview_avatar", size=70, radius="100%"),
             html.Div(className="overview_info", id="overview_info")
         ]),
         html.Hr(style={"width": "99%", "border": "1px solid black", "borderRadius": "5px", "align-items": "center", "opacity": "unset"}),
-        html.Div(id="overview_platform"),
+        html.Div(className="overview_platform", id="overview_platform"),
+        html.Hr(style={"width": "99%", "border": "1px solid black", "borderRadius": "5px", "align-items": "center", "opacity": "unset"}),
+        html.Div(className="overview_alert", id="overview_alert"),
+        html.Hr(style={"width": "99%", "border": "1px solid black", "borderRadius": "5px", "align-items": "center", "opacity": "unset"}),
+        dcc.Graph(id="overview_classification", config=plot_config),
         html.Hr(style={"width": "99%", "border": "1px solid black", "borderRadius": "5px", "align-items": "center", "opacity": "unset"})
     ])
 ])
 
 
-# Generate Report
-report = html.Div(children=[
-    dmc.ActionIcon(DashIconify(icon="icon-park-twotone:table-report", width=20), size="lg", variant="gradient", id="report_button", n_clicks=0),
-    dcc.Markdown(id="report", style={"display": "none"})
-])
-
-
 # KPI Card
-kpi_cards = html.Div([
+kpi_cards = html.Div(children=[
     dmc.Card(id="kpi_alert_count_container", className="kpi_alert_count_container", withBorder=True, radius="5px", style={"width": "auto", "margin": "0px 10px 0px 0px"}),
     html.Div(id="kpi_platform_count_container", className="kpi_platform_count_container", children=[
         dcc.Store(id="kpi_platform_store", data=0),
@@ -292,28 +273,19 @@ dashboard_charts = html.Div(children=[
     )
 ], style={"height": "100%", "width": "100%", "margin": "0px", "padding": "0px"})
 
-analytics_charts = html.Div(children=[
-    dcc.Graph(id="content_classification_sunburst_chart", config=plot_config),
-    dcc.Graph(id="content_result_treemap"),
-    dcc.Graph(id="comment_result_radar", style={"width": "100%"}),
-    dcc.Graph(id="content_result_bubble_chart", style={"width": "100%"}),
-])
-
 
 # Designing Main App
 app = Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=["https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap", dbc.themes.BOOTSTRAP, dbc.themes.MATERIA, dbc.icons.FONT_AWESOME])
 server = app.server
 app.css.config.serve_locally = True
 app.title = "Parent Dashboard"
-app.layout = html.Div(
-    children=[
-        dcc.Interval(id="time_interval", disabled=True),
-        dcc.Location(id="url_path", refresh=False),
-        html.Div(children=[], style={"height": "8.5vh"}),
-        html.Div(children=[], style={"width": "4.5rem", "display": "inline-block"}),
-        html.Div(id="page_content", style={"display": "inline-block", "width": "calc(100% - 4.5rem)"})
-    ]
-)
+app.layout = html.Div(children=[
+    dcc.Interval(id="time_interval", disabled=True),
+    dcc.Location(id="url_path", refresh=False),
+    html.Div(children=[], style={"height": "8.5vh"}),
+    html.Div(children=[], style={"width": "4.5rem", "display": "inline-block"}),
+    html.Div(id="page_content", style={"display": "inline-block", "width": "calc(100% - 4.5rem)"})
+])
 
 
 # Website Page Navigation
@@ -321,32 +293,24 @@ app.layout = html.Div(
               [Input("url_path", "pathname")]
 )
 def display_page(pathname):
-    if pathname == "/dashboard":
-        return [sidebar, dashboard_header, filters, overview, kpi_cards, dashboard_charts]
-    elif pathname == "/analytics":
-        return [sidebar, analytics_header, filters, analytics_charts]
-    elif pathname == "/report":
-        return [sidebar]
+    if pathname == "/Dashboard":
+        return [sidebar, header, filters, overview, kpi_cards, dashboard_charts]
+    elif pathname == "/Analytics":
+        return [sidebar, header, filters]
+    elif pathname == "/Report&Logs":
+        return [sidebar, header]
     else:
-        return [sidebar, report]
+        return [sidebar]
 
 
-# Report Data
+# Header
 @app.callback(
-    [Output("report", "children"), Output("report", "style")],
-    [Input("report_button", "n_clicks")],
-    prevent_initial_call=True
+    Output("header_title", "children"),
+    [Input("url_path", "pathname")]
 )
-def update_report_data(n_clicks):
-    payload = {
-        "name": "tengteng1",
-        "email": "j.teng@chatstat.com",
-        "children": ["test"],
-        "platform": ["instagram", "twitter"],
-        "timerange": ["2022-01-01T00:00:00", "2025-01-01T00:00:00"]
-    }
-    content_comments = invoke_lambda.invoke(payload)
-    return content_comments, {"display": "block"}
+def update_time_control_information(pathname):
+    title = pathname[1:].replace("&", " & ")
+    return title
 
 
 # Time Control Information
@@ -446,7 +410,8 @@ def reset_filters(n_clicks):
 
 # Generate Overview Card
 @app.callback(
-    [Output("child_overview", "opened"), Output("overview_avatar", "children"), Output("overview_info", "children"), Output("overview_platform", "children")],
+    [Output("child_overview", "opened"), Output("overview_avatar", "children"), Output("overview_info", "children"),
+     Output("overview_platform", "children"), Output("overview_alert", "children"), Output("overview_classification", "figure")],
     Input("searchbar", "value"),
     prevent_initial_call=True
 )
@@ -465,7 +430,6 @@ def update_overview_card(searchbar_value):
     overview_platform_df["percentage_count"] = (overview_platform_df["count"]/overview_platform_df["count"].sum()) * 100
     overview_platform_df["percentage_count"] = overview_platform_df["percentage_count"].round().astype(int)
     overview_platform_df.loc[overview_platform_df["percentage_count"].idxmax(), "percentage_count"] += 100 - overview_platform_df["percentage_count"].sum()
-
     bar_legend = []
     for index, row in overview_platform_df.iterrows():
         bar_legend.append([
@@ -478,8 +442,48 @@ def update_overview_card(searchbar_value):
     platform_ring = dmc.RingProgress(size=120, thickness=10, label=dmc.Center(html.Strong(overview_platform_df["count"].sum(), style={"font-size": "24px"})),
         sections=[{"value": row["percentage_count"], "color": platform_colors[row["platform"]]} for index, row in overview_platform_df.iterrows()]
     )
-    platform_div = dbc.Row([dbc.Col(platform_ring_legend, width=7, align="center"), dbc.Col(platform_ring, width={"size": 4, "offset": 1}, align="center")])
-    return True, searchbar_value[0].upper(), overview_info_children, platform_div
+    platform_div = dbc.Row([dbc.Col(platform_ring_legend, width=6, align="center"), dbc.Col(platform_ring, width={"size": 4, "offset": 1}, align="center")])
+
+    overview_alert_df = df.copy()
+    overview_alert_df = overview_alert_df[(overview_alert_df["alert_contents"].str.lower() != "no") & (overview_alert_df["alert_contents"].str.lower() != "") & (overview_alert_df["alert_contents"].notna())]
+    overview_alert_df = overview_alert_df.groupby(by=["alert_contents"], as_index=False)["id_contents"].nunique()
+    overview_alert_df.columns = ["alert", "count"]
+    categories = ["High", "Medium", "Low"]
+    for cat in categories:
+        if(cat not in overview_alert_df["alert"].unique()):
+            new_row = {"alert": cat, "count": 0}
+            overview_alert_df = pd.concat([overview_alert_df, pd.DataFrame(new_row, index=[len(overview_alert_df)])])
+    overview_alert_df["alert"] = pd.Categorical(overview_alert_df["alert"], categories=categories, ordered=True)
+    overview_alert_df = overview_alert_df.sort_values(by="alert")
+    alert_div = html.Div(children=[
+        dbc.Stack([html.Div(children=[
+            dmc.Avatar(row["count"], radius="100%", size=75, color=alert_overview_colors[row["alert"]], style={"border": f"""2px solid {alert_colors[row["alert"]]}"""}),
+            dmc.Text(row["alert"])
+            ], className="mx-auto overview_alert_option") for index, row in overview_alert_df.iterrows()], direction="horizontal")
+    ])
+
+    overview_classification_df = df.copy()
+    overview_classification_df = overview_classification_df[(overview_classification_df["result_contents"].str.lower() != "no") & (overview_classification_df["result_contents"].str.lower() != "") & (overview_classification_df["result_contents"].notna())]
+    overview_classification_df = overview_classification_df[(overview_classification_df["alert_contents"].str.lower() != "no") & (overview_classification_df["alert_contents"].str.lower() != "") & (overview_classification_df["alert_contents"].notna())]
+    overview_classification_df = overview_classification_df.groupby(by=["result_contents"], as_index=False)["id_contents"].nunique()
+    overview_classification_df.columns = ["category", "count"]
+    overview_classification_df.sort_values(by=["count"], ascending=[False], inplace=True)
+
+    for classification in category_bar_colors.keys():
+        if(classification not in overview_classification_df["category"].unique()):
+            new_row = {"category": classification, "count": 0}
+            overview_classification_df = pd.concat([overview_classification_df, pd.DataFrame(new_row, index=[len(overview_classification_df)])])
+    tick_values = list(range(int(math.floor(overview_classification_df["count"].min() / 10.0)) * 10, (int(math.ceil(overview_classification_df["count"].max() / 10.0)) * 10) + 10, 10))
+    tick_values = list(filter(lambda x: x != 0, tick_values))
+
+    overview_classification_fig = px.bar_polar(overview_classification_df, r="count", theta="category", color="category", color_discrete_map=category_bar_colors, template="none")
+    overview_classification_fig.update_layout(polar=dict(radialaxis=dict(tickvals=tick_values, gridcolor="#98AFC7", gridwidth=2, linecolor="black", linewidth=1),
+                                    hole=0.1, angularaxis=dict(showticklabels=False, gridcolor="gold", gridwidth=2, linecolor="gold", linewidth=2)))
+    overview_classification_fig.update_traces(marker_line_color="black", marker_line_width=1, opacity=0.9)
+    overview_classification_fig.update_layout(legend_title_text="", margin=dict(l=20, r=20, t=20, b=20))
+    overview_classification_fig.update_layout(legend={"orientation": "h", "x": 0.5, "y": -0.1, "xanchor": "center", "font": {"family": "Poppins", "color": "#2a3f5f", "size": 12}})
+
+    return True, searchbar_value[0].upper(), overview_info_children, platform_div, alert_div, overview_classification_fig
 
 
 # KPI Count Card
@@ -962,110 +966,6 @@ def update_pie_chart(time_value, date_range_value, member_value, platform_value,
         else:
             comment_classification.update_layout(title={"text": "<b>Comment Classification</b>"}, title_font_color="#052F5F", title_font=dict(family="Poppins", size=17))
         return dcc.Graph(figure=comment_classification, config=plot_config)
-
-
-# Content Classification Sunburst Chart
-@app.callback(
-    Output("content_classification_sunburst_chart", "figure"),
-    Input("time_interval", "n_intervals")
-)
-def update_sunburst_chart(time_interval):
-    risk_content_df = df.copy()
-    risk_content_df = risk_content_df[(risk_content_df["result_json_contents"].str.lower() != "no") & (risk_content_df["result_json_contents"].str.lower() != "") & (risk_content_df["result_json_contents"].notna())]
-    risk_content_df = risk_content_df[(risk_content_df["alert_contents"].str.lower() != "no") & (risk_content_df["alert_contents"].str.lower() != "") & (risk_content_df["alert_contents"].notna())]
-
-    sunburst_data = {"category": [], "subcategory": [], "value": []}
-    for index, row in risk_content_df.iterrows():
-        result_json_contents = ast.literal_eval(row["result_json_contents"])
-        for category, subcategory_values in result_json_contents.items():
-            for subcategory, value in subcategory_values.items():
-                sunburst_data["category"].append(category)
-                sunburst_data["subcategory"].append(subcategory)
-                sunburst_data["value"].append(value)
-
-    risk_content_df = pd.DataFrame(sunburst_data)
-    risk_content_df = risk_content_df.groupby(by=["category", "subcategory"], as_index=False)["value"].sum()
-    risk_content_df = risk_content_df[risk_content_df["value"] != 0]
-
-    content_classification = px.sunburst(risk_content_df, path=["category", "subcategory"], values="value")
-    content_classification.update_traces(marker=dict(line=dict(color="white", width=0.1)), insidetextorientation="horizontal")
-    return content_classification
-
-
-# Content Result Treemap
-@app.callback(
-    Output("content_result_treemap", "figure"),
-    [Input("time_interval", "n_intervals")]
-)
-def update_content_treemap(time_interval):
-    content_json_df = df.copy()
-
-    content_json_df = content_json_df[(content_json_df["result_json_contents"].str.lower() != "no") & (content_json_df["result_json_contents"].str.lower() != "") & (content_json_df["result_json_contents"].notna())]
-    treemap_data = {"category": [], "subcategory": [], "value": []}
-
-    for index, row in content_json_df.iterrows():
-        result_json_contents = ast.literal_eval(row["result_json_contents"])
-        for category, subcategory_values in result_json_contents.items():
-            for subcategory, value in subcategory_values.items():
-                treemap_data["category"].append(category)
-                treemap_data["subcategory"].append(subcategory)
-                treemap_data["value"].append(value)
-
-    content_json_df = pd.DataFrame(treemap_data)
-    content_json_df = content_json_df[content_json_df["value"] != 0]
-    content_json_df = content_json_df.groupby(by=["category", "subcategory"], as_index=False)["value"].count()
-    content_json_df.sort_values(by=["category", "value"], ascending=[True, False], inplace=True)
-
-    content_treemap = px.treemap(content_json_df, path=[px.Constant("Content"), "category", "subcategory"], values="value", color="category", color_discrete_map={})
-    content_treemap.update_layout(margin=dict(t=20, l=0, r=0, b=0))
-    content_treemap.update_layout(uniformtext=dict(minsize=10, mode="hide"))
-    content_treemap.update_traces(marker=dict(cornerradius=10), root_color="white")
-    return content_treemap
-
-
-# Comment Result Radar
-@app.callback(
-    Output("comment_result_radar", "figure"),
-    [Input("time_interval", "n_intervals")]
-)
-def update_radar_chart(time_interval):
-    comment_json_df = df.copy()
-    comment_json_df = comment_json_df[(comment_json_df["result_json_comments"].str.lower() != "no") & (comment_json_df["result_json_comments"].str.lower() != "") & (comment_json_df["result_json_comments"].notna())]
-    comment_json_df = pd.DataFrame(list(comment_json_df["result_json_comments"].apply(ast.literal_eval)))
-    comment_json_df = comment_json_df.to_dict(orient="list")
-    comment_json_df = {key: np.mean([x for x in values if not np.isnan(x)])*100 for key, values in comment_json_df.items()}
-
-    values = comment_json_df.values()
-    categories = comment_json_df.keys()
-    text = [str(round(value, 2))+"%" for value in values]
-
-    fig = px.line_polar(r=values, theta=categories, line_close=True, markers=True, text=text)
-    fig.update_layout(template=None, polar=dict(bgcolor="rgba(255, 255, 255, 0.2)"))
-    fig.update_traces(fill="toself", textposition="top center")
-    return fig
-
-
-# Content Result Bubble Chart
-@app.callback(
-    Output("content_result_bubble_chart", "figure"),
-    [Input("time_interval", "n_intervals")]
-)
-def update_bubble_chart(time_interval):
-    content_df = df.copy()
-
-    content_df = content_df[(content_df["result_json_contents"].str.lower() != "no") & (content_df["result_json_contents"].str.lower() != "") & (content_df["result_json_contents"].notna())]
-    content_df = content_df[["result_json_contents", "createTime_contents"]]
-    content_df = content_df.drop_duplicates()
-
-    content_result_df = pd.DataFrame(columns=["category", "subcategory", "value", "date"])
-    for index, row in content_df.iterrows():
-        json_data = json.loads(row["result_json_contents"].replace("'", '"'))
-        for category, subcategories in json_data.items():
-            for subcategory, value in subcategories.items():
-                content_result_df.loc[len(content_result_df.index)] = [category, subcategory, value, str(row["createTime_contents"])]
-
-    fig = go.Figure(data=go.Scatter(x=[1, 2, 3, 4], y=[10, 11, 12, 13], mode="lines"))
-    return fig
 
 
 # Running Main App
