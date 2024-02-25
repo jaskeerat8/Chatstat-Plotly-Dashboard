@@ -391,6 +391,12 @@ body {
     text-align: center;
 }
 
+/* Member Overview */
+.child_overview .mantine-Modal-title {
+    font-size:18px;
+    font-weight:600;
+    font-family: "Poppins";
+}
 /* kpi_alert_count */
 .kpi_alert_count_container {
     display: flex;

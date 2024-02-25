@@ -219,7 +219,7 @@ filters = dmc.Group([
 
 # Overview Card
 overview = html.Div(children=[
-    dmc.Modal(id="child_overview", title="Member Overview", zIndex=10000, centered=True, overflow="outside", children=[
+    dmc.Modal(className="child_overview", id="child_overview", zIndex=10000, centered=True, overflow="outside", children=[
         html.Div(className="overview_info_container", id="overview_info_container", children=[
             dmc.Avatar(id="overview_avatar", className="overview_avatar", size=70, radius="100%"),
             html.Div(className="overview_info", id="overview_info")
@@ -410,7 +410,7 @@ def reset_filters(n_clicks):
 
 # Generate Overview Card
 @app.callback(
-    [Output("child_overview", "opened"), Output("overview_avatar", "children"), Output("overview_info", "children"),
+    [Output("child_overview", "opened"), Output("child_overview", "title"), Output("overview_avatar", "children"), Output("overview_info", "children"),
      Output("overview_platform", "children"), Output("overview_alert", "children"), Output("overview_classification", "figure")],
     Input("searchbar", "value"),
     prevent_initial_call=True
@@ -468,22 +468,22 @@ def update_overview_card(searchbar_value):
     overview_classification_df = overview_classification_df.groupby(by=["result_contents"], as_index=False)["id_contents"].nunique()
     overview_classification_df.columns = ["category", "count"]
     overview_classification_df.sort_values(by=["count"], ascending=[False], inplace=True)
-
     for classification in category_bar_colors.keys():
         if(classification not in overview_classification_df["category"].unique()):
             new_row = {"category": classification, "count": 0}
             overview_classification_df = pd.concat([overview_classification_df, pd.DataFrame(new_row, index=[len(overview_classification_df)])])
+
+    overview_classification_df["category_break"] = overview_classification_df["category"].apply(lambda x: "<b>" + x.replace(" ", "<br>", 3).replace("<br>", " ", 1) + "</b>" if x.count(" ") >= 3 else "<b>" + x.replace(" ", "<br>", 1) + "</b>")
     tick_values = list(range(int(math.floor(overview_classification_df["count"].min() / 10.0)) * 10, (int(math.ceil(overview_classification_df["count"].max() / 10.0)) * 10) + 10, 10))
     tick_values = list(filter(lambda x: x != 0, tick_values))
 
-    overview_classification_fig = px.bar_polar(overview_classification_df, r="count", theta="category", color="category", color_discrete_map=category_bar_colors, template="none")
-    overview_classification_fig.update_layout(polar=dict(radialaxis=dict(tickvals=tick_values, gridcolor="#98AFC7", gridwidth=2, linecolor="black", linewidth=1),
-                                    hole=0.1, angularaxis=dict(showticklabels=False, gridcolor="gold", gridwidth=2, linecolor="gold", linewidth=2)))
+    overview_classification_fig = px.bar_polar(overview_classification_df, r="count", theta="category_break", color="category", color_discrete_map=category_bar_colors, template="none")
+    overview_classification_fig.update_layout(polar=dict(radialaxis=dict(tickvals=tick_values, gridcolor="#98AFC7", gridwidth=1.5, linecolor="black", linewidth=1),
+                                    hole=0.1, angularaxis=dict(showticklabels=True, gridcolor="gold", gridwidth=2, linecolor="gold", linewidth=2)))
     overview_classification_fig.update_traces(marker_line_color="black", marker_line_width=1, opacity=0.9)
-    overview_classification_fig.update_layout(legend_title_text="", margin=dict(l=20, r=20, t=20, b=20))
-    overview_classification_fig.update_layout(legend={"orientation": "h", "x": 0.5, "y": -0.1, "xanchor": "center", "font": {"family": "Poppins", "color": "#2a3f5f", "size": 12}})
+    overview_classification_fig.update_layout(legend_title_text="", showlegend=False, height=370)
 
-    return True, searchbar_value[0].upper(), overview_info_children, platform_div, alert_div, overview_classification_fig
+    return True, f"{searchbar_value.title()} Overview", searchbar_value[0].upper(), overview_info_children, platform_div, alert_div, overview_classification_fig
 
 
 # KPI Count Card
@@ -651,11 +651,11 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value,
                                 dmc.Text(row["count"], style={"color": "#052F5F", "fontSize": "12px", "fontFamily": "Poppins", "fontWeight": "bold"})
                             ], style={"display": "flex", "justifyContent": "space-between", "width": "100%"})
                             for index, row in platform_df.iterrows()], align="flex-start", justify="flex-end", spacing="0px"),
-                        align="center", width=8),
+                        align="center", width=7, style={"padding-right": "0px"}),
                         dbc.Col(html.Div(children=[
                             dmc.Text(str(platform_df["count"].sum()), style={"color": "#052F5F", "fontSize": "40px", "fontFamily": "Poppins", "fontWeight": 600})
                             ], style={"text-align": "right"}),
-                        align="center", width=2)
+                        align="center", width=3, style={"padding-left": "0px"})
                     ], justify="between")
                 ], withBorder=True, radius="5px", style={"flex": 1, "height": "100%"}
                 )
