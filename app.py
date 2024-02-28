@@ -86,10 +86,10 @@ def slider_filter(dataframe, slider_value):
 
 # Function if No Data is available
 def no_data_graph():
-    message = html.Div(className="no_data_message", id="no_data_message", children=[
+    message = html.Div(className="no_data_container", id="no_data_container", children=[
         html.Img(src="assets/images/empty_ghost.gif", width="40%"),
-        html.P("No Data to Display", style={"fontSize": "24px", "color": "red", "margin": "0px"}),
-        html.P("Please make a different Filter Selection", style={"fontSize": "18px", "color": "black", "margin": "0px"})
+        html.P("No Data to Display", className="no_data_message"),
+        html.P("Please make a different Filter Selection", className="no_data_selection")
         ], style={"height": "100%"}
     )
     return message
@@ -104,10 +104,7 @@ sidebar = html.Div(id="sidebar", className="sidebar", children=[
             ]), href="https://chatstat.com/", target="_blank", style={"color": "#25D366", "textDecoration": "none"}
         ),
 
-        html.Div(id="sidebar_navlink_menu", className="sidebar_navlink_menu", children=[
-            html.P("Main Menu", style={"margin": "0px 0.2rem", "font-family": "Poppins", "font-size": "12px", "font-weight": "500", "color": "white"}),
-            html.Hr(style={"flex": "1", "border": "1px solid white", "borderRadius": "5px", "margin": "0px 0.5rem", "opacity": "unset"})
-        ]),
+        html.Div(id="sidebar_navlink_menu", className="sidebar_navlink_menu", children=[html.P("Main Menu"), html.Hr()]),
         dbc.Nav(className="sidebar_navlink", children=[
             dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/dashboard.png"), html.Span("Dashboard")],
                         href="/Dashboard", active="exact", className="sidebar_navlink_option", id="sidebar_navlink_option"),
@@ -118,10 +115,7 @@ sidebar = html.Div(id="sidebar", className="sidebar", children=[
             ],
         vertical=True, pills=True),
 
-        html.Div(id="sidebar_navlink_menu", className="sidebar_navlink_menu", children=[
-            html.P("General", style={"margin": "0px 0.2rem", "font-family": "Poppins", "font-size": "12px", "font-weight": "500", "color": "white"}),
-            html.Hr(style={"flex": "1", "border": "1px solid white", "borderRadius": "5px", "margin": "0px 0.5rem", "opacity": "unset"})
-        ]),
+        html.Div(id="sidebar_navlink_menu", className="sidebar_navlink_menu", children=[html.P("General"), html.Hr()]),
         dbc.Nav(className="sidebar_navlink", children=[
             dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/account.png"), html.Span("My Account")],
                         external_link=True, href="https://au.linkedin.com/in/lawrence-kusz", target="_blank", className="sidebar_navlink_option"),
@@ -206,11 +200,11 @@ filters = dmc.Group([
     ),
     html.Div(className="searchbar_container", id="searchbar_container", children=[
         html.P("Member Overview", className="searchbar_label", id="searchbar_label"),
-        dmc.Select(className="searchbar", id="searchbar", clearable=True, searchable=True, placeholder="Search...", nothingFound="Nothing Found",
-            limit=5, iconWidth=40, icon=html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/chatstatlogo_black.png", width="60%"),
-            rightSection=DashIconify(icon="radix-icons:chevron-right", color="black"),
+        dmc.Select(className="searchbar", id="searchbar", clearable=False, searchable=True, placeholder="Search...", nothingFound="Nothing Found",
+            iconWidth=40, icon=html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/chatstatlogo_black.png", width="60%"),
+            rightSection=DashIconify(icon="radix-icons:chevron-right", color="black"), limit=5,
             data=[{"group": "Members", "label": child_name.title(), "value": child_name} for child_name in list(df["name_childrens"].unique())] +
-                 [{"group": "ID", "label": child_id.title(), "value": child_id} for child_id in list(df["id_childrens"].unique())]
+            [{"group": "ID", "label": child_id.title(), "value": child_id} for child_id in list(df["id_childrens"].unique())]
         )
     ])
 ], style={"margin": "10px"}, spacing="10px"
@@ -224,20 +218,21 @@ overview = html.Div(children=[
             dmc.Avatar(id="overview_avatar", className="overview_avatar", size=70, radius="100%"),
             html.Div(className="overview_info", id="overview_info")
         ]),
-        html.Hr(style={"width": "99%", "border": "1px solid black", "borderRadius": "5px", "align-items": "center", "opacity": "unset"}),
+        html.Div(className="overview_title", children=[html.P("Platform Risk Distribution"), html.Hr()]),
         html.Div(className="overview_platform", id="overview_platform"),
-        html.Hr(style={"width": "99%", "border": "1px solid black", "borderRadius": "5px", "align-items": "center", "opacity": "unset"}),
+        html.Div(className="overview_title", children=[html.P("Alert Type Count"), html.Hr()]),
         html.Div(className="overview_alert", id="overview_alert"),
-        html.Hr(style={"width": "99%", "border": "1px solid black", "borderRadius": "5px", "align-items": "center", "opacity": "unset"}),
-        dcc.Graph(id="overview_classification", config=plot_config),
-        html.Hr(style={"width": "99%", "border": "1px solid black", "borderRadius": "5px", "align-items": "center", "opacity": "unset"})
+        html.Div(className="overview_title", children=[html.P("User Content Classification"), html.Hr()]),
+        html.Div(className="overview_classification", id="overview_classification"),
+        html.Div(className="overview_title", children=[html.P("Comments Received Categories"), html.Hr()]),
+        html.Div(className="overview_comments", id="overview_comments")
     ])
 ])
 
 
 # KPI Card
-kpi_cards = html.Div(children=[
-    dmc.Card(id="kpi_alert_count_container", className="kpi_alert_count_container", withBorder=True, radius="5px", style={"width": "auto", "margin": "0px 10px 0px 0px"}),
+kpi_cards = html.Div(id="kpi_container", className="kpi_container", children=[
+    dmc.Card(id="kpi_alert_count_container", className="kpi_alert_count_container", withBorder=True, radius="5px"),
     html.Div(id="kpi_platform_count_container", className="kpi_platform_count_container", children=[
         dcc.Store(id="kpi_platform_store", data=0),
         dmc.ActionIcon(DashIconify(icon="ep:arrow-left-bold", color="black", width=20), id="kpi_platform_backward", className="kpi_platform_backward",
@@ -246,8 +241,7 @@ kpi_cards = html.Div(children=[
         dmc.ActionIcon(DashIconify(icon="ep:arrow-right-bold", color="black", width=20), id="kpi_platform_forward", className="kpi_platform_forward",
                        variant="transparent", n_clicks=0)
     ])
-    ], style={"display": "flex", "flexDirection": "row", "margin": "10px", "padding": "0px"}
-)
+])
 
 
 # Page Charts
@@ -411,18 +405,22 @@ def reset_filters(n_clicks):
 # Generate Overview Card
 @app.callback(
     [Output("child_overview", "opened"), Output("child_overview", "title"), Output("overview_avatar", "children"), Output("overview_info", "children"),
-     Output("overview_platform", "children"), Output("overview_alert", "children"), Output("overview_classification", "figure")],
+     Output("overview_platform", "children"), Output("overview_alert", "children"), Output("overview_classification", "children"), Output("overview_comments", "children")],
     Input("searchbar", "value"),
     prevent_initial_call=True
 )
 def update_overview_card(searchbar_value):
+    # Filters
+    overview_df = df.copy()
+    #overview_df = member_filter(overview_df, searchbar_value)
+
     overview_info_children = [
         html.Div(className="overview_info_option", children=[html.Strong("Name:", style={"margin": "0"}), dmc.Space(w=10), html.P(searchbar_value, style={"margin": "0"})]),
         html.Div(className="overview_info_option", children=[html.Strong("Email:", style={"margin": "0"}), dmc.Space(w=10), html.P(df.loc[df["name_childrens"] == searchbar_value, "email_users"].iloc[0], style={"margin": "0"})]),
         html.Div(className="overview_info_option", children=[html.Strong("ID:", style={"margin": "0"}), dmc.Space(w=10), html.P(df.loc[df["name_childrens"] == searchbar_value, "id_childrens"].iloc[0], style={"margin": "0"})])
     ]
 
-    overview_platform_df = df.copy()
+    overview_platform_df = overview_df.copy()
     overview_platform_df = overview_platform_df[(overview_platform_df["alert_contents"].str.lower() != "no") & (overview_platform_df["alert_contents"].str.lower() != "") & (overview_platform_df["alert_contents"].notna())]
     overview_platform_df["createTime_contents"] = pd.to_datetime(overview_platform_df["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f")
     overview_platform_df = overview_platform_df.groupby(by=["platform_contents"], as_index=False)["id_contents"].nunique()
@@ -430,21 +428,22 @@ def update_overview_card(searchbar_value):
     overview_platform_df["percentage_count"] = (overview_platform_df["count"]/overview_platform_df["count"].sum()) * 100
     overview_platform_df["percentage_count"] = overview_platform_df["percentage_count"].round().astype(int)
     overview_platform_df.loc[overview_platform_df["percentage_count"].idxmax(), "percentage_count"] += 100 - overview_platform_df["percentage_count"].sum()
+    overview_platform_df.sort_values(by=["percentage_count"], ascending=False, inplace=True)
     bar_legend = []
     for index, row in overview_platform_df.iterrows():
         bar_legend.append([
-            dbc.Col(DashIconify(icon="material-symbols:circle", width=12, color=platform_colors[row["platform"]]), width={"size": 2, "offset": 1}),
-            dbc.Col(dmc.Text(children=row["platform"]), width=6),
-            dbc.Col(html.Header(str(row["percentage_count"]) + "%", style={"color": "#081A51", "fontFamily": "Poppins", "fontWeight": "bold", "fontSize": 14, "text-align": "right"}), width=3),
+            dmc.Col(DashIconify(icon="material-symbols:circle", width=12, color=platform_colors[row["platform"]]), span=2, offset=1),
+            dmc.Col(dmc.Text(className="overview_platform_label", children=row["platform"]), span=6),
+            dmc.Col(html.Header(className="overview_platform_count", children=str(row["percentage_count"]) + "%"), span=3),
             ]
         )
     platform_ring_legend = dmc.Grid(children=sum(bar_legend, []), gutter="xs", justify="center", align="center")
     platform_ring = dmc.RingProgress(size=120, thickness=10, label=dmc.Center(html.Strong(overview_platform_df["count"].sum(), style={"font-size": "24px"})),
         sections=[{"value": row["percentage_count"], "color": platform_colors[row["platform"]]} for index, row in overview_platform_df.iterrows()]
     )
-    platform_div = dbc.Row([dbc.Col(platform_ring_legend, width=6, align="center"), dbc.Col(platform_ring, width={"size": 4, "offset": 1}, align="center")])
+    platform_div = dmc.Grid(className="overview_platform_grid", children=[dmc.Col(platform_ring_legend, span=6), dmc.Col(platform_ring, span=4, offset=1)], gutter="xs", justify="center", align="center")
 
-    overview_alert_df = df.copy()
+    overview_alert_df = overview_df.copy()
     overview_alert_df = overview_alert_df[(overview_alert_df["alert_contents"].str.lower() != "no") & (overview_alert_df["alert_contents"].str.lower() != "") & (overview_alert_df["alert_contents"].notna())]
     overview_alert_df = overview_alert_df.groupby(by=["alert_contents"], as_index=False)["id_contents"].nunique()
     overview_alert_df.columns = ["alert", "count"]
@@ -462,12 +461,14 @@ def update_overview_card(searchbar_value):
             ], className="mx-auto overview_alert_option") for index, row in overview_alert_df.iterrows()], direction="horizontal")
     ])
 
-    overview_classification_df = df.copy()
+    overview_classification_df = overview_df.copy()
     overview_classification_df = overview_classification_df[(overview_classification_df["result_contents"].str.lower() != "no") & (overview_classification_df["result_contents"].str.lower() != "") & (overview_classification_df["result_contents"].notna())]
     overview_classification_df = overview_classification_df[(overview_classification_df["alert_contents"].str.lower() != "no") & (overview_classification_df["alert_contents"].str.lower() != "") & (overview_classification_df["alert_contents"].notna())]
     overview_classification_df = overview_classification_df.groupby(by=["result_contents"], as_index=False)["id_contents"].nunique()
     overview_classification_df.columns = ["category", "count"]
     overview_classification_df.sort_values(by=["count"], ascending=[False], inplace=True)
+
+    # Handling Missing Values
     for classification in category_bar_colors.keys():
         if(classification not in overview_classification_df["category"].unique()):
             new_row = {"category": classification, "count": 0}
@@ -477,13 +478,50 @@ def update_overview_card(searchbar_value):
     tick_values = list(range(int(math.floor(overview_classification_df["count"].min() / 10.0)) * 10, (int(math.ceil(overview_classification_df["count"].max() / 10.0)) * 10) + 10, 10))
     tick_values = list(filter(lambda x: x != 0, tick_values))
 
-    overview_classification_fig = px.bar_polar(overview_classification_df, r="count", theta="category_break", color="category", color_discrete_map=category_bar_colors, template="none")
+    overview_classification_fig = px.bar_polar(overview_classification_df, r="count", theta="category_break", hover_name="category", color="category", color_discrete_map=category_bar_colors, template="none")
     overview_classification_fig.update_layout(polar=dict(radialaxis=dict(tickvals=tick_values, gridcolor="#98AFC7", gridwidth=1.5, linecolor="black", linewidth=1),
-                                    hole=0.1, angularaxis=dict(showticklabels=True, gridcolor="gold", gridwidth=2, linecolor="gold", linewidth=2)))
+        hole=0.1, angularaxis=dict(showticklabels=True, tickfont=dict(size=12, family="Poppins", color="black"), gridcolor="gold", gridwidth=2, linecolor="gold", linewidth=2)))
     overview_classification_fig.update_traces(marker_line_color="black", marker_line_width=1, opacity=0.9)
-    overview_classification_fig.update_layout(legend_title_text="", showlegend=False, height=370)
+    overview_classification_fig.update_layout(legend_title_text="", showlegend=False, margin=dict(t=10, b=10), height=320)
 
-    return True, f"{searchbar_value.title()} Overview", searchbar_value[0].upper(), overview_info_children, platform_div, alert_div, overview_classification_fig
+    # Hover Label
+    overview_classification_fig.update_layout(hoverlabel=dict(bgcolor="#c1dfff", font_size=12, font_family="Poppins", align="left"))
+    overview_classification_fig.update_traces(hovertemplate="<i><b>%{hovertext} Class</b></i><br>Total Alerts: <b>%{r}</b><extra></extra>")
+    
+    overview_comments_df = overview_df.copy()
+    overview_comments_df = overview_comments_df[(overview_comments_df["alert_comments"].str.lower() != "no") & (overview_comments_df["alert_comments"].str.lower() != "") & (overview_comments_df["alert_comments"].notna())]
+    overview_comments_df = overview_comments_df[(overview_comments_df["result_comments"].str.lower() != "no") & (overview_comments_df["result_comments"].str.lower() != "") & (overview_comments_df["result_comments"].notna())]
+    overview_comments_df["commentTime_comments"] = pd.to_datetime(overview_comments_df["commentTime_comments"], format="%Y-%m-%d %H:%M:%S")
+    overview_comments_df = overview_comments_df[overview_comments_df["commentTime_comments"] >= datetime.now()-timedelta(days=365)]
+    overview_comments_df["commentTime_comments"] = pd.to_datetime(overview_comments_df["commentTime_comments"].apply(lambda x: x.replace(day=1))).dt.date
+    overview_comments_df["commentTime_comments"] = pd.to_datetime(overview_comments_df["commentTime_comments"])
+    overview_comments_df = overview_comments_df.groupby(by=["commentTime_comments", "result_comments"], as_index=False)["id_comments"].nunique()
+    overview_comments_df.columns = ["commentTime", "result", "count"]
+    total_counts = overview_comments_df.groupby("commentTime")["count"].sum()
+    overview_comments_df["percentage"] = overview_comments_df.apply(lambda x: (x["count"] / total_counts[x["commentTime"]]) * 100, axis=1)
+
+    # Handling Missing Values
+    for dat in overview_comments_df["commentTime"].unique():
+        for res in overview_comments_df["result"].unique():
+            if(overview_comments_df[(overview_comments_df["commentTime"] == dat) & (overview_comments_df["result"] == res)].empty):
+                new_row = {"commentTime": dat, "result": res, "count": 0, "percentage": 0}
+                overview_comments_df = pd.concat([overview_comments_df, pd.DataFrame(new_row, index=[len(overview_comments_df)])])
+    overview_comments_df.sort_values(by=["commentTime", "count"], ascending=True, inplace=True)
+
+    overview_comments_fig = px.area(overview_comments_df, x="commentTime", y="percentage", color="result", custom_data=["result", "count"], color_discrete_map=comment_classification_colors)
+    overview_comments_fig.update_layout(margin=dict(t=0, b=10, l=10, r=10), plot_bgcolor="white", height=220)
+    overview_comments_fig.update_layout(xaxis_title="", yaxis_title="", legend_title_text="")
+    overview_comments_fig.update_layout(xaxis=dict(tickfont=dict(size=10, family="Poppins", color="black")))
+    overview_comments_fig.update_xaxes(fixedrange=True, tickformat="%b<br>%Y", visible=True)
+    overview_comments_fig.update_yaxes(fixedrange=True, visible=False)
+    overview_comments_fig.update_traces(showlegend=False, stackgroup="one", mode="lines+markers", line=dict(width=2), marker=dict(size=6))
+    overview_comments_fig.update_layout(title=f"<b>(Hover to show info)</b>", title_x=0.5, title_y=0.04, title_font_color="#8E8E8E", title_font=dict(size=12, family="Poppins"))
+
+    # Hover Label
+    overview_comments_fig.update_layout(hoverlabel=dict(bgcolor="#c1dfff", font_size=10, font_family="Poppins", align="left"))
+    overview_comments_fig.update_traces(hovertemplate="<i><b>%{customdata[0]} Comments</b></i><br>Total Comments: <b>%{customdata[1]}</b><br>% of %{x|%B}: <b>%{y:.2f}%</b><extra></extra>")
+
+    return True, f"{searchbar_value.title()} Overview", searchbar_value[0].upper(), overview_info_children, platform_div, alert_div, dcc.Graph(figure=overview_classification_fig, config={"displayModeBar": False}), dcc.Graph(figure=overview_comments_fig, config={"displayModeBar": False})
 
 
 # KPI Count Card
@@ -809,13 +847,14 @@ def update_bar_chart(time_value, date_range_value, member_value, platform_value)
             content_risk = px.bar(risk_content_df, x="alert", y="count", text="count", hover_name="platform", custom_data=["percentage_total"], color="platform", color_discrete_map=platform_colors)
             content_risk.update_layout(title="<b>Alerts on User Content</b>", title_font_color="#052F5F", title_font=dict(size=17, family="Poppins"))
             content_risk.update_traces(width=0.5, hovertemplate="<i><b>%{hovertext}</b></i><br>Alert Severity: <b>%{x}</b><br>Total Alerts: <b>%{text}</b><br>% of Total: <b>%{customdata}%</b><extra></extra>")
+            content_risk.update_layout(legend=dict(font=dict(family="Poppins"), traceorder="grouped", orientation="h", x=0.5, y=-0.2, xanchor="center", yanchor="bottom", title_text="", bgcolor="rgba(0,0,0,0)"))
         else:
             content_risk = px.bar(risk_content_df, x="alert", y="count", color="alert", color_discrete_map=alert_colors)
             content_risk.update_layout(title=f"<b>Alerts on User Content - {platform_value}</b>", title_font_color="#052F5F", title_font=dict(size=17, family="Poppins"))
             content_risk.update_traces(width=0.4, hovertemplate="Alert Severity: <b>%{x}</b><br>Total Alerts: <b>%{y}</b><extra></extra>")
+            content_risk.update_layout(showlegend=False)
 
         content_risk.update_layout(margin=dict(l=25, r=25, b=0), barmode="relative")
-        content_risk.update_layout(legend=dict(font=dict(family="Poppins"), traceorder="grouped", orientation="h", x=0.5, y=-0.2, xanchor="center", yanchor="bottom", title_text="", bgcolor="rgba(0,0,0,0)"))
         content_risk.update_layout(xaxis_title="", yaxis_title="", legend_title_text="", plot_bgcolor="rgba(0, 0, 0, 0)")
         content_risk.update_layout(yaxis_showgrid=True, yaxis_ticksuffix=" ", yaxis=dict(tickfont=dict(size=12, family="Poppins", color="#8E8E8E"), griddash="dash", gridwidth=1, gridcolor="#DADADA"))
         content_risk.update_layout(xaxis_showgrid=False, xaxis=dict(tickfont=dict(size=16, family="Poppins", color="#052F5F")))
@@ -857,7 +896,7 @@ def update_line_chart(member_value, alert_value, slider_value):
         return no_data_graph()
     else:
         alert_comment_df["commentTime_comments"] = pd.to_datetime(alert_comment_df["commentTime_comments"], format="%Y-%m-%d").dt.strftime("%b %Y")
-        alert_comment_df = alert_comment_df.groupby(by=["commentTime_comments", "platform_comments"], as_index=False)["id_contents"].nunique()
+        alert_comment_df = alert_comment_df.groupby(by=["commentTime_comments", "platform_comments"], as_index=False)["id_comments"].nunique()
         alert_comment_df.columns = ["commentTime", "platform", "count"]
         alert_comment_df["commentTime"] = pd.to_datetime(alert_comment_df["commentTime"], format="%b %Y")
         alert_comment_df.sort_values(by="commentTime", inplace=True)
@@ -938,7 +977,6 @@ def update_pie_chart(time_value, date_range_value, member_value, platform_value,
     if(len(result_comment_df) == 0):
         return no_data_graph()
     else:
-        result_comment_df["createTime_contents"] = pd.to_datetime(result_comment_df["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f")
         result_comment_df = result_comment_df.groupby(by=["result_comments"], as_index=False)["id_comments"].nunique()
         result_comment_df.columns = ["classification", "count"]
         result_comment_df.sort_values(by=["count"], ascending=True, inplace=True)
@@ -955,7 +993,7 @@ def update_pie_chart(time_value, date_range_value, member_value, platform_value,
 
         # Hover Label
         comment_classification.update_layout(hoverlabel=dict(bgcolor="#c1dfff", font_size=12, font_family="Poppins", align="left"))
-        comment_classification.update_traces(hovertemplate="<b><i>%{customdata[0]} Comments</i></b><br>Total Comments: <b>%{value}</b><br>% of Total: <b>%{percent}</b><extra></extra>")
+        comment_classification.update_traces(hovertemplate="<i><b>%{customdata[0]} Comments</b></i><br>Total Comments: <b>%{value}</b><br>% of Total: <b>%{percent}</b><extra></extra>")
 
         if(((platform_value is not None) and (platform_value != "all")) and ((alert_value is not None) and (alert_value != "all"))):
             comment_classification.update_layout(title={"text": f"<b>Comment Classification - {platform_value} &<br>{alert_value} Alerts</b>"}, title_font_color="#052F5F", title_font=dict(family="Poppins", size=17))

@@ -8,13 +8,23 @@ body {
 }
 
 /* No data after Filter Message */
-.no_data_message {
+.no_data_container {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     font-family: "Poppins";
     background-color: white;
+}
+.no_data_message {
+    fontSize: 24px;
+    color: red;
+    margin: 0px;
+}
+.no_data_selection {
+    fontSize: 18px;
+    color: black;
+    margin: 0px;
 }
 
 /* Page Header */
@@ -359,12 +369,26 @@ body {
     border: 2px solid black;
 }
 
-/* overview button */
+/* Member Overview Card */
+.child_overview .mantine-Modal-title {
+    color: #052F5F;
+    font-size:18px;
+    font-weight:600;
+    font-family: "Poppins";
+}
+.child_overview hr {
+    width: 99%;
+    border: 1px solid black;
+    borderRadius: 5px;
+    align-items: center;
+    opacity: unset;
+}
 .overview_info_container {
     display: flex;
     flex-direction: row;
     justify-content: left;
     align-items: center;
+    font-family: "Poppins";
 }
 .overview_avatar .mantine-Avatar-placeholder{
     font-size: 30px;
@@ -383,22 +407,55 @@ body {
     display: flex;
     flex-direction: row;
 }
-.overview_platform {
-    margin: 0px;
+.overview_title {
+    position: relative;
+    color: #052F5F;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: "Poppins";
+    margin: 30px 0px;
+}
+.overview_title p {
+    position: absolute;
+    top: -10px;
+    left: 25px;
+    padding: 0px 10px;
+    background-color: white;
+}
+.overview_platform_grid {
+    margin: -20px 0px;
     padding: 0px;
+}
+.overview_platform_label {
+    font-family: "Poppins";
+}
+.overview_platform_count {
+    color: #081A51;
+    font-family: "Poppins";
+    font-weight: 600;
+    font-size: 14px;
+    text-align: right;
 }
 .overview_alert_option {
     text-align: center;
-}
-
-/* Member Overview */
-.child_overview .mantine-Modal-title {
-    font-size:18px;
-    font-weight:600;
     font-family: "Poppins";
 }
+.overview_classification {
+    background-color: red;
+}
+
+/* KPI Container */
+.kpi_container {
+    display: flex;
+    flexDirection: row;
+    margin: 10px;
+    padding: 0px;
+}
+
 /* kpi_alert_count */
 .kpi_alert_count_container {
+    width: auto;
+    margin: 0px 10px 0px 0px;
     display: flex;
     flex-direction: column;
     transition: transform 0.2s ease-in-out;
@@ -638,6 +695,20 @@ body {
 .sidebar_navlink_menu {
     display: none;
     transition: display 0.2s ease-in-out;
+}
+.sidebar_navlink_menu p {
+    color: white;
+    font-family: Poppins;
+    font-size: 12px;
+    font-weight: 500;
+    margin: 0px 0.2rem;
+}
+.sidebar_navlink_menu hr {
+    flex: 1;
+    border: 1px solid white;
+    borderRadius: 5px;
+    margin: 0px 0.5rem;
+    opacity: unset;
 }
 .sidebar_navlink_option {
     display: flex;
