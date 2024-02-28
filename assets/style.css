@@ -67,8 +67,24 @@ body {
 .user_avatar {
     border: 3px solid gold;
 }
-.mantine-Menu-dropdown {
+.user_container_dropdown .mantine-Menu-dropdown {
     border: 1.5px solid black;
+    width: 200px;
+}
+.user_container_upgrade {
+    display: flex;
+    flexDirection: row;
+    font-family: "Poppins";
+}
+.user_container_option {
+    font-size: 14px;
+    font-family: "Poppins";
+}
+.user_container_option .mantine-Menu-itemLabel {
+    margin-left: 10px;
+}
+.user_container_option:hover {
+    font-weight: 600;
 }
 
 /* filter container */

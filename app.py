@@ -144,9 +144,17 @@ header = dmc.Header(id="header", className="header", height="8.5vh", fixed=False
             dmc.Avatar(id="user_avatar", className="user_avatar", src="assets/images/user.jpeg", size="6vh", radius="100%"),
             dmc.Text("Lawrence", id="user_name", className="user_name")
         ])),
-        dmc.MenuDropdown(children=[
-            dmc.MenuItem("My Account", icon=DashIconify(icon="material-symbols:account-box-outline", width=30), href="https://au.linkedin.com/in/lawrence-kusz", target="_blank"),
-            dmc.MenuItem("Settings", icon=DashIconify(icon="lets-icons:setting-alt-line", width=30), href="https://www.linkedin.com/company/chatstat/mycompany/", target="_blank")
+        dmc.MenuDropdown(className="user_container_dropdown", children=[
+            dmc.MenuItem(children=[
+                html.Div(className="user_container_upgrade", children=[html.Strong("Email:", style={"margin": "0"}), dmc.Space(w=10), html.P("l.kusz@chatstat.com", style={"margin": "0"})]),
+                html.Div(className="user_container_upgrade", children=[html.Strong("Plan:", style={"margin": "0"}), dmc.Space(w=10), html.P("Premium", style={"margin": "0"})]),
+                html.A(dmc.Button("Upgrade Plan", leftIcon=DashIconify(icon="streamline:upload-computer", width=20), fullWidth=True, variant="gradient", gradient={"from": "teal", "to": "lime"}),
+                       href="https://family.chatstat.com/pricing", style={"textDecoration": "none"})
+            ]),
+            dmc.MenuDivider(),
+            dmc.MenuItem(className="user_container_option", children="My Account", icon=DashIconify(icon="material-symbols:account-box-outline", width=30), href="https://au.linkedin.com/in/lawrence-kusz", target="_blank"),
+            dmc.MenuItem(className="user_container_option", children="Settings", icon=DashIconify(icon="lets-icons:setting-alt-line", width=30), href="https://www.linkedin.com/company/chatstat/mycompany/", target="_blank"),
+            dmc.MenuItem(className="user_container_option", children="Sign Out", icon=DashIconify(icon="tabler:logout-2", color="red", width=30), style={"color": "red"})
         ])
     ])
 ])
