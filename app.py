@@ -525,6 +525,7 @@ def update_overview_card(searchbar_value):
     overview_comments_fig.update_xaxes(fixedrange=True, tickformat="<br>%b'%y")
     overview_comments_fig.update_yaxes(fixedrange=True)
     overview_comments_fig.update_traces(showlegend=False, mode="lines+markers", line=dict(width=2), marker=dict(size=8))
+    overview_comments_fig.update_layout(title=f"<b>Hover to Show Info</b>", title_x=0.5, title_y=1, title_font_color="#8E8E8E", title_font=dict(size=10, family="Poppins"))
 
     # Hover Label
     overview_comments_fig.update_layout(hoverlabel=dict(bgcolor="#c1dfff", font_size=10, font_family="Poppins", align="left"))
