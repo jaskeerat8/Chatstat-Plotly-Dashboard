@@ -267,7 +267,7 @@ dashboard_charts = html.Div(children=[
     html.Div(id="row2", className="row2", children=[
         html.Div(id="comment_alert_line_chart_container", className="comment_alert_line_chart_container", children=[
             html.Div(id="comment_alert_line_chart"),
-            html.Div(dcc.RangeSlider(id="comment_alert_line_chart_slider", className="comment_alert_line_chart_slider", updatemode="drag", pushable=1, min=0, max=730, value=[0, 730]), style={"height": "50px"})
+            html.Div(className="comment_alert_line_chart_slider_container", children=dcc.RangeSlider(id="comment_alert_line_chart_slider", className="comment_alert_line_chart_slider", updatemode="drag", pushable=1, min=0, max=730, value=[0, 730]))
             ], style={"width": "calc(65% - 5px)"}
         ),
         html.Div(id="comment_classification_pie_chart", className="comment_classification_pie_chart", style={"width": "calc(35% - 5px)"})
@@ -516,18 +516,19 @@ def update_overview_card(searchbar_value):
                 overview_comments_df = pd.concat([overview_comments_df, pd.DataFrame(new_row, index=[len(overview_comments_df)])])
     overview_comments_df.sort_values(by=["commentTime", "count"], ascending=True, inplace=True)
 
-    overview_comments_fig = px.area(overview_comments_df, x="commentTime", y="percentage", color="result", custom_data=["result", "count"], color_discrete_map=comment_classification_colors)
-    overview_comments_fig.update_layout(margin=dict(t=0, b=10, l=10, r=10), plot_bgcolor="white", height=220)
-    overview_comments_fig.update_layout(xaxis_title="", yaxis_title="", legend_title_text="")
-    overview_comments_fig.update_layout(xaxis=dict(tickfont=dict(size=10, family="Poppins", color="black")))
-    overview_comments_fig.update_xaxes(fixedrange=True, tickformat="%b<br>%Y", visible=True)
-    overview_comments_fig.update_yaxes(fixedrange=True, visible=False)
-    overview_comments_fig.update_traces(showlegend=False, stackgroup="one", mode="lines+markers", line=dict(width=2), marker=dict(size=6))
-    overview_comments_fig.update_layout(title=f"<b>(Hover to show info)</b>", title_x=0.5, title_y=0.04, title_font_color="#8E8E8E", title_font=dict(size=12, family="Poppins"))
+    overview_comments_fig = px.area(overview_comments_df, x="commentTime", y="count", color="result", custom_data=["result", "percentage"], color_discrete_map=comment_classification_colors)
+    overview_comments_fig.update_layout(margin=dict(t=0, b=0, l=0, r=0), plot_bgcolor="rgba(0, 0, 0, 0)", height=230)
+    overview_comments_fig.update_layout(xaxis_title=None, yaxis_title=None, legend_title_text=None)
+    overview_comments_fig.update_layout(xaxis_showgrid=False, xaxis=dict(tickfont=dict(size=10, family="Poppins", color="black")))
+    overview_comments_fig.update_layout(yaxis=dict(dtick=50, tickfont=dict(size=10, family="Poppins", color="#8E8E8E"), griddash="dash", gridwidth=1, gridcolor="#DADADA"))
+    overview_comments_fig.update_layout(yaxis_showgrid=True, yaxis_ticksuffix=" ")
+    overview_comments_fig.update_xaxes(fixedrange=True, tickformat="<br>%b'%y")
+    overview_comments_fig.update_yaxes(fixedrange=True)
+    overview_comments_fig.update_traces(showlegend=False, mode="lines+markers", line=dict(width=2), marker=dict(size=8))
 
     # Hover Label
     overview_comments_fig.update_layout(hoverlabel=dict(bgcolor="#c1dfff", font_size=10, font_family="Poppins", align="left"))
-    overview_comments_fig.update_traces(hovertemplate="<i><b>%{customdata[0]} Comments</b></i><br>Total Comments: <b>%{customdata[1]}</b><br>% of %{x|%B}: <b>%{y:.2f}%</b><extra></extra>")
+    overview_comments_fig.update_traces(hovertemplate="<i><b>%{customdata[0]} Comments</b></i><br>Total Comments: <b>%{y}</b><br>% of %{x|%B}: <b>%{customdata[1]:.2f}%</b><extra></extra>")
 
     return True, f"{searchbar_value.title()} Overview", searchbar_value[0].upper(), overview_info_children, platform_div, alert_div, dcc.Graph(figure=overview_classification_fig, config={"displayModeBar": False}), dcc.Graph(figure=overview_comments_fig, config={"displayModeBar": False})
 
@@ -962,7 +963,7 @@ def update_line_chart_slider(member_value):
 
     global date_dict
     date_dict = {i: d.strftime("%Y-%m-%d") for i, d in enumerate(date_list)}
-    marks = {i: {"label": d.strftime("%b\n%Y"), "style": {"fontFamily": "Poppins", "fontWeight": "bold", "fontSize": 10, "whiteSpace": "pre-line"}} for i, d in enumerate(date_list) if ((d.month in [1, 4, 7, 10]) and (d.day == 1))}
+    marks = {i: {"label": d.strftime("%b'%y"), "style": {"fontFamily": "Poppins", "fontWeight": "bold", "fontSize": 10, "whiteSpace": "pre-line"}} for i, d in enumerate(date_list) if ((d.month in [1, 3, 5, 7, 9, 11]) and (d.day == 1))}
     return marks, maximum_mark, minimum_mark, [minimum_mark, maximum_mark]
 
 

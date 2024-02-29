@@ -619,6 +619,9 @@ body {
 }
 
 /* date slider filter */
+.comment_alert_line_chart_slider_container {
+    height: 50px;
+}
 .comment_alert_line_chart_slider .rc-slider-track {
     background-color: black;
     height: 6px;
