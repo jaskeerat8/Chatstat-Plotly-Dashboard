@@ -2,15 +2,18 @@
 import s3
 import mysql_database
 import radial_bar_chart
+import invoke_lambda
 import pandas as pd
 import math
 import calendar
 from datetime import datetime, date, timedelta
+import dash_auth
 import plotly.express as px
 import dash_mantine_components as dmc
 import dash_bootstrap_components as dbc
 from dash_iconify import DashIconify
 from dash import Dash, html, dcc, Input, Output, State, callback_context
+from flask import request
 
 # Global Variables
 todays_date = datetime.now()
@@ -141,13 +144,14 @@ header = dmc.Header(id="header", className="header", height="8.5vh", fixed=False
     dmc.Text(className="header_title", id="header_title"),
     dmc.Menu(id="user_container", className="user_container", trigger="hover", children=[
         dmc.MenuTarget(html.Div(id="user_information", className="user_information", children=[
-            dmc.Avatar(id="user_avatar", className="user_avatar", src="assets/images/user.jpeg", size="6vh", radius="100%"),
-            dmc.Text("Lawrence", id="user_name", className="user_name")
+            dmc.Avatar(id="user_avatar", className="user_avatar", size="6vh", radius="100%",
+                src="https://e7.pngegg.com/pngimages/799/987/png-clipart-computer-icons-avatar-icon-design-avatar-heroes-computer-wallpaper-thumbnail.png"),
+            dmc.Text(id="user_name", className="user_name")
         ])),
         dmc.MenuDropdown(className="user_container_dropdown", children=[
             dmc.MenuItem(children=[
-                html.Div(className="user_container_upgrade", children=[html.Strong("Email:", style={"margin": "0"}), dmc.Space(w=10), html.P("l.kusz@chatstat.com", style={"margin": "0"})]),
-                html.Div(className="user_container_upgrade", children=[html.Strong("Plan:", style={"margin": "0"}), dmc.Space(w=10), html.P("Premium", style={"margin": "0"})]),
+                html.Div(className="user_container_upgrade", children=[html.Strong("Email:", style={"margin": "0"}), dmc.Space(w=10), html.P(id="user_email", style={"margin": "0"})]),
+                html.Div(className="user_container_upgrade", children=[html.Strong("Plan:", style={"margin": "0"}), dmc.Space(w=10), html.P(id="user_plan", style={"margin": "0"})]),
                 html.A(dmc.Button("Upgrade Plan", leftIcon=DashIconify(icon="streamline:upload-computer", width=20), fullWidth=True, variant="gradient", gradient={"from": "teal", "to": "lime"}),
                        href="https://family.chatstat.com/pricing", style={"textDecoration": "none"})
             ]),
@@ -278,6 +282,7 @@ dashboard_charts = html.Div(children=[
 
 # Designing Main App
 app = Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=["https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap", dbc.themes.BOOTSTRAP, dbc.themes.MATERIA, dbc.icons.FONT_AWESOME])
+auth = dash_auth.BasicAuth(app, {"jaskeerat.singh@uqconnect.edu.au": "", "l.kusz@chatstat.com": ""})
 server = app.server
 app.css.config.serve_locally = True
 app.title = "Parent Dashboard"
@@ -313,6 +318,16 @@ def display_page(pathname):
 def update_time_control_information(pathname):
     title = pathname[1:].replace("&", " & ")
     return title
+
+# User Info
+@app.callback(
+    [Output("user_name", "children"), Output("user_email", "children"), Output("user_plan", "children")],
+    Input("time_interval", "n_intervals")
+)
+def update_user_info(time_interval):
+    payload = {"email": request.authorization["username"]}
+    response = invoke_lambda.get_info(payload)
+    return response["name"].split(" ")[0].title(), response["email"], response["level"].title()
 
 
 # Time Control Information

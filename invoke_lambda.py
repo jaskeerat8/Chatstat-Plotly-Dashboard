@@ -3,7 +3,7 @@ import os
 import json
 import boto3
 
-def invoke(payload):
+def aws():
     # Setting up Boto3 Client
     region_name = "ap-southeast-2"
     secret_name = "dashboard"
@@ -17,21 +17,31 @@ def invoke(payload):
         get_secret_value_response = sm_client.get_secret_value(SecretId=secret_name)
         value = json.loads(get_secret_value_response["SecretString"])
     except Exception as e:
-        print(e)
+        value = e
+    return lambda_client, value
 
+def get_info(payload):
+    lambda_client, value = aws()
+    response = lambda_client.invoke(FunctionName=value["lambda_get_userinfo"], InvocationType="RequestResponse", Payload=json.dumps(payload))
+    response_payload = json.loads(response["Payload"].read().decode("utf-8"))
+    return response_payload["body"]
+
+def generate_report(payload):
+    lambda_client, value = aws()
     response = lambda_client.invoke(FunctionName=value["lambda_generate_report"], InvocationType="RequestResponse", Payload=json.dumps(payload))
     response_payload = json.loads(response["Payload"].read().decode("utf-8"))
-
     return response_payload["body"]
 
 if __name__ == "__main__":
     # Sample Event
-    payload = {
-        "name": "tengteng1",
-        "email": "j.teng@chatstat.com",
-        "children": ["test"],
-        "platform": ["instagram", "twitter"],
-        "timerange": ["2022-01-01T00:00:00", "2025-01-01T00:00:00"]
-    }
-    #print(invoke(payload))
-    print("Invoke Lambda for Report Generation")
+    # payload = {
+    #     "name": "tengteng1",
+    #     "email": "j.teng@chatstat.com",
+    #     "children": ["test"],
+    #     "platform": ["instagram", "twitter"],
+    #     "timerange": ["2022-01-01T00:00:00", "2025-01-01T00:00:00"]
+    # }
+    # print(generate_report(payload))
+    # payload = {"email": "jaskeerat.singh@uqconnect.edu.au"}
+    # print(get_info(payload))
+    print("Invoked Lambda")
