@@ -17,12 +17,12 @@ body {
     background-color: white;
 }
 .no_data_message {
-    fontSize: 24px;
+    font-size: 24px;
     color: red;
     margin: 0px;
 }
 .no_data_selection {
-    fontSize: 18px;
+    font-size: 18px;
     color: black;
     margin: 0px;
 }
@@ -67,14 +67,17 @@ body {
 .user_avatar {
     border: 3px solid gold;
 }
-.user_container_dropdown .mantine-Menu-dropdown {
-    border: 1.5px solid black;
-    width: 200px;
+.mantine-Menu-dropdown {
+    border-radius: 5px;
 }
-.user_container_upgrade {
+.user_container_info {
     display: flex;
     flexDirection: row;
     font-family: "Poppins";
+    width: 175px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .user_container_option {
     font-size: 14px;
@@ -98,9 +101,9 @@ body {
     width: 85%;
 }
 .filter_label {
-    font-family: "Poppins";
     color: white;
     font-size: 14px;
+    font-family: "Poppins";
     font-weight: 500;
     writing-mode: vertical-rl;
     transform: rotate(180deg);
@@ -123,9 +126,9 @@ body {
     border: 2px solid black;
 }
 .mantine-SegmentedControl-label {
-    font-family: "Poppins";
     color: #2D96FF;
     font-size: 14px;
+    font-family: "Poppins";
     font-weight: 600;
 }
 .mantine-SegmentedControl-label:hover {
@@ -133,9 +136,9 @@ body {
     font-weight: 600;
 }
 .mantine-SegmentedControl-labelActive {
-    font-family: "Poppins";
     color: #0080ff;
     font-size: 14px;
+    font-family: "Poppins";
     font-weight: 600;
 }
 .mantine-s28z26:not(:first-of-type) {
@@ -186,10 +189,13 @@ body {
 
 /* time control information */
 .time_control_information {
+    z-index: 2000 !important;
+}
+.time_control_info_option {
     font-size: 12px;
     font-family: "Poppins";
-    border: 1px solid black;
-    z-index: 2000 !important;
+    margin: 0px;
+    padding: 0px;
 }
 
 /* member dropdown */
@@ -204,8 +210,8 @@ body {
     position: absolute;
     padding: 0px 5px;
     margin: 0px;
-    font-family: "Poppins";
     font-size: 12px;
+    font-family: "Poppins";
     font-weight: 600;
     color: black;
     background-color: white;
@@ -220,8 +226,8 @@ body {
     align-items: center;
 }
 .member_dropdown .mantine-Select-input {
-    font-family: "Poppins";
     font-size: 16px;
+    font-family: "Poppins";
     font-weight: 600;
     text-align: center;
     border: 2px solid black;
@@ -233,8 +239,8 @@ body {
     border: 2px solid black;
 }
 .member_dropdown .mantine-Select-item {
-    font-family: "Poppins";
     font-size: 14px;
+    font-family: "Poppins";
     font-weight: 500;
 }
 .member_dropdown .mantine-Select-rightSection {
@@ -258,8 +264,8 @@ body {
     position: absolute;
     padding: 0px 5px;
     margin: 0px;
-    font-family: "Poppins";
     font-size: 12px;
+    font-family: "Poppins";
     font-weight: 600;
     color: black;
     background: white;
@@ -270,8 +276,8 @@ body {
     align-items: center;
 }
 .platform_dropdown .mantine-Select-input {
-    font-family: "Poppins";
     font-size: 16px;
+    font-family: "Poppins";
     font-weight: 600;
     text-align: center;
     border: 2px solid black;
@@ -283,8 +289,8 @@ body {
     border: 2px solid black;
 }
 .platform_dropdown .mantine-Select-item {
-    font-family: "Poppins";
     font-size: 14px;
+    font-family: "Poppins";
     font-weight: 500;
 }
 .platform_dropdown .mantine-Select-rightSection {
@@ -308,8 +314,8 @@ body {
     position: absolute;
     padding: 0px 5px;
     margin: 0px;
-    font-family: "Poppins";
     font-size: 12px;
+    font-family: "Poppins";
     font-weight: 600;
     color: black;
     background-color: white;
@@ -320,8 +326,8 @@ body {
     align-items: center;
 }
 .alert_dropdown .mantine-Select-input {
-    font-family: "Poppins";
     font-size: 16px;
+    font-family: "Poppins";
     font-weight: 600;
     text-align: center;
     border: 2px solid black;
@@ -333,8 +339,8 @@ body {
     border: 2px solid black;
 }
 .alert_dropdown .mantine-Select-item {
-    font-family: "Poppins";
     font-size: 14px;
+    font-family: "Poppins";
     font-weight: 500;
 }
 .alert_dropdown .mantine-Select-rightSection {
@@ -361,16 +367,16 @@ body {
     display: inline-block;
 }
 .searchbar_label {
-    font-family: "Poppins";
     font-size: 14px;
+    font-family: "Poppins";
     font-weight: 600;
     color: black;
     margin: 0px 0px 2px 0px;
     text-align: center;
 }
 .searchbar .mantine-Select-input {
-    font-family: "Poppins";
     font-size: 16px;
+    font-family: "Poppins";
     font-weight: 600;
     border: 2px solid black;
     border-radius: 5px;
@@ -388,9 +394,9 @@ body {
 /* Member Overview Card */
 .child_overview .mantine-Modal-title {
     color: #052F5F;
-    font-size:18px;
-    font-weight:600;
+    font-size: 18px;
     font-family: "Poppins";
+    font-weight: 600;
 }
 .child_overview hr {
     width: 99%;
@@ -408,8 +414,8 @@ body {
 }
 .overview_avatar .mantine-Avatar-placeholder{
     font-size: 30px;
-    font-weight: 600;
     font-family: "Poppins";
+    font-weight: 600;
     color: white;
     background-color: #fa5252;
     border: 2px solid black;
@@ -427,8 +433,8 @@ body {
     position: relative;
     color: #052F5F;
     font-size: 14px;
-    font-weight: 600;
     font-family: "Poppins";
+    font-weight: 600;
     margin: 30px 0px;
 }
 .overview_title p {
@@ -438,23 +444,38 @@ body {
     padding: 0px 10px;
     background-color: white;
 }
-.overview_platform_grid {
+.overview_platform_container {
     margin: -20px 0px;
     padding: 0px;
 }
 .overview_platform_label {
+    font-size: 16px;
     font-family: "Poppins";
+    font-weight: 600;
 }
 .overview_platform_count {
     color: #081A51;
+    font-size: 14px;
     font-family: "Poppins";
     font-weight: 600;
-    font-size: 14px;
-    text-align: right;
+    text-align: center;
+}
+.overview_platform_graph_label {
+    font-size: 20px;
+    font-family: "Poppins";
+    font-weight: 600;
+    white-space: pre-line;
+    text-align: center;
+    line-height: 1;
 }
 .overview_alert_option {
     text-align: center;
     font-family: "Poppins";
+}
+.overview_alert_label {
+    font-size: 14px;
+    font-family: "Poppins";
+    font-weight: 600;
 }
 .overview_classification {
     background-color: red;
@@ -480,13 +501,27 @@ body {
     transform: translateY(-5px);
 }
 .kpi_alert_count_label {
-    font-size:18px;
-    font-weight:600;
+    font-size: 18px;
     font-family: "Poppins";
+    font-weight: 600;
     text-align: center;
     margin: 0px 10px 0px 10px;
     padding: 0px;
     color: #2D96FF;
+}
+.kpi_alert_number {
+    color: #052F5F;
+    font-size: 40px;
+    font-family: "Poppins";
+    font-weight: 600;
+}
+.kpi_alert_info {
+    color: #90949C;
+    font-size: 12px;
+    font-family: "Poppins";
+    font-weight: 500;
+    text-align: center;
+    white-space: pre-line;
 }
 .kpi_alert_count {
     flex: 1;
@@ -512,6 +547,40 @@ body {
     align-items: center;
     justify-content: center;
     height: 100%;
+}
+.kpi_platform_count_label {
+    color: black;
+    font-size: 18px;
+    font-family: "Poppins";
+    font-weight: 600;
+}
+.kpi_platform_card_row2 {
+    display: flex;
+    flexDirection: row;
+    align-items: center;
+    justify-content: space-between;
+}
+.kpi_platform_classification_container {
+    padding: 0px 25px;
+    flex: auto;
+}
+.kpi_platform_classification {
+    color: #90949C;
+    font-size: 12px;
+    font-family: "Poppins";
+    font-weight: 500;
+}
+.kpi_platform_classification_count {
+    color: #052F5F;
+    font-size: 12px;
+    font-family: "Poppins";
+    font-weight: 600;
+}
+.kpi_platform_number {
+    color: #052F5F;
+    font-size: 40px;
+    font-family: "Poppins";
+    font-weight: 600;
 }
 .kpi_platform_backward{
     position: absolute;
@@ -547,28 +616,32 @@ body {
 .kpi_platform_image {
     width: 3.5vw;
     aspect-ratio: 1 / 1;
+    text-align: center;
 }
-.kpi_platform_count_elements {
+.kpi_platform_card {
     margin-right: 10px;
     transition: transform 0.2s ease-in-out;
 }
-.kpi_platform_count_elements:last-child {
+.kpi_platform_card:last-child {
     margin-right: 0px;
     transition: transform 0.2s ease-in-out;
 }
-.kpi_platform_count_elements:hover {
+.kpi_platform_card:hover {
     transform: translateY(-5px);
 }
 .kpi_platform_comparison {
     font-size:12px;
-    font-weight:600;
     font-family: "Poppins";
+    font-weight:600;
     padding: 0px 5px;
     border: 2px solid;
     border-radius: 5px;
 }
 
 /* progress bar */
+.risk_categories_progress_bar {
+    width: 95%;
+}
 .risk_categories_progress_bar_container {
     border: 3px solid #052F5F;
     border-radius: 5px;
@@ -580,8 +653,8 @@ body {
 }
 .risk_categories_progress_bar_label {
     font-size: 18px;
-    font-weight: 600;
     font-family: "Poppins";
+    font-weight: 600;
     color: #052F5F;
     display: flex;
     justify-content: space-evenly;
@@ -607,14 +680,14 @@ body {
 }
 .risk_categories_progress_legend_marking {
     font-size: 14px;
-    font-weight: 600;
     font-family: "Poppins";
+    font-weight: 600;
     color: black;
 }
 .risk_categories_progress_legend_avatar .mantine-Avatar-placeholder {
     font-size: 12px;
-    font-weight: 600;
     font-family: "Poppins";
+    font-weight: 600;
     border: 2px solid #228be6;
 }
 
@@ -717,8 +790,8 @@ body {
 }
 .sidebar_navlink_menu p {
     color: white;
-    font-family: Poppins;
     font-size: 12px;
+    font-family: "Poppins";
     font-weight: 500;
     margin: 0px 0.2rem;
 }
@@ -760,8 +833,8 @@ body {
     position: relative;
     height: 15%;
     font-size: 14px;
-    font-weight: 500;
     font-family: "Poppins";
+    font-weight: 500;
     padding: 20% 0px 10px 0px;
     color: white;
     background-color: #2D96FF;
@@ -777,9 +850,9 @@ body {
 .sidebar:hover .sidebar_header h2 {
     visibility: visible;
     color: #25D366;
+    font-size: 26;
     font-family: "Poppins";
     font-weight: "bold";
-    font-size: 26;
 }
 .sidebar:hover .sidebar_navlink_menu {
     display: flex;

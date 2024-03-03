@@ -89,7 +89,7 @@ def slider_filter(dataframe, slider_value):
 
 # Function if No Data is available
 def no_data_graph():
-    message = html.Div(className="no_data_container", id="no_data_container", children=[
+    message = html.Div(className="no_data_container", children=[
         html.Img(src="assets/images/empty_ghost.gif", width="40%"),
         html.P("No Data to Display", className="no_data_message"),
         html.P("Please make a different Filter Selection", className="no_data_selection")
@@ -99,7 +99,7 @@ def no_data_graph():
 
 
 # SideBar
-sidebar = html.Div(id="sidebar", className="sidebar", children=[
+sidebar = html.Div(className="sidebar", children=[
     html.Div(children=[
         html.A(html.Div(className="sidebar_header", children=[
             html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/chatstatlogo.png"),
@@ -107,29 +107,27 @@ sidebar = html.Div(id="sidebar", className="sidebar", children=[
             ]), href="https://chatstat.com/", target="_blank", style={"color": "#25D366", "textDecoration": "none"}
         ),
 
-        html.Div(id="sidebar_navlink_menu", className="sidebar_navlink_menu", children=[html.P("Main Menu"), html.Hr()]),
+        html.Div(className="sidebar_navlink_menu", children=[html.P("Main Menu"), html.Hr()]),
         dbc.Nav(className="sidebar_navlink", children=[
             dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/dashboard.png"), html.Span("Dashboard")],
-                        href="/Dashboard", active="exact", className="sidebar_navlink_option", id="sidebar_navlink_option"),
+                        href="/Dashboard", active="exact", className="sidebar_navlink_option"),
             dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/analytics.png"), html.Span("Analytics")],
-                        href="/Analytics", active="exact", className="sidebar_navlink_option", id="sidebar_navlink_option"),
+                        href="/Analytics", active="exact", className="sidebar_navlink_option"),
             dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/report.png"), html.Span("Report & Logs")],
-                        href="/Report&Logs", active="exact", className="sidebar_navlink_option", id="sidebar_navlink_option")
-            ],
-        vertical=True, pills=True),
+                        href="/Report&Logs", active="exact", className="sidebar_navlink_option")
+        ], vertical=True, pills=True),
 
-        html.Div(id="sidebar_navlink_menu", className="sidebar_navlink_menu", children=[html.P("General"), html.Hr()]),
+        html.Div(className="sidebar_navlink_menu", children=[html.P("General"), html.Hr()]),
         dbc.Nav(className="sidebar_navlink", children=[
             dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/account.png"), html.Span("My Account")],
                         external_link=True, href="https://au.linkedin.com/in/lawrence-kusz", target="_blank", className="sidebar_navlink_option"),
             dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/setting.png"), html.Span("Settings")],
                         external_link=True, href="https://www.linkedin.com/company/chatstat/mycompany/", target="_blank", className="sidebar_navlink_option")
-            ],
-        vertical=True, pills=True)
+        ], vertical=True, pills=True)
     ]),
 
-    html.Img(id="sidebar_help", className="sidebar_help", src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/help_circle.png"),
-    html.Div(id="sidebar_help_container", className="sidebar_help_container", children=[
+    html.Img(className="sidebar_help", src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/help_circle.png"),
+    html.Div(className="sidebar_help_container", children=[
         html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/help_circle.png", width="20%",
                  style={"position": "absolute", "top": "-15%", "padding": "5px", "border-radius": "100%", "background-color": "#25D366"}),
         html.P("Need Help?"),
@@ -140,18 +138,18 @@ sidebar = html.Div(id="sidebar", className="sidebar", children=[
 
 
 # Header
-header = dmc.Header(id="header", className="header", height="8.5vh", fixed=False, children=[
+header = dmc.Header(className="header", height="8.5vh", fixed=False, children=[
     dmc.Text(className="header_title", id="header_title"),
-    dmc.Menu(id="user_container", className="user_container", trigger="hover", children=[
-        dmc.MenuTarget(html.Div(id="user_information", className="user_information", children=[
+    dmc.Menu(className="user_container", trigger="hover", children=[
+        dmc.MenuTarget(html.Div(className="user_information", children=[
             dmc.Avatar(id="user_avatar", className="user_avatar", size="6vh", radius="100%",
                 src="https://e7.pngegg.com/pngimages/799/987/png-clipart-computer-icons-avatar-icon-design-avatar-heroes-computer-wallpaper-thumbnail.png"),
             dmc.Text(id="user_name", className="user_name")
         ])),
         dmc.MenuDropdown(className="user_container_dropdown", children=[
             dmc.MenuItem(children=[
-                html.Div(className="user_container_upgrade", children=[html.Strong("Email:", style={"margin": "0"}), dmc.Space(w=10), html.P(id="user_email", style={"margin": "0"})]),
-                html.Div(className="user_container_upgrade", children=[html.Strong("Plan:", style={"margin": "0"}), dmc.Space(w=10), html.P(id="user_plan", style={"margin": "0"})]),
+                html.Div(className="user_container_info", children=[html.Strong("Email:", style={"margin": "0"}), dmc.Space(w=10), html.P(id="user_email", style={"margin": "0"})]),
+                html.Div(className="user_container_info", children=[html.Strong("Plan:", style={"margin": "0"}), dmc.Space(w=10), html.P(id="user_plan", style={"margin": "0"})]),
                 html.A(dmc.Button("Upgrade Plan", leftIcon=DashIconify(icon="streamline:upload-computer", width=20), fullWidth=True, variant="gradient", gradient={"from": "teal", "to": "lime"}),
                        href="https://family.chatstat.com/pricing", style={"textDecoration": "none"})
             ]),
@@ -167,8 +165,8 @@ header = dmc.Header(id="header", className="header", height="8.5vh", fixed=False
 # Controls
 filters = dmc.Group([
     dmc.Group(className="filter_container", children=[
-        html.P("FILTERS", className="filter_label", id="filter_label"),
-        dmc.HoverCard(openDelay=1200, position="right", transition="pop", children=[
+        html.P("FILTERS", className="filter_label"),
+        dmc.HoverCard(openDelay=1000, position="right", transition="pop", withArrow=True, children=[
             dmc.HoverCardTarget(
                 dmc.SegmentedControl(id="time_control", className="time_control", value="all", radius="md", size="xs", data=[
                     {"label": "Daily", "value": "D"},
@@ -179,7 +177,7 @@ filters = dmc.Group([
                     {"label": "Custom Range", "value": "all"}
                 ])
             ),
-            dmc.HoverCardDropdown(id="time_control_information", className="time_control_information")
+            dmc.HoverCardDropdown(className="time_control_information", id="time_control_information")
         ]),
         dbc.Popover(id="popover_date_picker", className="popover_date_picker", children=[
             dbc.PopoverHeader("Selected Date Range", className="popover_date_picker_label"),
@@ -189,7 +187,7 @@ filters = dmc.Group([
             )
             ], target="time_control", placement="bottom", trigger="legacy", hide_arrow=True
         ),
-        html.Div(id="member_dropdown_container", className="member_dropdown_container", children=[
+        html.Div(className="member_dropdown_container", children=[
             html.P("Members", className="member_dropdown_label"),
             dmc.Select(className="member_dropdown", id="member_dropdown", clearable=False, searchable=False, value="all",
                rightSection=DashIconify(icon="radix-icons:chevron-down", color="black")
@@ -210,8 +208,8 @@ filters = dmc.Group([
         dmc.ActionIcon(DashIconify(icon="grommet-icons:power-reset", color="white", width=25, flip="horizontal"), id="reset_filter_container", className="reset_filter_container", n_clicks=0, variant="transparent")
     ], spacing="10px"
     ),
-    html.Div(className="searchbar_container", id="searchbar_container", children=[
-        html.P("Member Overview", className="searchbar_label", id="searchbar_label"),
+    html.Div(className="searchbar_container", children=[
+        html.P("Member Overview", className="searchbar_label"),
         dmc.Select(className="searchbar", id="searchbar", clearable=False, searchable=True, placeholder="Search...", nothingFound="Nothing Found",
             iconWidth=40, icon=html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/chatstatlogo_black.png", width="60%"),
             rightSection=DashIconify(icon="radix-icons:chevron-right", color="black"), limit=5,
@@ -226,8 +224,8 @@ filters = dmc.Group([
 # Overview Card
 overview = html.Div(children=[
     dmc.Modal(className="child_overview", id="child_overview", zIndex=10000, centered=True, overflow="outside", children=[
-        html.Div(className="overview_info_container", id="overview_info_container", children=[
-            dmc.Avatar(id="overview_avatar", className="overview_avatar", size=70, radius="100%"),
+        html.Div(className="overview_info_container", children=[
+            dmc.Avatar(className="overview_avatar", id="overview_avatar", size=70, radius="100%"),
             html.Div(className="overview_info", id="overview_info")
         ]),
         html.Div(className="overview_title", children=[html.P("Platform Risk Distribution"), html.Hr()]),
@@ -243,9 +241,9 @@ overview = html.Div(children=[
 
 
 # KPI Card
-kpi_cards = html.Div(id="kpi_container", className="kpi_container", children=[
+kpi_cards = html.Div(className="kpi_container", children=[
     dmc.Card(id="kpi_alert_count_container", className="kpi_alert_count_container", withBorder=True, radius="5px"),
-    html.Div(id="kpi_platform_count_container", className="kpi_platform_count_container", children=[
+    html.Div(className="kpi_platform_count_container", children=[
         dcc.Store(id="kpi_platform_store", data=0),
         dmc.ActionIcon(DashIconify(icon="ep:arrow-left-bold", color="black", width=20), id="kpi_platform_backward", className="kpi_platform_backward",
                        variant="transparent", n_clicks=0),
@@ -258,7 +256,7 @@ kpi_cards = html.Div(id="kpi_container", className="kpi_container", children=[
 
 # Page Charts
 dashboard_charts = html.Div(children=[
-    html.Div(id="row1", className="row1", children=[
+    html.Div(className="row1", children=[
         html.Div(id="content_risk_classification_container", className="content_risk_classification_container", children=[
             html.Div(id="content_classification_radial_chart", className="content_classification_radial_chart"),
             html.Div(id="risk_categories_horizontal_bar", className="risk_categories_horizontal_bar"),
@@ -268,7 +266,7 @@ dashboard_charts = html.Div(children=[
         html.Div(id="content_risk_bar_chart", className="content_risk_bar_chart", style={"width": "calc(35% - 5px)"})
     ], style={"margin": "10px", "padding": "0px"}
     ),
-    html.Div(id="row2", className="row2", children=[
+    html.Div(className="row2", children=[
         html.Div(id="comment_alert_line_chart_container", className="comment_alert_line_chart_container", children=[
             html.Div(id="comment_alert_line_chart"),
             html.Div(className="comment_alert_line_chart_slider_container", children=dcc.RangeSlider(id="comment_alert_line_chart_slider", className="comment_alert_line_chart_slider", updatemode="drag", pushable=1, min=0, max=730, value=[0, 730]))
@@ -315,7 +313,7 @@ def display_page(pathname):
     Output("header_title", "children"),
     [Input("url_path", "pathname")]
 )
-def update_time_control_information(pathname):
+def update_header(pathname):
     title = pathname[1:].replace("&", " & ")
     return title
 
@@ -336,17 +334,15 @@ def update_user_info(time_interval):
     Input("time_interval", "n_intervals")
 )
 def update_time_control_information(time_interval):
-    information = [
-        DashIconify(icon="ion:information-circle-outline", color="#0b71aa", width=30, style={"position": "absolute", "top": "10px", "right": "10px"}),
-        html.P(children=[
-            html.Strong("Daily: "), html.Span(f"For Today's Date {todays_date.strftime('%d %b, %Y')}"), html.Br(),
-            html.Strong("Weekly: "), html.Span(f"From Monday to Sunday"), html.Br(),
-            html.Strong("Monthly: "), html.Span(f"From the 1st of {todays_date.strftime('%B')}"), html.Br(),
-            html.Strong("Quarterly: "), html.Span(f"For this Quarter starting from {todays_date.replace(month=3*round((todays_date.month - 1) // 3 + 1) - 2).strftime('%B')}"), html.Br(),
-            html.Strong("Yearly: "), html.Span(f"From the Beginning of {todays_date.year}"), html.Br(),
-            html.Strong("Custom Range: "), html.Span("Select from Date Picker")
-        ])
-    ]
+    information = html.Div([
+        DashIconify(icon="ion:information-circle", color="#0b71aa", width=30, style={"position": "absolute", "top": "10px", "right": "10px"}),
+        html.P(className="time_control_info_option", children=[html.Strong("Daily:"), f" For Today's Date {todays_date.strftime('%d %B, %Y')}"]),
+        html.P(className="time_control_info_option", children=[html.Strong("Weekly:"), f" From Monday to Sunday"]),
+        html.P(className="time_control_info_option", children=[html.Strong("Monthly:"), f" From the 1st of {todays_date.strftime('%B')}"]),
+        html.P(className="time_control_info_option", children=[html.Strong("Quarterly:"), f" For this Quarter starting from {todays_date.replace(month=3*round((todays_date.month - 1) // 3 + 1) - 2).strftime('%B')}"]),
+        html.P(className="time_control_info_option", children=[html.Strong("Yearly:"), f" From the Beginning of {todays_date.year}"]),
+        html.P(className="time_control_info_option", children=[html.Strong("Custom Range:"), " Select from Date Picker"])
+    ])
     return information
 
 
@@ -445,6 +441,8 @@ def update_overview_card(searchbar_value):
 
     overview_platform_df = overview_df.copy()
     overview_platform_df = overview_platform_df[(overview_platform_df["alert_contents"].str.lower() != "no") & (overview_platform_df["alert_contents"].str.lower() != "") & (overview_platform_df["alert_contents"].notna())]
+    overview_platform_df = overview_platform_df[(overview_platform_df["result_contents"].str.lower() != "no") & (overview_platform_df["result_contents"].str.lower() != "") & (overview_platform_df["result_contents"].notna())]
+
     overview_platform_df["createTime_contents"] = pd.to_datetime(overview_platform_df["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f")
     overview_platform_df = overview_platform_df.groupby(by=["platform_contents"], as_index=False)["id_contents"].nunique()
     overview_platform_df.columns = ["platform", "count"]
@@ -452,6 +450,7 @@ def update_overview_card(searchbar_value):
     overview_platform_df["percentage_count"] = overview_platform_df["percentage_count"].round().astype(int)
     overview_platform_df.loc[overview_platform_df["percentage_count"].idxmax(), "percentage_count"] += 100 - overview_platform_df["percentage_count"].sum()
     overview_platform_df.sort_values(by=["percentage_count"], ascending=False, inplace=True)
+
     bar_legend = []
     for index, row in overview_platform_df.iterrows():
         bar_legend.append([
@@ -461,10 +460,10 @@ def update_overview_card(searchbar_value):
             ]
         )
     platform_ring_legend = dmc.Grid(children=sum(bar_legend, []), gutter="xs", justify="center", align="center")
-    platform_ring = dmc.RingProgress(size=120, thickness=10, label=dmc.Center(html.Strong(overview_platform_df["count"].sum(), style={"font-size": "24px"})),
+    platform_ring = dmc.RingProgress(size=120, thickness=10, roundCaps=True, label=dmc.Center(className="overview_platform_graph_label", children=str(overview_platform_df["count"].sum()) + "\nPosts"),
         sections=[{"value": row["percentage_count"], "color": platform_colors[row["platform"]]} for index, row in overview_platform_df.iterrows()]
     )
-    platform_div = dmc.Grid(className="overview_platform_grid", children=[dmc.Col(platform_ring_legend, span=6), dmc.Col(platform_ring, span=4, offset=1)], gutter="xs", justify="center", align="center")
+    platform_div = dmc.Grid(className="overview_platform_container", children=[dmc.Col(platform_ring_legend, span=6), dmc.Col(platform_ring, span=4, offset=1)], gutter="xs", justify="center", align="center")
 
     overview_alert_df = overview_df.copy()
     overview_alert_df = overview_alert_df[(overview_alert_df["alert_contents"].str.lower() != "no") & (overview_alert_df["alert_contents"].str.lower() != "") & (overview_alert_df["alert_contents"].notna())]
@@ -480,8 +479,8 @@ def update_overview_card(searchbar_value):
     alert_div = html.Div(children=[
         dbc.Stack([html.Div(children=[
             dmc.Avatar(row["count"], radius="100%", size=75, color=alert_overview_colors[row["alert"]], style={"border": f"""2px solid {alert_colors[row["alert"]]}"""}),
-            dmc.Text(row["alert"])
-            ], className="mx-auto overview_alert_option") for index, row in overview_alert_df.iterrows()], direction="horizontal")
+            dmc.Text(className="overview_alert_label", children=row["alert"])
+        ], className="mx-auto overview_alert_option") for index, row in overview_alert_df.iterrows()], direction="horizontal")
     ])
 
     overview_classification_df = overview_df.copy()
@@ -506,8 +505,6 @@ def update_overview_card(searchbar_value):
         hole=0.1, angularaxis=dict(showticklabels=True, tickfont=dict(size=12, family="Poppins", color="black"), gridcolor="gold", gridwidth=2, linecolor="gold", linewidth=2)))
     overview_classification_fig.update_traces(marker_line_color="black", marker_line_width=1, opacity=0.9)
     overview_classification_fig.update_layout(legend_title_text="", showlegend=False, margin=dict(t=10, b=10), height=320)
-
-    # Hover Label
     overview_classification_fig.update_layout(hoverlabel=dict(bgcolor="#c1dfff", font_size=12, font_family="Poppins", align="left"))
     overview_classification_fig.update_traces(hovertemplate="<i><b>%{hovertext} Class</b></i><br>Total Alerts: <b>%{r}</b><extra></extra>")
     
@@ -537,12 +534,10 @@ def update_overview_card(searchbar_value):
     overview_comments_fig.update_layout(xaxis_showgrid=False, xaxis=dict(tickfont=dict(size=10, family="Poppins", color="black")))
     overview_comments_fig.update_layout(yaxis=dict(dtick=50, tickfont=dict(size=10, family="Poppins", color="#8E8E8E"), griddash="dash", gridwidth=1, gridcolor="#DADADA"))
     overview_comments_fig.update_layout(yaxis_showgrid=True, yaxis_ticksuffix=" ")
-    overview_comments_fig.update_xaxes(fixedrange=True, tickformat="<br>%b'%y")
+    overview_comments_fig.update_xaxes(fixedrange=False, tickformat="<br>%b'%y")
     overview_comments_fig.update_yaxes(fixedrange=True)
     overview_comments_fig.update_traces(showlegend=False, mode="lines+markers", line=dict(width=2), marker=dict(size=8))
     overview_comments_fig.update_layout(title=f"<b>Hover to Show Info</b>", title_x=0.5, title_y=1, title_font_color="#8E8E8E", title_font=dict(size=10, family="Poppins"))
-
-    # Hover Label
     overview_comments_fig.update_layout(hoverlabel=dict(bgcolor="#c1dfff", font_size=10, font_family="Poppins", align="left"))
     overview_comments_fig.update_traces(hovertemplate="<i><b>%{customdata[0]} Comments</b></i><br>Total Comments: <b>%{y}</b><br>% of %{x|%B}: <b>%{customdata[1]:.2f}%</b><extra></extra>")
 
@@ -564,16 +559,14 @@ def update_kpi_count(time_value, date_range_value, member_value, alert_value):
 
     if(time_value == "all"):
         alert_count_df = time_filter(alert_count_df, time_value, date_range_value)
+        from_date = datetime.strptime(date_range_value[0], "%Y-%m-%d").strftime("%b %d, %Y")
+        to_date = datetime.strptime(date_range_value[1], "%Y-%m-%d").strftime("%b %d, %Y")
         card = [
-            dmc.Text("Number of Alerts", id="kpi_alert_count_label", className="kpi_alert_count_label"),
-            html.Div(id="kpi_alert_count", className="kpi_alert_count", children=[
+            dmc.Text("Number of Alerts", className="kpi_alert_count_label"),
+            html.Div(className="kpi_alert_count", children=[
                 dmc.Group(children=[
-                    dmc.Text(alert_count_df["id_contents"].nunique(), style={"color": "#052F5F", "fontSize": "40px", "fontFamily": "Poppins", "fontWeight": 600}),
-                    dmc.Stack([
-                        dmc.Text("Between ", color="dimmed", style={"fontSize": "12px", "fontFamily": "Poppins", "text-align": "right"}),
-                        dmc.Text(datetime.strptime(date_range_value[0], "%Y-%m-%d").strftime("%b %d, %Y"), color="dimmed", style={"fontSize": "12px", "fontFamily": "Poppins", "text-align": "right"}),
-                        dmc.Text("& " + datetime.strptime(date_range_value[1], "%Y-%m-%d").strftime("%b %d, %Y"), color="dimmed", style={"fontSize": "12px", "fontFamily": "Poppins", "text-align": "right"})
-                        ], align="center", justify="center", spacing="0px")
+                    dmc.Text(alert_count_df["id_contents"].nunique(), className="kpi_alert_number"),
+                    dmc.Text(f"Between\n{from_date}\n& {to_date}", className="kpi_alert_info")
                 ], position="center", style={"margin": "0px", "padding": "0px"}),
             ])
         ]
@@ -585,6 +578,7 @@ def update_kpi_count(time_value, date_range_value, member_value, alert_value):
         alert_count_df = alert_count_df.resample(time_value)["id_contents"].nunique()
         alert_count_df = alert_count_df.reset_index()
         alert_count_df.columns = ["date", "count"]
+
         if(len(alert_count_df) == 1):
             alert_count_df["increase"] = alert_count_df["count"].diff().fillna(alert_count_df["count"].iloc[0]).astype(int)
         else:
@@ -614,22 +608,22 @@ def update_kpi_count(time_value, date_range_value, member_value, alert_value):
 
         if(date_comparison in alert_count_df["date"].values):
             card = [
-                dmc.Text("Number of Alerts", id="kpi_alert_count_label", className="kpi_alert_count_label"),
-                html.Div(id="kpi_alert_count", className="kpi_alert_count", children=[
+                dmc.Text("Number of Alerts", className="kpi_alert_count_label"),
+                html.Div(className="kpi_alert_count", children=[
                     dmc.Group(children=[
-                        dmc.Text(alert_count_df["count"].iloc[0], style={"color": "#052F5F", "fontSize": "40px", "fontFamily": "Poppins", "fontWeight": 600}),
+                        dmc.Text(alert_count_df["count"].iloc[0], className="kpi_alert_number"),
                         dmc.Stack([
                             dmc.Text("▲"+str(alert_count_df["increase"].iloc[0]) if alert_count_df["increase"].iloc[0] > 0 else "▼"+str(abs(alert_count_df["increase"].iloc[0])),
                                      style={"color": "#FF5100" if alert_count_df["increase"].iloc[0] > 0 else "#25D366", "fontSize": "20px", "fontFamily": "Poppins", "fontWeight": 600}),
-                            dmc.Text(metric_text, color="dimmed", style={"fontSize": "12px", "fontFamily": "Poppins", "text-align": "right"})
-                            ], align="center", justify="center", spacing="0px")
+                            dmc.Text(metric_text, className="kpi_alert_info")
+                        ], align="center", justify="center", spacing="0px")
                     ], position="center", style={"margin": "0px", "padding": "0px"}),
                 ])
             ]
         else:
             card = [
-                dmc.Text("Number of Alerts", id="kpi_alert_count_label", className="kpi_alert_count_label"),
-                html.Div(id="kpi_alert_count", className="kpi_alert_count", children=[
+                dmc.Text("Number of Alerts", className="kpi_alert_count_label"),
+                html.Div(className="kpi_alert_count", children=[
                     dmc.Text("No Data Found", color="black", style={"fontSize": 17, "fontFamily": "Poppins", "fontWeight": "bold", "text-align": "center"})
                 ])
             ]
@@ -654,7 +648,7 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value,
     kpi_platform_df = alert_filter(kpi_platform_df, alert_value)
 
     if(len(kpi_platform_df) == 0):
-        card = dmc.Card(id="kpi_platform_count_elements", className="kpi_platform_count_elements", children=[
+        card = dmc.Card(className="kpi_platform_card", children=[
             dmc.Text("No Cards to Display", color="black", style={"fontSize": 17, "fontFamily": "Poppins", "fontWeight": "bold"})
             ], withBorder=True, radius="5px", style={"height": "100%", "width": "100%", "display": "flex", "justify-content": "center", "align-items": "center"}
         )
@@ -691,35 +685,29 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value,
                 kpi_platform_count_df["date"] = kpi_platform_count_df["date"].dt.date
                 kpi_platform_count_df = kpi_platform_count_df.sort_values(by="date", ascending=False)
 
+            # Producing Card for the Platform
             platform_df = kpi_platform_df[kpi_platform_df["platform"] == platform]
             title = platform.title()+f" - {alert_value} Alerts" if ((alert_value is not None) and (alert_value != "all")) else platform.title()
             kpi_platform_list.append(
-                dmc.Card(id="kpi_platform_count_elements", className="kpi_platform_count_elements", children=[
-                    dbc.Row([
-                        dbc.Col(dmc.Text(title, style={"color": "black", "fontSize": "18px", "fontFamily": "Poppins", "fontWeight": "bold"}),
-                        align="center", width=9),
-                        dbc.Col(dmc.Text(id="kpi_platform_comparison", className="kpi_platform_comparison", children=["--" if time_value == "all"
-                                        else ("▲"+str(kpi_platform_count_df["increase"].iloc[0]) if kpi_platform_count_df["increase"].iloc[0] > 0
-                                              else "▼"+str(abs(kpi_platform_count_df["increase"].iloc[0])))],
-                                    style={"color": "#25D366" if time_value == "all" else ("#FF5100" if kpi_platform_count_df["increase"].iloc[0] > 0 else "#25D366"),
-                                           "background-color": "rgba(37, 211, 102, 0.3)" if time_value == "all" else ("rgba(255, 81, 0, 0.3)" if kpi_platform_count_df["increase"].iloc[0] > 0 else "rgba(37, 211, 102, 0.3)")}),
+                dmc.Card(className="kpi_platform_card", children=[
+                    dbc.Row(className="kpi_platform_card_row1", children=[
+                        dbc.Col(dmc.Text(title, className="kpi_platform_count_label"), align="center", width=9),
+                        dbc.Col(dmc.Text(className="kpi_platform_comparison", children=["--" if time_value == "all"
+                            else ("▲"+str(kpi_platform_count_df["increase"].iloc[0]) if kpi_platform_count_df["increase"].iloc[0] > 0 else "▼"+str(abs(kpi_platform_count_df["increase"].iloc[0])))],
+                            style={"color": "#25D366" if time_value == "all" else ("#FF5100" if kpi_platform_count_df["increase"].iloc[0] > 0 else "#25D366"),
+                            "background-color": "rgba(37, 211, 102, 0.3)" if time_value == "all" else ("rgba(255, 81, 0, 0.3)" if kpi_platform_count_df["increase"].iloc[0] > 0 else "rgba(37, 211, 102, 0.3)")}),
                         align="center", width="auto")
                     ], justify="between"),
-                    dbc.Row([
-                        dbc.Col(html.Img(id="kpi_platform_image", className="kpi_platform_image", src=f"assets/images/{platform}.png"),
-                        align="center", width=2, style={"padding": "0px 0px 0px 12px"}),
-                        dbc.Col(dmc.Stack(children=[
+                    html.Div(className="kpi_platform_card_row2", children=[
+                        html.Img(className="kpi_platform_image", src=f"assets/images/{platform}.png"),
+                        dmc.Stack(className="kpi_platform_classification_container", children=[
                             html.Div(children=[
-                                dmc.Text(row["result"], style={"color": "#979797", "fontSize": "12px", "fontFamily": "Poppins"}),
-                                dmc.Text(row["count"], style={"color": "#052F5F", "fontSize": "12px", "fontFamily": "Poppins", "fontWeight": "bold"})
+                                dmc.Text(className="kpi_platform_classification", children=row["result"]),
+                                dmc.Text(className="kpi_platform_classification_count", children=row["count"])
                             ], style={"display": "flex", "justifyContent": "space-between", "width": "100%"})
                             for index, row in platform_df.iterrows()], align="flex-start", justify="flex-end", spacing="0px"),
-                        align="center", width=7, style={"padding-right": "0px"}),
-                        dbc.Col(html.Div(children=[
-                            dmc.Text(str(platform_df["count"].sum()), style={"color": "#052F5F", "fontSize": "40px", "fontFamily": "Poppins", "fontWeight": 600})
-                            ], style={"text-align": "right"}),
-                        align="center", width=3, style={"padding-left": "0px"})
-                    ], justify="between")
+                        dmc.Text(className="kpi_platform_number", children=platform_df["count"].sum())
+                    ])
                 ], withBorder=True, radius="5px", style={"flex": 1, "height": "100%"}
                 )
             )
@@ -772,7 +760,7 @@ def update_radial_chart(time_value, date_range_value, member_value, platform_val
             title = "Content Risk Classification"
         return [
             html.P(title, style={"color": "#052F5F", "fontWeight": "bold", "fontSize": 17, "margin": "10px 25px 0px 25px"}),
-            html.Div(id="content_classification_image", className="content_classification_image", children=[
+            html.Div(className="content_classification_image", children=[
                 html.Img(src=radial_bar_chart.radial_chart(result_contents_df), width="100%", style={"object-fit": "cover"})]
             )
         ]
@@ -800,11 +788,8 @@ def update_horizontal_bar(time_value, date_range_value, member_value):
         risk_categories_df["percentage_of_total"] = (risk_categories_df["count"] / risk_categories_df["count"].sum()) * 100
         risk_categories_df["percentage_of_total"] = risk_categories_df["percentage_of_total"].round().astype(int)
         risk_categories_df.loc[risk_categories_df["percentage_of_total"].idxmax(), "percentage_of_total"] += 100 - risk_categories_df["percentage_of_total"].sum()
-
-        bar_sections = []
         risk_categories_df.sort_values(by="percentage_of_total", ascending=True, inplace=True)
-        for index, row in risk_categories_df.iterrows():
-            bar_sections.append({"value": row["percentage_of_total"], "color": category_bar_colors[row["category"]], "label": str(row["percentage_of_total"])+"%"})
+        bar_sections = [{"value": row["percentage_of_total"], "color": category_bar_colors[row["category"]], "label": str(row["percentage_of_total"])+"%", "tooltip": f"""{row["category"].title()} - {row["percentage_of_total"]}%""" } for index, row in risk_categories_df.iterrows()]
 
         # Handling Missing Values
         for classification in category_bar_colors.keys():
@@ -823,13 +808,13 @@ def update_horizontal_bar(time_value, date_range_value, member_value):
                 ]
             )
 
-        return dmc.Stack(className="risk_categories_progress_bar_container", id="risk_categories_progress_bar_container", children=[
+        return dmc.Stack(className="risk_categories_progress_bar_container", children=[
             html.Div(className="risk_categories_progress_bar_label", children=[
                 html.Hr(style={"width": "30%", "borderTop": "2px solid", "borderBottom": "2px solid", "opacity": "unset"}),
                 dmc.Text("Categories", style={"fontFamily": "Poppins"}),
                 html.Hr(style={"width": "30%", "borderTop": "2px solid", "borderBottom": "2px solid", "opacity": "unset"})
             ], style={"width": "100%"}),
-            dmc.Progress(className="risk_categories_progress_bar", sections=bar_sections, radius=10, size=25, animate=False, striped=False, style={"width": "95%"}),
+            dmc.Progress(className="risk_categories_progress_bar", sections=bar_sections, radius=10, size=25, animate=False, striped=False),
             dmc.Grid(className="risk_categories_progress_legend", children=sum(bar_legend, []), gutter="xs", justify="center", align="center")
             ], justify="space-evenly")
 
@@ -930,8 +915,8 @@ def update_line_chart(member_value, alert_value, slider_value):
         comment_alert.update_layout(margin=dict(l=25, r=25, b=0), height=400)
         comment_alert.update_layout(legend=dict(font=dict(family="Poppins"), traceorder="grouped", orientation="h", x=1, y=1, xanchor="right", yanchor="bottom", title_text=""))
         comment_alert.update_layout(xaxis_title="", yaxis_title="", legend_title_text="", plot_bgcolor="rgba(0, 0, 0, 0)")
-        comment_alert.update_layout(yaxis_showgrid=True, yaxis_ticksuffix="  ", yaxis=dict(tickfont=dict(size=12, family="Poppins", color="#8E8E8E"), griddash="dash", gridwidth=1, gridcolor="#DADADA"))
-        comment_alert.update_layout(xaxis_showgrid=False, xaxis=dict(tickfont=dict(size=9, family="Poppins", color="#052F5F"), tickangle=0))
+        comment_alert.update_layout(yaxis_showgrid=True, yaxis_ticksuffix="  ", yaxis=dict(dtick=25, tickfont=dict(size=12, family="Poppins", color="#8E8E8E"), griddash="dash", gridwidth=1, gridcolor="#DADADA"))
+        comment_alert.update_layout(xaxis_showgrid=False, xaxis=dict(tickfont=dict(size=10, family="Poppins", color="#052F5F"), tickangle=0))
         comment_alert.update_traces(mode="lines+markers", line=dict(width=2), marker=dict(sizemode="diameter", size=8, color="white", line=dict(width=2)))
         comment_alert.update_xaxes(fixedrange=True)
         comment_alert.update_yaxes(fixedrange=True)
@@ -979,7 +964,7 @@ def update_line_chart_slider(member_value):
 
     global date_dict
     date_dict = {i: d.strftime("%Y-%m-%d") for i, d in enumerate(date_list)}
-    marks = {i: {"label": d.strftime("%b'%y"), "style": {"fontFamily": "Poppins", "fontWeight": "bold", "fontSize": 10, "whiteSpace": "pre-line"}} for i, d in enumerate(date_list) if ((d.month in [1, 3, 5, 7, 9, 11]) and (d.day == 1))}
+    marks = {i: {"label": d.strftime("%b'%y"), "style": {"font-family": "Poppins", "font-weight": 600, "font-size": "10px"}} for i, d in enumerate(date_list) if ((d.month in [1, 4, 7, 10]) and (d.day == 1))}
     return marks, maximum_mark, minimum_mark, [minimum_mark, maximum_mark]
 
 
