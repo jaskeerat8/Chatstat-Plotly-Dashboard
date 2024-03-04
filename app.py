@@ -223,7 +223,7 @@ filters = dmc.Group([
 
 # Overview Card
 overview = html.Div(children=[
-    dmc.Modal(className="child_overview", id="child_overview", zIndex=10000, centered=True, overflow="outside", children=[
+    dmc.Modal(className="child_overview", id="child_overview", zIndex=10, centered=True, overflow="outside", children=[
         html.Div(className="overview_info_container", children=[
             dmc.Avatar(className="overview_avatar", id="overview_avatar", size=70, radius="100%"),
             html.Div(className="overview_info", id="overview_info")
@@ -461,7 +461,7 @@ def update_overview_card(searchbar_value):
         )
     platform_ring_legend = dmc.Grid(children=sum(bar_legend, []), gutter="xs", justify="center", align="center")
     platform_ring = dmc.RingProgress(size=120, thickness=10, roundCaps=True, label=dmc.Center(className="overview_platform_graph_label", children=str(overview_platform_df["count"].sum()) + "\nPosts"),
-        sections=[{"value": row["percentage_count"], "color": platform_colors[row["platform"]]} for index, row in overview_platform_df.iterrows()]
+        sections=[{"value": row["percentage_count"], "color": platform_colors[row["platform"]], "tooltip": f"""{row["platform"].title()} - {row["count"]} Posts"""} for index, row in overview_platform_df.iterrows()]
     )
     platform_div = dmc.Grid(className="overview_platform_container", children=[dmc.Col(platform_ring_legend, span=6), dmc.Col(platform_ring, span=4, offset=1)], gutter="xs", justify="center", align="center")
 

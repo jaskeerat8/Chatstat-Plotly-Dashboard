@@ -36,7 +36,7 @@ body {
     padding: 10px;
     border-bottom: 3px solid black;
     position: fixed;
-    z-index: 1050;
+    z-index: 3;
     margin-left: 4.5rem;
     transition: margin-left 0.2s ease-in-out;
 }
@@ -189,7 +189,7 @@ body {
 
 /* time control information */
 .time_control_information {
-    z-index: 2000 !important;
+    z-index: 4 !important;
 }
 .time_control_info_option {
     font-size: 12px;
@@ -561,7 +561,7 @@ body {
     justify-content: space-between;
 }
 .kpi_platform_classification_container {
-    padding: 0px 25px;
+    padding: 0px 25px 0px 25px;
     flex: auto;
 }
 .kpi_platform_classification {
@@ -585,7 +585,7 @@ body {
 .kpi_platform_backward{
     position: absolute;
     left: -12.5px;
-    z-index: 1000;
+    z-index: 2;
     border-radius: 100%;
     background-color: white;
     box-shadow: 0px 0px 1px black;
@@ -598,7 +598,7 @@ body {
 .kpi_platform_forward{
     position: absolute;
     right: -12.5px;
-    z-index: 1000;
+    z-index: 2;
     border-radius: 100%;
     background-color: white;
     box-shadow: 0px 0px 1px black;
@@ -746,7 +746,7 @@ body {
     width: 4.5rem;
     padding: 0rem 1rem 1rem 1rem;
     background-color: #052F5F;
-    z-index: 1050;
+    z-index: 6;
     transition: width 0.2s ease-in-out;
 }
 .sidebar_header {
