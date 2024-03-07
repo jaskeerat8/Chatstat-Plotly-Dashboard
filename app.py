@@ -278,6 +278,114 @@ dashboard_charts = html.Div(children=[
 ], style={"height": "100%", "width": "100%", "margin": "0px", "padding": "0px"})
 
 
+# Report Page
+report_page = dbc.Card(children=[
+    html.Div(children=[
+        html.Div(children=[
+            html.Div(children=[
+                html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/New-Report.png", alt="New_Report_Icon", width="30px", style={"margin-right": "10px"}),
+                html.P("New Report", style={"color": "#052F5F", "font-size": "24px", "font-family": "Poppins", "font-weight": "600", "margin": "0px", "padding": "0px"})
+            ], style={"display": "flex", "flex-direction": "row", "justify-content": "left", "align-items": "center"}),
+            dmc.Tabs(id="report_page_tab", children=[
+                dmc.TabsList([
+                    dmc.Tab("Generate Report", value="generate"),
+                    dmc.Tab("Saved Reports", value="saved"),
+                ]),
+            ], value="generate", color="green", variant="pills")
+        ], style={"display": "flex", "flex-direction": "row", "justify-content": "space-between", "align-items": "center", "border-bottom": "1px solid grey", "padding": "0px 0px 15px 0px"}),
+
+        html.Div("Report will provide a quick overview of your child's activity.", style={"color": "#052F5F", "font-size": "12px", "font-family": "Poppins", "font-weight": "600", "padding": "5px"}),
+
+        html.Div(children=[
+            html.Div(children=[
+                DashIconify(icon="ic:sharp-account-circle", color="#2d96ff", width=22, style={"margin-right": "10px"}),
+                html.P("Member", style={"color": "#052F5F", "font-size": "16px", "font-family": "Poppins", "font-weight": "600", "margin": "0px", "padding": "0px"})
+            ], style={"display": "flex", "flex-direction": "row", "justify-content": "left", "align-items": "center"}),
+            dmc.Select(className="member_dropdown", id="member_dropdown", clearable=False, searchable=False, value="all",
+                rightSection=DashIconify(icon="radix-icons:chevron-down", color="black"), style={"width": "40%"}
+            )
+        ]),
+
+        html.Div(children=[
+            html.Div(children=[
+                DashIconify(icon="ph:clock-bold", color="#2d96ff", width=22, style={"margin-right": "10px"}),
+                html.P("Select a Time Range", style={"color": "#052F5F", "font-size": "16px", "font-family": "Poppins", "font-weight": "600", "margin": "0px", "padding": "0px"})
+            ], style={"display": "flex", "flex-direction": "row", "justify-content": "left", "align-items": "center"}),
+            html.Div(children=[
+                dmc.DatePicker(id="Start_date_report", label="Start Date", value=datetime.now() - timedelta(days=1), inputFormat="MMMM DD, YYYY", style={"width": "50%"}),
+                dmc.DatePicker(id="end_date_report", label="End Date", value=datetime.now(), inputFormat="MMMM DD, YYYY", style={"width": "50%"})
+            ], style={"display": "flex", "flex-direction": "row", "justify-content": "start", "align-items": "start", "width": "100%"})
+        ]),
+
+        html.Div(children=[
+            html.Div(children=[
+                html.Div(children=[
+                    DashIconify(icon="carbon:screen", color="#2d96ff", width=22, style={"margin-right": "10px"}),
+                    html.P("Platform Content", style={"color": "#052F5F", "font-size": "16px", "font-family": "Poppins", "font-weight": "600", "margin": "0px", "padding": "0px"})
+                ], style={"display": "flex", "flex-direction": "row", "justify-content": "left", "align-items": "center"}),
+                dmc.CheckboxGroup(className="platform_checkbox", id="platform_checkbox", orientation="vertical", withAsterisk=True)
+            ], style={"width": "50%"}),
+
+            html.Div(children=[
+                html.Div(children=[
+                    DashIconify(icon="ant-design:alert-outlined", color="#2d96ff", width=22, style={"margin-right": "10px"}),
+                    html.P("Alert Level Raised", style={"color": "#052F5F", "font-size": "16px", "font-family": "Poppins", "font-weight": "600", "margin": "0px", "padding": "0px"})
+                ], style={"display": "flex", "flex-direction": "row", "justify-content": "left", "align-items": "center"}),
+                dmc.CheckboxGroup(className="alert_checkbox", id="alert_checkbox", orientation="vertical", withAsterisk=True)
+            ], style={"width": "50%"})
+        ], style={"display": "flex", "flex-direction": "row", "justify-content": "start", "align-items": "start", "width": "100%"}),
+
+        html.Div(children=[
+            html.Div(children=[
+                html.Div(children=[
+                    DashIconify(icon="icon-park-outline:comments", color="#2d96ff", width=22, style={"margin-right": "10px"}),
+                    html.P("Content Type", style={"color": "#052F5F", "font-size": "16px", "font-family": "Poppins", "font-weight": "600", "margin": "0px", "padding": "0px"})
+                ], style={"display": "flex", "flex-direction": "row", "justify-content": "left", "align-items": "center", "margin": "0px 0px 10px 0px"}),
+                dmc.ChipGroup([dmc.Chip("All posts", value="posts", variant="filled"), dmc.Chip("All comments", value="comments", variant="filled"), dmc.Chip("Watchlist", value="watchlist", variant="filled")],
+                    value=["posts"], multiple=True
+                )
+            ], style={"width": "50%"}),
+
+            html.Div(children=[
+                html.Div(children=[
+                    DashIconify(icon="bx:file", color="#2d96ff", width=22, style={"margin-right": "10px"}),
+                    html.P("Export File Type", style={"color": "#052F5F", "font-size": "16px", "font-family": "Poppins", "font-weight": "600", "margin": "0px", "padding": "0px"})
+                ], style={"display": "flex", "flex-direction": "row", "justify-content": "left", "align-items": "center"}),
+                dmc.RadioGroup([dmc.Radio("PDF", value="pdf", color="green"), dmc.Radio("Word", value="word", color="green"), dmc.Radio("Excel", value="excel", color="green")],
+                    value="pdf", orientation="horizontal"
+                )
+            ], style={"width": "50%"})
+        ], style={"display": "flex", "flex-direction": "row", "justify-content": "start", "align-items": "start", "width": "100%"}),
+
+        dmc.Button("Generate Report", id="generate_button", variant="filled", color="green", n_clicks=0, rightIcon=DashIconify(icon="heroicons-outline:document-report", width=25), style={"border-radius": "5px", "width": "25%"})
+    ], style={"background-color": "white", "border-radius": "5px", "display": "flex", "flex-direction": "column", "justify-content": "space-between", "width": "calc(65% - 5px)", "padding": "10px", "height": "100%"}),
+
+    html.Div(children=[
+        html.Div(children=[
+            dcc.Link(
+                html.Div(children=[
+                    html.P("Need Help?", className="header-text", style={"font-family": "Poppins", "font-size": "24px", "color": "#2D96FF", "margin-bottom": "0"}),
+                    html.P("Explore our Help or FAQ section for detailed information on how to interpret alerts, manage settings, and make the most of Chatstat. Your child's safety is our top priority.", style={"font-family": "Poppins", "color": "#000000", "font-size": "14px"})
+                ], style={"cursor": "pointer"}),
+                href="https://www.google.com", target="_blank", style={"text-decoration": "none"}
+            )
+        ], style={"border-radius": "5px", "padding": "10px", "background-color": "white", "margin-bottom": "10px"}),
+
+        html.Div(children=[
+            dcc.Link(
+                html.Div(children=[
+                    html.P("New User?", className="header-text", style={"font-family": "Poppins", "font-size": "24px", "color": "#2D96FF", "margin-bottom": "0"}),
+                    html.P("For new users, the report will go back up to 60 days. As you continue with your membership, more data will be available for analysis and included in the report.", style={"font-family": "Poppins", "color": "#000000", "font-size": "14px"})
+                ], style={"cursor": "pointer"}),
+                href="https://www.google.com", target="_blank", style={"text-decoration": "none"}
+            )
+        ], style={"border-radius": "5px", "padding": "10px", "background-color": "white"})
+    ], style={"width": "calc(35% - 5px)"})
+
+], style={"display": "flex", "flex-direction": "row", "align-items": "start", "justify-content": "space-between", "background-color": "transparent", "height": "calc(100vh - 8.5vh - 20px)", "margin": "10px", "padding": "0px", "border-radius": "5px", "box-shadow": "none"}
+)
+
+
 # Designing Main App
 app = Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=["https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap", dbc.themes.BOOTSTRAP, dbc.themes.MATERIA, dbc.icons.FONT_AWESOME])
 auth = dash_auth.BasicAuth(app, {"jaskeerat.singh@uqconnect.edu.au": "", "l.kusz@chatstat.com": ""})
@@ -303,7 +411,7 @@ def display_page(pathname):
     elif pathname == "/Analytics":
         return [sidebar, header, filters]
     elif pathname == "/Report&Logs":
-        return [sidebar, header]
+        return [sidebar, header, report_page]
     else:
         return [sidebar]
 
@@ -367,10 +475,10 @@ def update_member_dropdown(member_value):
     user_list = df[(df["name_childrens"].astype(str) != "nan") & (df["name_childrens"].astype(str) != "no")]["name_childrens"].unique()
     if(len(user_list) == 1):
         disable_flag = True
-        data = [{"value": "all", "label": i.split(" ")[0].title()} for i in user_list]
+        data = [{"label": i.split(" ")[0].title(), "value": "all"} for i in user_list]
     else:
         disable_flag = False
-        data = [{"value": "all", "label": "All Members"}] + [{"value": i, "label": i.split(" ")[0].title()} for i in user_list]
+        data = [{"label": "All Members", "value": "all"}] + [{"label": i.split(" ")[0].title(), "value": i} for i in user_list]
     return data, DashIconify(icon=f"tabler:square-letter-{member_value[0].lower()}", width=25, color="#25D366"), disable_flag
 
 
@@ -383,15 +491,26 @@ def update_platform_dropdown(platform_value):
     platform_list = df[(df["platform_contents"].astype(str) != "nan") & (df["platform_contents"].astype(str) != "no")]["platform_contents"].unique()
     if(len(platform_list) == 1):
         disable_flag = True
-        data = [{"value": "all", "label": i.title()} for i in platform_list]
+        data = [{"label": platform.title(), "value": "all"} for platform in platform_list]
         return data, DashIconify(icon=platform_icons[platform_list[0].title()], width=20), disable_flag
     else:
         disable_flag = False
-        data = [{"value": "all", "label": "All Platforms"}] + [{"value": i, "label": i.title()} for i in platform_list]
+        data = [{"label": "All Platforms", "value": "all"}] + [{"label": platform.title(), "value": platform} for platform in platform_list]
         if(platform_value in ["all", None]):
             return data, DashIconify(icon="emojione-v1:globe-showing-asia-australia", width=20), disable_flag
         else:
             return data, DashIconify(icon=platform_icons[platform_value.title()], width=20), disable_flag
+
+
+# Platform Checkbox
+@app.callback(
+    Output("platform_checkbox", "children"),
+    Input("time_interval", "n_intervals")
+)
+def update_platform_checkbox(time_interval):
+    platform_list = df[(df["platform_contents"].astype(str) != "nan") & (df["platform_contents"].astype(str) != "no")]["platform_contents"].unique()
+    data = [dmc.Checkbox(label=platform.title(), value=platform, color="green") for platform in platform_list]
+    return data
 
 
 # Alert Dropdown
@@ -401,14 +520,27 @@ def update_platform_dropdown(platform_value):
 )
 def update_alert_dropdown(alert_value):
     alert_list = df["alert_contents"].unique()
-    data = [{"label": "All Alerts", "value": "all"}] + [{"label": i.title(), "value": i}
-                for i in sorted(alert_list, key=lambda x: ["high", "medium", "low"].index(x.lower())
+    data = [{"label": "All Alerts", "value": "all"}] + [{"label": alert.title(), "value": alert}
+                for alert in sorted(alert_list, key=lambda x: ["high", "medium", "low"].index(x.lower())
                     if isinstance(x, str) and x.lower() in ["high", "medium", "low"] else float("inf"))
-                    if (isinstance(i, str) and str(i).lower() != "nan") and (str(i).lower() != "no")]
+                    if (isinstance(alert, str) and str(alert).lower() != "nan") and (str(alert).lower() != "no")]
     if(alert_value in ["all", None]):
         return data, DashIconify(icon="line-md:alert", color="#012749", width=30)
     else:
         return data, DashIconify(icon="line-md:alert", color=alert_colors[alert_value.title()], width=30)
+
+
+# Alert Checkbox
+@app.callback(
+    Output("alert_checkbox", "children"),
+    Input("time_interval", "n_intervals")
+)
+def update_alert_checkbox(time_interval):
+    alert_list = df["alert_contents"].unique()
+    data = [dmc.Checkbox(label=alert.title(), value=alert, color="green") for alert in sorted(alert_list, key=lambda x: ["high", "medium", "low"].index(x.lower())
+        if isinstance(x, str) and x.lower() in ["high", "medium", "low"] else float("inf"))
+        if (isinstance(alert, str) and str(alert).lower() != "nan") and (str(alert).lower() != "no")]
+    return data
 
 
 # Reset Filter Container
