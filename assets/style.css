@@ -72,7 +72,7 @@ body {
 }
 .user_container_info {
     display: flex;
-    flexDirection: row;
+    flex-direction: row;
     font-family: "Poppins";
     width: 175px;
     overflow: hidden;
@@ -401,7 +401,7 @@ body {
 .child_overview hr {
     width: 99%;
     border: 1px solid black;
-    borderRadius: 5px;
+    border-radius: 5px;
     align-items: center;
     opacity: unset;
 }
@@ -535,7 +535,7 @@ body {
 .kpi_platform_count_container {
     flex: 1;
     display: flex;
-    flexDirection: row;
+    flex-direction: row;
     align-items: center;
     justify-content: center;
     position: relative;
@@ -543,7 +543,7 @@ body {
 .kpi_platform_count {
     flex: 1;
     display: flex;
-    flexDirection: row;
+    flex-direction: row;
     align-items: center;
     justify-content: center;
     height: 100%;
@@ -556,7 +556,7 @@ body {
 }
 .kpi_platform_card_row2 {
     display: flex;
-    flexDirection: row;
+    flex-direction: row;
     align-items: center;
     justify-content: space-between;
 }
@@ -611,7 +611,7 @@ body {
 .kpi_platform_count {
     flex: 1;
     display: flex;
-    flexDirection: row;
+    flex-direction: row;
 }
 .kpi_platform_image {
     width: 3.5vw;
@@ -786,20 +786,23 @@ body {
 }
 .sidebar_navlink_menu {
     display: none;
-    transition: display 0.2s ease-in-out;
+    position: relative;
 }
 .sidebar_navlink_menu p {
     color: white;
     font-size: 12px;
     font-family: "Poppins";
     font-weight: 500;
-    margin: 0px 0.2rem;
+    position: absolute;
+    top: -8px;
+    left: 10px;
+    padding: 0px 5px;
+    background-color: #052F5F;
 }
 .sidebar_navlink_menu hr {
-    flex: 1;
+    width: 100%;
     border: 1px solid white;
-    borderRadius: 5px;
-    margin: 0px 0.5rem;
+    border-radius: 5px;
     opacity: unset;
 }
 .sidebar_navlink_option {
@@ -855,10 +858,8 @@ body {
     font-weight: "bold";
 }
 .sidebar:hover .sidebar_navlink_menu {
-    display: flex;
-    justify-content: left;
-    align-items: center;
-    margin: 10px 0px 0px 0px;
+    display: block;
+    margin: 5px 0px -5px 0px;
     padding: 0px;
 }
 .sidebar:hover .sidebar_navlink_option span {
