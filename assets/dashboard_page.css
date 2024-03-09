@@ -280,6 +280,7 @@ body {
 .kpi_platform_card {
     flex: 1;
     margin-right: 10px;
+    height: 100%;
     transition: transform 0.2s ease-in-out;
 }
 .kpi_platform_card:last-child {

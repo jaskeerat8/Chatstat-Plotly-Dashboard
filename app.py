@@ -359,9 +359,10 @@ report_generate_tab = html.Div(className="report_generate_container", children=[
                 DashIconify(className="report_filter_header_icon", icon="icon-park-outline:comments", color="#2d96ff", width=22),
                 html.P("Content Type", className="report_filter_header_text")
             ]),
-            dmc.ChipGroup([dmc.Chip("All posts", value="posts", variant="outline", color="green"), dmc.Chip("All comments", value="comments", variant="outline", color="green"), dmc.Chip("Watchlist", value="watchlist", variant="outline", color="green")],
-                value=["posts"], multiple=True, className="report_filter_chip", id="report_filter_chip"
-            )
+            dmc.ChipGroup(className="report_filter_chip", id="report_filter_chip", value=["posts"], multiple=True, children=[
+                dmc.Chip("All posts", value="posts", variant="outline", color="green"), dmc.Chip("All comments", value="comments", variant="outline", color="green"),
+                dmc.Chip("Watchlist", value="watchlist", variant="outline", color="green")
+            ])
         ]),
 
         html.Div(className="report_filter_option", children=[
@@ -1169,11 +1170,12 @@ def update_report_page_content(tab_value):
 # Report Output
 @app.callback(
     Output("report_output", "children"),
-    [Input("generate_button", "n_clicks"), Input("report_filter_member", "value"), Input("report_filter_daterange", "value"),
-     Input("report_filter_platform", "value"), Input("report_filter_alert", "value"), Input("report_filter_chip", "value"), Input("report_filter_type", "value")]
+    Input("generate_button", "n_clicks"),
+    [State("report_filter_member", "value"), State("report_filter_daterange", "value"), State("report_filter_platform", "value"),
+     State("report_filter_alert", "value"), State("report_filter_chip", "value"), State("report_filter_type", "value")]
 )
-def update_report_page_content(clicks, member, dates, platform, alert, content, file_type):
-    if(clicks):
+def update_report_page_content(current_clicks, member, dates, platform, alert, content, file_type):
+    if(current_clicks):
         return str(member) + str(dates) + str(platform) + str(alert) + str(content) + str(file_type)
 
 
