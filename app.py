@@ -332,7 +332,7 @@ report_generate_tab = html.Div(className="report_generate_container", children=[
             html.P("Retrieve Data Between", className="report_filter_header_text")
         ]),
         dmc.DateRangePicker(className="report_filter_daterange", id="report_filter_daterange", dropdownPosition="right", amountOfMonths=2,
-            value=[datetime.now() - timedelta(days=45), datetime.now()],  inputFormat="MMMM DD, YYYY",
+            value=[datetime.now() - timedelta(days=365*2), datetime.now()],  inputFormat="MMMM DD, YYYY",
             icon=DashIconify(icon=f"arcticons:calendar-simple-{todays_date.day}", color="black", width=30)
         )
     ]),
@@ -350,7 +350,7 @@ report_generate_tab = html.Div(className="report_generate_container", children=[
                 DashIconify(className="report_filter_header_icon", icon="ant-design:alert-outlined", color="#2d96ff", width=22),
                 html.P("Alert Level Raised", className="report_filter_header_text")
             ]),
-            dmc.CheckboxGroup(className="report_filter_alert", id="report_filter_alert", orientation="vertical", value=["High"])
+            dmc.CheckboxGroup(className="report_filter_alert", id="report_filter_alert", orientation="vertical", value=["high"])
         ])
     ]),
     html.Div(className="report_filter_row", children=[
@@ -521,8 +521,8 @@ def update_platform_dropdown(platform_value):
 )
 def update_platform_checkbox(time_interval):
     platform_list = df[(df["platform_contents"].astype(str) != "nan") & (df["platform_contents"].astype(str) != "no")]["platform_contents"].unique()
-    data = [dmc.Checkbox(label=platform.title(), value=platform, color="green") for platform in platform_list]
-    return data, platform_list
+    data = [dmc.Checkbox(label=platform.title(), value=platform.lower(), color="green") for platform in platform_list]
+    return data, [platform.lower() for platform in platform_list]
 
 
 # Alert Dropdown
@@ -549,7 +549,7 @@ def update_alert_dropdown(alert_value):
 )
 def update_alert_checkbox(time_interval):
     alert_list = df["alert_contents"].unique()
-    data = [dmc.Checkbox(label=alert.title(), value=alert, color="green") for alert in sorted(alert_list, key=lambda x: ["high", "medium", "low"].index(x.lower())
+    data = [dmc.Checkbox(label=alert.title(), value=alert.lower(), color="green") for alert in sorted(alert_list, key=lambda x: ["high", "medium", "low"].index(x.lower())
         if isinstance(x, str) and x.lower() in ["high", "medium", "low"] else float("inf"))
         if (isinstance(alert, str) and str(alert).lower() != "nan") and (str(alert).lower() != "no")]
     return data
@@ -1174,9 +1174,19 @@ def update_report_page_content(tab_value):
     [State("report_filter_member", "value"), State("report_filter_daterange", "value"), State("report_filter_platform", "value"),
      State("report_filter_alert", "value"), State("report_filter_chip", "value"), State("report_filter_type", "value")]
 )
-def update_report_page_content(current_clicks, member, dates, platform, alert, content, file_type):
-    if(current_clicks):
-        return str(member) + str(dates) + str(platform) + str(alert) + str(content) + str(file_type)
+def update_report_page_content(button_click, member_value, time_range, platform_value, alert_value, content_type, file_type):
+    if(button_click):
+        payload = {
+            "email": "j.teng@chatstat.com",
+            "children": "test",
+            "timerange": time_range,
+            "platform": platform_value,
+            "alert": alert_value,
+            "contenttype": content_type,
+            "filetype": file_type
+        }
+        api_response = invoke_lambda.generate_report(payload)
+        return bytes(api_response, "utf-8").decode("unicode-escape")
 
 
 # Running Main App

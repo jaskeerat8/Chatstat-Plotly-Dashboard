@@ -33,15 +33,4 @@ def generate_report(payload):
     return response_payload["body"]
 
 if __name__ == "__main__":
-    # Sample Event
-    # payload = {
-    #     "name": "tengteng1",
-    #     "email": "j.teng@chatstat.com",
-    #     "children": ["test"],
-    #     "platform": ["instagram", "twitter"],
-    #     "timerange": ["2022-01-01T00:00:00", "2025-01-01T00:00:00"]
-    # }
-    # print(generate_report(payload))
-    # payload = {"email": "jaskeerat.singh@uqconnect.edu.au"}
-    # print(get_info(payload))
     print("Invoked Lambda")
