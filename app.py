@@ -319,7 +319,7 @@ report_page = dbc.Card(className="report_page_container", children=[
 report_generate_tab = html.Div(className="report_generate_container", children=[
     dbc.Row(children=[
         dbc.Col(html.Div(className="report_filter_header", children=[
-            DashIconify(className="report_filter_header_icon", icon="ic:sharp-account-circle", color="#2d96ff", width=22),
+            DashIconify(className="report_filter_header_icon", icon="mdi:account-circle", color="#2d96ff", width=22),
             html.P("Member Account", className="report_filter_header_text")
         ]), width=4, align="center"),
         dbc.Col(dmc.Select(className="report_filter_member", id="report_filter_member", clearable=False, searchable=False, placeholder="Select Member",
@@ -328,7 +328,7 @@ report_generate_tab = html.Div(className="report_generate_container", children=[
     ]),
     html.Div(className="report_date_range_container", children=[
         html.Div(className="report_filter_header", children=[
-            DashIconify(className="report_filter_header_icon", icon="ph:clock", color="#2d96ff", width=22),
+            DashIconify(className="report_filter_header_icon", icon="ph:clock-bold", color="#2d96ff", width=22),
             html.P("Retrieve Data Between", className="report_filter_header_text")
         ]),
         dmc.DateRangePicker(className="report_filter_daterange", id="report_filter_daterange", dropdownPosition="right", amountOfMonths=2,
@@ -339,7 +339,7 @@ report_generate_tab = html.Div(className="report_generate_container", children=[
     html.Div(className="report_filter_row", children=[
         html.Div(className="report_filter_option", children=[
             html.Div(className="report_filter_header", children=[
-                DashIconify(className="report_filter_header_icon", icon="carbon:screen", color="#2d96ff", width=22),
+                DashIconify(className="report_filter_header_icon", icon="ic:round-computer", color="#2d96ff", width=22),
                 html.P("Platform Content", className="report_filter_header_text")
             ]),
             dmc.CheckboxGroup(className="report_filter_platform", id="report_filter_platform", orientation="vertical")
@@ -380,55 +380,6 @@ report_generate_tab = html.Div(className="report_generate_container", children=[
         dmc.Button("Create Report", className="report_button", id="generate_report_button", variant="filled", color="green", n_clicks=0, leftIcon=DashIconify(icon="heroicons-outline:document-report", width=25))
     ]),
     html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/report_person.png", alt="Report Person", className="report_image")
-])
-
-report_saved_tab = html.Div(className="report_saved_container", children=[
-    html.Div(className="report_saved_card", children=[
-        dbc.Row(children=[
-            dbc.Col(
-                html.Div(className="report_saved_header", children=[
-                    DashIconify(icon="ph:bookmark-duotone", color="#2d96ff", width=26),
-                    html.P("Report for Jerry Teng")
-                ]),
-                width=5, align="center"),
-            dbc.Col(
-                html.Div(children=[
-                    dbc.Row(children=[
-                        dbc.Col(
-                            html.Div(className="report_saved_child", children=[
-                                DashIconify(icon="icons8:create-new", color="#2d96ff", width=22),
-                                html.P("Generated on 11 March, 2024")
-                            ]),
-                            width=6, align="center"
-                        ),
-                        dbc.Col(
-                            html.Div(className="report_saved_child", children=[
-                                DashIconify(icon="ph:clock", color="#2d96ff", width=22),
-                                html.P("Between 10 & 11 March")
-                            ]),
-                            width=6, align="center"
-                        )
-                    ]),
-                    dbc.Row(children=[
-                        dbc.Col(
-                            html.Div(className="report_saved_child", children=[
-                                DashIconify(icon="carbon:screen", color="#2d96ff", width=22),
-                                html.P("Instagram & Tiktok")
-                            ]),
-                            width=6, align="center"
-                        ),
-                        dbc.Col(
-                            html.Div(className="report_saved_child", children=[
-                                DashIconify(icon="ant-design:alert-outlined", color="#2d96ff", width=22),
-                                html.P("High, Medium & Low Alerts")
-                            ]),
-                            width=6, align="center"
-                        )
-                    ])
-                ]),
-                width=7, align="center")
-        ])
-    ])
 ])
 
 
@@ -1209,7 +1160,41 @@ def update_report_page_content(tab_value):
     if(tab_value == "generate"):
         return report_generate_tab, "New Report"
     elif(tab_value == "saved"):
-        return report_saved_tab, "Saved Reports"
+        return update_report_page_saved_content(), "Saved Reports"
+
+
+# Report Page Saved Tab Content
+def update_report_page_saved_content():
+    saved_report_list = []
+    for i in range(0, 5):
+        report_container = html.Div(className="report_saved_card", children=[
+            dbc.Row(children=[
+                dbc.Col(children=[
+                    dbc.Row(children=[
+                        html.Div(className="report_saved_header", children=[DashIconify(icon="ph:bookmark-duotone", color="#2d96ff", width=26), html.P("Report for Jerry Teng")])
+                    ], justify="center"),
+                    dbc.Row(children=[
+                        html.Div(className="report_saved_header_text", children=[DashIconify(icon="icons8:create-new", color="#2d96ff", width=18), html.P("Generated on 11 March, 2024")])
+                    ], justify="center")
+                ], width=5, align="center"),
+                dbc.Col(children=[
+                    dbc.Row(children=[
+                        dbc.Col(html.Div(className="report_saved_filter", children=[DashIconify(icon="ph:clock-bold", color="#2d96ff", width=22), html.P("Between 10 & 11 March")]),
+                            width=6, align="center"),
+                        dbc.Col(html.Div(className="report_saved_filter", children=[DashIconify(icon="ic:round-computer", color="#2d96ff", width=22), html.P("Instagram & Tiktok")]),
+                            width=6, align="center")
+                    ]),
+                    dbc.Row(children=[
+                        dbc.Col(html.Div(className="report_saved_filter", children=[DashIconify(icon="ant-design:alert-outlined", color="#2d96ff", width=22), html.P("High, Medium & Low Alerts")]),
+                            width=6, align="center"),
+                        dbc.Col(html.Div(className="report_saved_filter", children=[DashIconify(icon="icon-park-outline:comments", color="#2d96ff", width=22), html.P("Posts Only")]),
+                            width=6, align="center")
+                    ])
+                ], width=7, align="center")
+            ])
+        ])
+        saved_report_list.append(report_container)
+    return html.Div(className="report_saved_container", children=saved_report_list)
 
 
 # Report Output
