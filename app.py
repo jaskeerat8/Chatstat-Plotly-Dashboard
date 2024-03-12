@@ -20,8 +20,8 @@ todays_date = datetime.now()
 
 # Read the latest Data directly from AWS or MySQL Database
 try:
-    df = s3.get_data()
-    #df = pd.read_csv("Data/final_24-02-2024_02_05_40.csv")
+    #df = s3.get_data()
+    df = pd.read_csv("Data/final_24-02-2024_02_05_40.csv")
 except Exception as e:
     df = mysql_database.get_data()
 
@@ -328,7 +328,7 @@ report_generate_tab = html.Div(className="report_generate_container", children=[
     ]),
     html.Div(className="report_date_range_container", children=[
         html.Div(className="report_filter_header", children=[
-            DashIconify(className="report_filter_header_icon", icon="ph:clock-bold", color="#2d96ff", width=22),
+            DashIconify(className="report_filter_header_icon", icon="ph:clock", color="#2d96ff", width=22),
             html.P("Retrieve Data Between", className="report_filter_header_text")
         ]),
         dmc.DateRangePicker(className="report_filter_daterange", id="report_filter_daterange", dropdownPosition="right", amountOfMonths=2,
@@ -376,14 +376,59 @@ report_generate_tab = html.Div(className="report_generate_container", children=[
         ])
     ]),
     html.Div(className="report_button_list", children=[
-        dmc.Button("Preview", className="report_button", id="preview_button", variant="filled", color="green", n_clicks=0, leftIcon=DashIconify(icon="el:eye-open", width=20)),
-        dmc.Button("Create Report", className="report_button", id="generate_button", variant="filled", color="green", n_clicks=0, leftIcon=DashIconify(icon="heroicons-outline:document-report", width=25))
+        dmc.Button("Preview", className="report_button", id="preview_report_button", variant="filled", color="green", n_clicks=0, leftIcon=DashIconify(icon="el:eye-open", width=20)),
+        dmc.Button("Create Report", className="report_button", id="generate_report_button", variant="filled", color="green", n_clicks=0, leftIcon=DashIconify(icon="heroicons-outline:document-report", width=25))
     ]),
     html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/report_person.png", alt="Report Person", className="report_image")
 ])
 
-report_saved_tab = html.Div(children=[
-
+report_saved_tab = html.Div(className="report_saved_container", children=[
+    html.Div(className="report_saved_card", children=[
+        dbc.Row(children=[
+            dbc.Col(
+                html.Div(className="report_saved_header", children=[
+                    DashIconify(icon="ph:bookmark-duotone", color="#2d96ff", width=26),
+                    html.P("Report for Jerry Teng")
+                ]),
+                width=5, align="center"),
+            dbc.Col(
+                html.Div(children=[
+                    dbc.Row(children=[
+                        dbc.Col(
+                            html.Div(className="report_saved_child", children=[
+                                DashIconify(icon="icons8:create-new", color="#2d96ff", width=22),
+                                html.P("Generated on 11 March, 2024")
+                            ]),
+                            width=6, align="center"
+                        ),
+                        dbc.Col(
+                            html.Div(className="report_saved_child", children=[
+                                DashIconify(icon="ph:clock", color="#2d96ff", width=22),
+                                html.P("Between 10 & 11 March")
+                            ]),
+                            width=6, align="center"
+                        )
+                    ]),
+                    dbc.Row(children=[
+                        dbc.Col(
+                            html.Div(className="report_saved_child", children=[
+                                DashIconify(icon="carbon:screen", color="#2d96ff", width=22),
+                                html.P("Instagram & Tiktok")
+                            ]),
+                            width=6, align="center"
+                        ),
+                        dbc.Col(
+                            html.Div(className="report_saved_child", children=[
+                                DashIconify(icon="ant-design:alert-outlined", color="#2d96ff", width=22),
+                                html.P("High, Medium & Low Alerts")
+                            ]),
+                            width=6, align="center"
+                        )
+                    ])
+                ]),
+                width=7, align="center")
+        ])
+    ])
 ])
 
 
@@ -433,8 +478,8 @@ def update_header(pathname):
 )
 def update_user_info(time_interval):
     payload = {"email": request.authorization["username"]}
-    response = invoke_lambda.get_info(payload)
-    return response["name"].split(" ")[0].title(), response["email"], response["level"].title()
+    lambda_response = invoke_lambda.get_info(payload)
+    return lambda_response["name"].split(" ")[0].title(), lambda_response["email"], lambda_response["level"].title()
 
 
 # Time Control Information
@@ -488,7 +533,7 @@ def update_member_dropdown(member_value):
     Output("report_filter_member", "data"),
     Input("time_interval", "n_intervals")
 )
-def update_member_dropdown(time_interval):
+def update_report_member_dropdown(time_interval):
     user_list = df[(df["name_childrens"].astype(str) != "nan") & (df["name_childrens"].astype(str) != "no")]["name_childrens"].unique()
     data = [{"label": user.split(" ")[0].title(), "value": user} for user in user_list]
     return data
@@ -1170,14 +1215,14 @@ def update_report_page_content(tab_value):
 # Report Output
 @app.callback(
     Output("report_output", "children"),
-    Input("generate_button", "n_clicks"),
+    [Input("preview_report_button", "n_clicks"), Input("generate_report_button", "n_clicks")],
     [State("report_filter_member", "value"), State("report_filter_daterange", "value"), State("report_filter_platform", "value"),
      State("report_filter_alert", "value"), State("report_filter_chip", "value"), State("report_filter_type", "value")]
 )
-def update_report_page_content(button_click, member_value, time_range, platform_value, alert_value, content_type, file_type):
-    if(button_click):
+def perform_user_data_fetch(preview_button_click, generate_button_click, member_value, time_range, platform_value, alert_value, content_type, file_type):
+    if(preview_button_click or generate_button_click):
         payload = {
-            "email": "j.teng@chatstat.com",
+            "email": "j.teng@chatstat.com",   #request.authorization["username"]
             "children": "test",
             "timerange": time_range,
             "platform": platform_value,
@@ -1185,8 +1230,8 @@ def update_report_page_content(button_click, member_value, time_range, platform_
             "contenttype": content_type,
             "filetype": file_type
         }
-        api_response = invoke_lambda.generate_report(payload)
-        return bytes(api_response, "utf-8").decode("unicode-escape")
+        lambda_response = invoke_lambda.generate_report(payload)
+        return bytes(lambda_response, "utf-8").decode("unicode-escape")
 
 
 # Running Main App

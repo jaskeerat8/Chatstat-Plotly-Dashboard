@@ -242,3 +242,39 @@
     transform: scale(-1,1);
     filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5));
 }
+.report_saved_card {
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: rgba(0, 0, 0, 0.3) 0px 0px 6px;
+}
+.report_saved_header {
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+    align-items: center;
+}
+.report_saved_header p {
+    color: #052F5F;
+    font-size: 24px;
+    font-family: "Poppins";
+    font-weight: 600;
+    margin: 0px;
+    padding: 0px;
+}
+.report_saved_child {
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+    align-items: center;
+}
+.report_saved_child p {
+    color: #052F5F;
+    font-size: 14px;
+    font-family: "Poppins";
+    font-weight: 500;
+    margin: 0px;
+    padding: 0px;
+}
+.report_saved_child svg {
+    margin: 0px 5px 0px 0px;
+}
