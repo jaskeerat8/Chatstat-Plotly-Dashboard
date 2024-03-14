@@ -20,8 +20,8 @@ todays_date = datetime.now()
 
 # Read the latest Data directly from AWS or MySQL Database
 try:
-    #df = s3.get_data()
-    df = pd.read_csv("Data/final_24-02-2024_02_05_40.csv")
+    df = s3.get_data()
+    #df = pd.read_csv("Data/final_24-02-2024_02_05_40.csv")
 except Exception as e:
     df = mysql_database.get_data()
 
@@ -322,7 +322,7 @@ report_generate_tab = html.Div(className="report_generate_container", children=[
             DashIconify(className="report_filter_header_icon", icon="mdi:account-circle", color="#2d96ff", width=22),
             html.P("Member Account", className="report_filter_header_text")
         ]), width=4, align="center"),
-        dbc.Col(dmc.Select(className="report_filter_member", id="report_filter_member", clearable=False, searchable=False, placeholder="Select Member",
+        dbc.Col(dmc.Select(className="report_filter_member", id="report_filter_member", clearable=False, searchable=False, placeholder="Select Member", value="all",
             icon=DashIconify(icon="f7:person", color="black", width=25), rightSection=DashIconify(icon="radix-icons:chevron-down", color="black")
         ), width=4, align="center")
     ]),
@@ -380,6 +380,11 @@ report_generate_tab = html.Div(className="report_generate_container", children=[
         dmc.Button("Create Report", className="report_button", id="generate_report_button", variant="filled", color="green", n_clicks=0, leftIcon=DashIconify(icon="heroicons-outline:document-report", width=25))
     ]),
     html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/report_person.png", alt="Report Person", className="report_image")
+])
+
+report_saved_tab = html.Div(className="report_saved_container", children=[
+    html.Div(className="report_saved_card_list", id="report_saved_card_list"),
+    dmc.Pagination(id="report_saved_card_pagination", total=5, page=1, siblings=1, color="green", withControls=True, radius="5px")
 ])
 
 
@@ -513,10 +518,14 @@ def update_platform_dropdown(platform_value):
 # Platform Checkbox
 @app.callback(
     [Output("report_filter_platform", "children"), Output("report_filter_platform", "value")],
-    Input("time_interval", "n_intervals")
+    Input("report_filter_member", "value")
 )
-def update_platform_checkbox(time_interval):
-    platform_list = df[(df["platform_contents"].astype(str) != "nan") & (df["platform_contents"].astype(str) != "no")]["platform_contents"].unique()
+def update_platform_checkbox(member_value):
+    # Filters
+    platform_list_df = df.copy()
+    platform_list_df = member_filter(platform_list_df, member_value)
+
+    platform_list = platform_list_df[(platform_list_df["platform_contents"].astype(str) != "nan") & (platform_list_df["platform_contents"].astype(str) != "no")]["platform_contents"].unique()
     data = [dmc.Checkbox(label=platform.title(), value=platform.lower(), color="green") for platform in platform_list]
     return data, [platform.lower() for platform in platform_list]
 
@@ -541,9 +550,9 @@ def update_alert_dropdown(alert_value):
 # Alert Checkbox
 @app.callback(
     Output("report_filter_alert", "children"),
-    Input("time_interval", "n_intervals")
+    [Input("time_interval", "n_intervals"), Input("report_filter_member", "value")]
 )
-def update_alert_checkbox(time_interval):
+def update_alert_checkbox(time_interval, member_value):
     alert_list = df["alert_contents"].unique()
     data = [dmc.Checkbox(label=alert.title(), value=alert.lower(), color="green") for alert in sorted(alert_list, key=lambda x: ["high", "medium", "low"].index(x.lower())
         if isinstance(x, str) and x.lower() in ["high", "medium", "low"] else float("inf"))
@@ -1160,11 +1169,15 @@ def update_report_page_content(tab_value):
     if(tab_value == "generate"):
         return report_generate_tab, "New Report"
     elif(tab_value == "saved"):
-        return update_report_page_saved_content(), "Saved Reports"
+        return report_saved_tab, "Saved Reports"
 
 
 # Report Page Saved Tab Content
-def update_report_page_saved_content():
+@app.callback(
+    Output("report_saved_card_list", "children"),
+    [Input("report_main_container_tabs", "value"), Input("report_saved_card_pagination", "page")]
+)
+def update_report_page_saved_content(tab_value, pagination_page):
     saved_report_list = []
     for i in range(0, 5):
         report_container = html.Div(className="report_saved_card", children=[
@@ -1194,7 +1207,7 @@ def update_report_page_saved_content():
             ])
         ])
         saved_report_list.append(report_container)
-    return html.Div(className="report_saved_container", children=saved_report_list)
+    return saved_report_list
 
 
 # Report Output
