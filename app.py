@@ -208,6 +208,7 @@ filters = dmc.Group([
         dmc.ActionIcon(DashIconify(icon="grommet-icons:power-reset", color="white", width=25, flip="horizontal"), id="reset_filter_container", className="reset_filter_container", n_clicks=0, variant="transparent")
     ], spacing="10px"
     ),
+
     html.Div(className="searchbar_container", children=[
         html.P("Child Overview Snapshot", className="searchbar_label"),
         dmc.Select(className="searchbar", id="searchbar", clearable=False, searchable=True, placeholder="Search...", nothingFound="Nothing Found",

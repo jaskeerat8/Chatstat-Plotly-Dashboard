@@ -210,6 +210,7 @@
     border: 2px solid black;
 }
 .member_dropdown .mantine-Select-dropdown {
+    z-index: 2 !important;
     border: 2px solid black;
 }
 .member_dropdown .mantine-Select-item {
@@ -260,6 +261,7 @@
     border: 2px solid black;
 }
 .platform_dropdown .mantine-Select-dropdown {
+    z-index: 2 !important;
     border: 2px solid black;
 }
 .platform_dropdown .mantine-Select-item {
@@ -310,6 +312,7 @@
     border: 2px solid black;
 }
 .alert_dropdown .mantine-Select-dropdown {
+    z-index: 2 !important;
     border: 2px solid black;
 }
 .alert_dropdown .mantine-Select-item {
@@ -339,6 +342,9 @@
 .searchbar_container {
     flex: 1;
     display: inline-block;
+    font-size: 14px;
+    font-family: "Poppins";
+    font-weight: 600;
 }
 .searchbar_label {
     font-size: 14px;
@@ -362,5 +368,6 @@
     border-radius: 5px 0px 0px 5px;
 }
 .searchbar_container .mantine-Select-dropdown {
+    z-index: 2 !important;
     border: 2px solid black;
 }
