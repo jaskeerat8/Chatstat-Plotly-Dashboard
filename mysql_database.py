@@ -80,7 +80,7 @@ def get_report_metadata(email):
 
     try:
         table_name = value["report_metadata_table"]
-        df = pd.read_sql(f"""SELECT * FROM {table_name} WHERE LOWER(email) = LOWER("{email}")""", con=mysql_engine)
+        df = pd.read_sql(f"""SELECT * FROM {table_name} WHERE LOWER(email) = LOWER("{email}") ORDER BY created_at DESC""", con=mysql_engine)
     finally:
         mysql_engine.dispose()
     return df

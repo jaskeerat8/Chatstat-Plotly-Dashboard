@@ -20,8 +20,8 @@ todays_date = datetime.now()
 
 # Read the latest Data directly from AWS or MySQL Database
 try:
-    #df = s3.get_data()
-    df = pd.read_csv("Data/final_24-02-2024_02_05_40.csv")
+    df = s3.get_data()
+    #df = pd.read_csv("Data/final_24-02-2024_02_05_40.csv")
 except Exception as e:
     df = mysql_database.get_data()
 
