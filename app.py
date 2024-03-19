@@ -4,7 +4,7 @@ import mysql_database
 import radial_bar_chart
 import invoke_lambda
 import pandas as pd
-import math
+import math, ast
 import calendar
 from datetime import datetime, date, timedelta
 import dash_auth
@@ -20,8 +20,8 @@ todays_date = datetime.now()
 
 # Read the latest Data directly from AWS or MySQL Database
 try:
-    df = s3.get_data()
-    #df = pd.read_csv("Data/final_24-02-2024_02_05_40.csv")
+    #df = s3.get_data()
+    df = pd.read_csv("Data/final_24-02-2024_02_05_40.csv")
 except Exception as e:
     df = mysql_database.get_data()
 
@@ -280,7 +280,7 @@ dashboard_charts = html.Div(children=[
 
 
 # Report Page
-report_page = dbc.Card(className="report_page_container", children=[
+report_page = dbc.Card(className="report_page_container", id="report_page_container", children=[
     html.Div(className="report_main_container", children=[
         html.Div(className="report_main_container_header", children=[
             html.Div(className="report_main_logo_container", children=[
@@ -1163,14 +1163,14 @@ def update_pie_chart(time_value, date_range_value, member_value, platform_value,
 
 # Report Page Content
 @app.callback(
-    [Output("report_page_content", "children"), Output("report_main_logo_text", "children")],
+    [Output("report_page_content", "children"), Output("report_main_logo_text", "children"), Output("report_page_container", "style")],
     Input("report_main_container_tabs", "value")
 )
 def update_report_page_content(tab_value):
     if(tab_value == "generate"):
-        return report_generate_tab, "New Report"
+        return report_generate_tab, "New Report", {"height": "calc(100vh - 8.5vh - 20px)"}
     elif(tab_value == "saved"):
-        return report_saved_tab, "Saved Reports"
+        return report_saved_tab, "Saved Reports", {"height": "100%"}
 
 
 # Report Page Saved Tab Content
@@ -1179,29 +1179,37 @@ def update_report_page_content(tab_value):
     [Input("report_main_container_tabs", "value"), Input("report_saved_card_pagination", "page")]
 )
 def update_report_page_saved_content(tab_value, pagination_page):
+    data = mysql_database.get_report_metadata("j.teng@chatstat.com")
     saved_report_list = []
-    for i in range(0, 5):
+    for index, row in data.iterrows():
         report_container = html.Div(className="report_saved_card", children=[
             dbc.Row(children=[
                 dbc.Col(children=[
                     dbc.Row(children=[
-                        html.Div(className="report_saved_header", children=[DashIconify(icon="ph:bookmark-duotone", color="#2d96ff", width=26), html.P("Report for Jerry Teng")])
+                        html.Div(className="report_saved_header", children=[DashIconify(icon="ph:bookmark-duotone", color="#2d96ff", width=26),
+                        html.P(f"""Report for { row["children"].title() }""")])
                     ], justify="center"),
                     dbc.Row(children=[
-                        html.Div(className="report_saved_header_text", children=[DashIconify(icon="icons8:create-new", color="#2d96ff", width=18), html.P("Generated on 11 March, 2024")])
+                        html.Div(className="report_saved_header_text", children=[DashIconify(icon="icons8:create-new", color="#2d96ff", width=18),
+                        html.P(f"""Generated on { row["created_at"].strftime("%d %B, %Y %I:%M %p") }""")])
                     ], justify="center")
                 ], width=5, align="center"),
                 dbc.Col(children=[
                     dbc.Row(children=[
-                        dbc.Col(html.Div(className="report_saved_filter", children=[DashIconify(icon="ph:clock-bold", color="#2d96ff", width=22), html.P("Between 10 & 11 March")]),
+                        dbc.Col(html.Div(className="report_saved_filter", children=[DashIconify(icon="ph:clock-bold", color="#2d96ff", width=22),
+                                html.P("Between " + "\n& ".join(datetime.fromisoformat(d).strftime("%d %b, %Y") for d in reversed(ast.literal_eval(row["timerange"])) ) ) ]),
                             width=6, align="center"),
-                        dbc.Col(html.Div(className="report_saved_filter", children=[DashIconify(icon="ic:round-computer", color="#2d96ff", width=22), html.P("Instagram & Tiktok")]),
+                        dbc.Col(html.Div(className="report_saved_filter", children=[DashIconify(icon="ic:round-computer", color="#2d96ff", width=22),
+                                html.P(", ".join(platform.title() for platform in ast.literal_eval(row["platform"]))) ]),
+
                             width=6, align="center")
                     ]),
                     dbc.Row(children=[
-                        dbc.Col(html.Div(className="report_saved_filter", children=[DashIconify(icon="ant-design:alert-outlined", color="#2d96ff", width=22), html.P("High, Medium & Low Alerts")]),
+                        dbc.Col(html.Div(className="report_saved_filter", children=[DashIconify(icon="ant-design:alert-outlined", color="#2d96ff", width=22),
+                                html.P(f"""{ ", ".join(alert.title() for alert in ast.literal_eval(row["alert"])) } Alerts""")] ),
                             width=6, align="center"),
-                        dbc.Col(html.Div(className="report_saved_filter", children=[DashIconify(icon="icon-park-outline:comments", color="#2d96ff", width=22), html.P("Posts Only")]),
+                        dbc.Col(html.Div(className="report_saved_filter", children=[DashIconify(icon="icon-park-outline:comments", color="#2d96ff", width=22),
+                                html.P(", ".join(content.title() for content in ast.literal_eval(row["contenttype"]))) ]),
                             width=6, align="center")
                     ])
                 ], width=7, align="center")
@@ -1221,7 +1229,7 @@ def update_report_page_saved_content(tab_value, pagination_page):
 def perform_user_data_fetch(preview_button_click, generate_button_click, member_value, time_range, platform_value, alert_value, content_type, file_type):
     if(preview_button_click or generate_button_click):
         payload = {
-            "email": "j.teng@chatstat.com",   #request.authorization["username"]
+            "email": "j.teng@chatstat.com",
             "children": "test",
             "timerange": time_range,
             "platform": platform_value,
@@ -1229,6 +1237,7 @@ def perform_user_data_fetch(preview_button_click, generate_button_click, member_
             "contenttype": content_type,
             "filetype": file_type
         }
+        mysql_database.post_report_metadata(payload)
         lambda_response = invoke_lambda.generate_report(payload)
         return bytes(lambda_response, "utf-8").decode("unicode-escape")
 
