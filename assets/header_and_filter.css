@@ -128,6 +128,7 @@
     width: 300px;
     border-radius: 5px;
     position: relative;
+    z-index: 2 !important;
 }
 .popover_date_picker_label {
     color: black;
@@ -159,6 +160,7 @@
     top: 110% !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
+    z-index: 2 !important;
 }
 
 /* time control information */

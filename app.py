@@ -19,11 +19,9 @@ from flask import request
 todays_date = datetime.now()
 
 # Read the latest Data directly from AWS or MySQL Database
-try:
-    df = s3.get_data()
-    #df = pd.read_csv("Data/final_24-02-2024_02_05_40.csv")
-except Exception as e:
-    df = mysql_database.get_data()
+#df = pd.read_csv("Data/final_24-02-2024_02_05_40.csv")
+df = s3.get_data()
+report_metadata_df = mysql_database.get_report_metadata("j.teng@chatstat.com")
 
 # Defining Colors and Plotly Graph Options
 plot_config = {"modeBarButtonsToRemove": ["zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d", "resetScale2d", "hoverClosestCartesian", "hoverCompareCartesian"],
@@ -294,7 +292,14 @@ report_page = dbc.Card(className="report_page_container", id="report_page_contai
                 ])
             ], value="generate", color="green", variant="pills")
         ]),
-        html.P("Report will provide a quick overview of your child's activity.", className="report_main_container_subheader"),
+        html.Div(className="report_subheader_container", children=[
+            html.P("Report will provide a quick overview of your child's activity.", className="report_subheader"),
+            html.Div(className="report_subheader_dropdown_container", id="report_subheader_dropdown_container", children=[
+                html.P("Top"),
+                dmc.Select(className="report_subheader_dropdown", id="report_subheader_dropdown", clearable=False, searchable=False,
+                           value="5", data=["5", "10", "15"], rightSection=DashIconify(icon="radix-icons:chevron-down", color="black"))
+            ])
+        ]),
         html.Div(id="report_page_content", className="report_page_content")
     ]),
 
@@ -385,7 +390,7 @@ report_generate_tab = html.Div(className="report_generate_container", children=[
 
 report_saved_tab = html.Div(className="report_saved_container", children=[
     html.Div(className="report_saved_card_list", id="report_saved_card_list"),
-    dmc.Pagination(id="report_saved_card_pagination", total=5, page=1, siblings=1, color="green", withControls=True, radius="5px")
+    dmc.Pagination(id="report_saved_card_pagination", total=((len(report_metadata_df)-1)//5)+1, page=1, siblings=1, color="green", withControls=True, radius="5px")
 ])
 
 
@@ -435,8 +440,8 @@ def update_header(pathname):
 )
 def update_user_info(time_interval):
     payload = {"email": request.authorization["username"]}
-    lambda_response = invoke_lambda.get_info(payload)
-    return lambda_response["name"].split(" ")[0].title(), lambda_response["email"], lambda_response["level"].title()
+    user_info = invoke_lambda.get_info(payload)
+    return user_info["name"].split(" ")[0].title(), user_info["email"], user_info["level"].title()
 
 
 # Time Control Information
@@ -657,7 +662,7 @@ def update_overview_card(searchbar_value):
     overview_classification_fig.update_layout(legend_title_text="", showlegend=False, margin=dict(t=10, b=10), height=320)
     overview_classification_fig.update_layout(hoverlabel=dict(bgcolor="#c1dfff", font_size=12, font_family="Poppins", align="left"))
     overview_classification_fig.update_traces(hovertemplate="<i><b>%{hovertext} Class</b></i><br>Total Alerts: <b>%{r}</b><extra></extra>")
-    
+
     overview_comments_df = overview_df.copy()
     overview_comments_df = overview_comments_df[(overview_comments_df["alert_comments"].str.lower() != "no") & (overview_comments_df["alert_comments"].str.lower() != "") & (overview_comments_df["alert_comments"].notna())]
     overview_comments_df = overview_comments_df[(overview_comments_df["result_comments"].str.lower() != "no") & (overview_comments_df["result_comments"].str.lower() != "") & (overview_comments_df["result_comments"].notna())]
@@ -941,7 +946,7 @@ def update_horizontal_bar(time_value, date_range_value, member_value):
             if(classification not in risk_categories_df["category"].unique()):
                 new_row = {"category": classification, "count": 0, "percentage_of_total": 0}
                 risk_categories_df = pd.concat([risk_categories_df, pd.DataFrame(new_row, index=[len(risk_categories_df)])])
-        
+
         bar_legend = []
         risk_categories_df.sort_values(by="percentage_of_total", ascending=False, inplace=True)
         for index, row in risk_categories_df.iterrows():
@@ -1163,14 +1168,14 @@ def update_pie_chart(time_value, date_range_value, member_value, platform_value,
 
 # Report Page Content
 @app.callback(
-    [Output("report_page_content", "children"), Output("report_main_logo_text", "children"), Output("report_page_container", "style")],
+    [Output("report_page_content", "children"), Output("report_main_logo_text", "children"), Output("report_subheader_dropdown_container", "style")],
     Input("report_main_container_tabs", "value")
 )
 def update_report_page_content(tab_value):
     if(tab_value == "generate"):
-        return report_generate_tab, "New Report", {"height": "calc(100vh - 8.5vh - 20px)"}
+        return report_generate_tab, "New Report", {"display": "none"}
     elif(tab_value == "saved"):
-        return report_saved_tab, "Saved Reports", {"height": "100%"}
+        return report_saved_tab, "Saved Reports", {"display": "flex"}
 
 
 # Report Page Saved Tab Content
@@ -1179,9 +1184,10 @@ def update_report_page_content(tab_value):
     [Input("report_main_container_tabs", "value"), Input("report_saved_card_pagination", "page")]
 )
 def update_report_page_saved_content(tab_value, pagination_page):
-    data = mysql_database.get_report_metadata("j.teng@chatstat.com")
+    start_report = (pagination_page-1)*5
+    end_report = pagination_page*5
     saved_report_list = []
-    for index, row in data.iterrows():
+    for index, row in report_metadata_df.iloc[start_report:end_report].iterrows():
         report_container = html.Div(className="report_saved_card", children=[
             dbc.Row(children=[
                 dbc.Col(children=[
@@ -1193,11 +1199,11 @@ def update_report_page_saved_content(tab_value, pagination_page):
                         html.Div(className="report_saved_header_text", children=[DashIconify(icon="icons8:create-new", color="#2d96ff", width=18),
                         html.P(f"""Generated on { row["created_at"].strftime("%d %B, %Y %I:%M %p") }""")])
                     ], justify="center")
-                ], width=5, align="center"),
+                ], width=4, align="center"),
                 dbc.Col(children=[
                     dbc.Row(children=[
                         dbc.Col(html.Div(className="report_saved_filter", children=[DashIconify(icon="ph:clock-bold", color="#2d96ff", width=22),
-                                html.P("Between " + "\n& ".join(datetime.fromisoformat(d).strftime("%d %b, %Y") for d in reversed(ast.literal_eval(row["timerange"])) ) ) ]),
+                                html.P("Between " + " & ".join(datetime.fromisoformat(d).strftime("%d %b'%y") for d in reversed(ast.literal_eval(row["timerange"])) ) ) ]),
                             width=6, align="center"),
                         dbc.Col(html.Div(className="report_saved_filter", children=[DashIconify(icon="ic:round-computer", color="#2d96ff", width=22),
                                 html.P(", ".join(platform.title() for platform in ast.literal_eval(row["platform"]))) ]),
@@ -1212,7 +1218,7 @@ def update_report_page_saved_content(tab_value, pagination_page):
                                 html.P(", ".join(content.title() for content in ast.literal_eval(row["contenttype"]))) ]),
                             width=6, align="center")
                     ])
-                ], width=7, align="center")
+                ], width=8, align="center")
             ])
         ])
         saved_report_list.append(report_container)
