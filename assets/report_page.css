@@ -297,10 +297,16 @@
     width: 100%;
 }
 .report_saved_card {
+    position: relative;
     padding: 10px 5px;
     margin: 0px 0px 15px 0px;
     border-radius: 5px;
     box-shadow: rgba(0, 0, 0, 0.3) 0px 0px 6px;
+}
+.report_saved_button {
+    position: absolute;
+    right: 20px;
+    bottom: 30%;
 }
 .report_saved_header {
     display: flex;

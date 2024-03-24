@@ -17,6 +17,7 @@ from flask import request
 
 # Global Variables
 todays_date = datetime.now()
+report_saved_card_range = [0, 1, 2, 3, 4]
 
 # Read the latest Data directly from AWS or MySQL Database
 #df = pd.read_csv("Data/final_24-02-2024_02_05_40.csv")
@@ -318,7 +319,8 @@ report_page = dbc.Card(className="report_page_container", id="report_page_contai
             ], href="https://chatstat.com/how-to-guide/", target="_blank", style={"text-decoration": "none"})
         ]),
 
-        html.Div(id="report_output")
+        html.Div(id="report_output"),
+        html.Div(id="report_saved_output")
     ])
 ])
 
@@ -396,7 +398,7 @@ report_saved_tab = html.Div(className="report_saved_container", children=[
 
 # Designing Main App
 app = Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=["https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap", dbc.themes.BOOTSTRAP, dbc.themes.MATERIA, dbc.icons.FONT_AWESOME])
-auth = dash_auth.BasicAuth(app, {"jaskeerat.singh@uqconnect.edu.au": "", "l.kusz@chatstat.com": ""})
+#auth = dash_auth.BasicAuth(app, {"jaskeerat.singh@uqconnect.edu.au": "", "l.kusz@chatstat.com": "", "": ""})
 server = app.server
 app.css.config.serve_locally = True
 app.title = "Parent Dashboard"
@@ -439,7 +441,8 @@ def update_header(pathname):
     Input("time_interval", "n_intervals")
 )
 def update_user_info(time_interval):
-    payload = {"email": request.authorization["username"]}
+    #payload = {"email": request.authorization["username"]}
+    payload = {"email": "jaskeerat.singh@uqconnect.edu.au"}
     user_info = invoke_lambda.get_info(payload)
     return user_info["name"].split(" ")[0].title(), user_info["email"], user_info["level"].title()
 
@@ -1178,6 +1181,29 @@ def update_report_page_content(tab_value):
         return report_saved_tab, "Saved Reports", {"display": "flex"}
 
 
+# Report Output
+@app.callback(
+    Output("report_output", "children"),
+    [Input("preview_report_button", "n_clicks"), Input("generate_report_button", "n_clicks")],
+    [State("report_filter_member", "value"), State("report_filter_daterange", "value"), State("report_filter_platform", "value"),
+     State("report_filter_alert", "value"), State("report_filter_chip", "value"), State("report_filter_type", "value")]
+)
+def perform_user_data_fetch(preview_button_click, generate_button_click, member_value, time_range, platform_value, alert_value, content_type, file_type):
+    if(preview_button_click or generate_button_click):
+        payload = {
+            "email": "j.teng@chatstat.com",
+            "children": "test",
+            "timerange": time_range,
+            "platform": platform_value,
+            "alert": alert_value,
+            "contenttype": content_type,
+            "filetype": file_type
+        }
+        mysql_database.post_report_metadata(payload)
+        lambda_response = invoke_lambda.generate_report(payload)
+        return bytes(lambda_response, "utf-8").decode("unicode-escape")
+
+
 # Report Page Saved Tab Content
 @app.callback(
     Output("report_saved_card_list", "children"),
@@ -1219,33 +1245,28 @@ def update_report_page_saved_content(tab_value, pagination_page):
                             width=6, align="center")
                     ])
                 ], width=8, align="center")
-            ])
+            ]),
+            dmc.ActionIcon(className="report_saved_button", id=f"report_saved_button_{index}", children=DashIconify(icon="bx:file", width=20), variant="filled", color="blue", n_clicks=0, size="30px", radius="5px")
         ])
         saved_report_list.append(report_container)
+
+    global report_saved_card_range
+    report_saved_card_range = list(report_metadata_df.iloc[start_report:end_report].index)
+    print(pagination_page, report_saved_card_range)
     return saved_report_list
 
 
-# Report Output
+# Saved Report Output
 @app.callback(
-    Output("report_output", "children"),
-    [Input("preview_report_button", "n_clicks"), Input("generate_report_button", "n_clicks")],
-    [State("report_filter_member", "value"), State("report_filter_daterange", "value"), State("report_filter_platform", "value"),
-     State("report_filter_alert", "value"), State("report_filter_chip", "value"), State("report_filter_type", "value")]
+    Output("report_saved_output", "children"),
+    [Input(f"report_saved_button_{i}", "n_clicks") for i in report_saved_card_range],
+    prevent_initial_call=True
 )
-def perform_user_data_fetch(preview_button_click, generate_button_click, member_value, time_range, platform_value, alert_value, content_type, file_type):
-    if(preview_button_click or generate_button_click):
-        payload = {
-            "email": "j.teng@chatstat.com",
-            "children": "test",
-            "timerange": time_range,
-            "platform": platform_value,
-            "alert": alert_value,
-            "contenttype": content_type,
-            "filetype": file_type
-        }
-        mysql_database.post_report_metadata(payload)
-        lambda_response = invoke_lambda.generate_report(payload)
-        return bytes(lambda_response, "utf-8").decode("unicode-escape")
+def update_report_page_saved_output(*args):
+    button_id = callback_context.triggered[0]["prop_id"].split(".")[0]
+    button_value = int(button_id.split("_")[-1])
+    print(button_value, report_metadata_df.iloc[button_value])
+    return report_metadata_df.iloc[button_value]
 
 
 # Running Main App
