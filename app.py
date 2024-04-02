@@ -16,13 +16,13 @@ from dash import Dash, html, dcc, Input, Output, State, callback_context
 from flask import request
 
 # Global Variables
+report_metadata_dict = {0: {}, 1: {}, 2: {}, 3: {}, 4: {}}
 todays_date = datetime.now()
-report_saved_card_range = [0, 1, 2, 3, 4]
 
 # Read the latest Data directly from AWS or MySQL Database
 #df = pd.read_csv("Data/final_24-02-2024_02_05_40.csv")
 df = s3.get_data()
-report_metadata_df = mysql_database.get_report_metadata("j.teng@chatstat.com")
+metadata_df = mysql_database.get_report_metadata("j.teng@chatstat.com")
 
 # Defining Colors and Plotly Graph Options
 plot_config = {"modeBarButtonsToRemove": ["zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d", "resetScale2d", "hoverClosestCartesian", "hoverCompareCartesian"],
@@ -391,8 +391,9 @@ report_generate_tab = html.Div(className="report_generate_container", children=[
 ])
 
 report_saved_tab = html.Div(className="report_saved_container", children=[
+    dmc.Modal(className="report_overview", id="report_overview", size="50%", zIndex=10, centered=True, overflow="outside", opened=False),
     html.Div(className="report_saved_card_list", id="report_saved_card_list"),
-    dmc.Pagination(id="report_saved_card_pagination", total=((len(report_metadata_df)-1)//5)+1, page=1, siblings=1, color="green", withControls=True, radius="5px")
+    dmc.Pagination(id="report_saved_card_pagination", total=((len(metadata_df)-1)//5)+1, page=1, siblings=1, color="green", withControls=True, radius="5px")
 ])
 
 
@@ -1068,7 +1069,7 @@ def update_line_chart(member_value, alert_value, slider_value):
         comment_alert.update_layout(margin=dict(l=25, r=25, b=0), height=400)
         comment_alert.update_layout(legend=dict(font=dict(family="Poppins"), traceorder="grouped", orientation="h", x=1, y=1, xanchor="right", yanchor="bottom", title_text=""))
         comment_alert.update_layout(xaxis_title="", yaxis_title="", legend_title_text="", plot_bgcolor="rgba(0, 0, 0, 0)")
-        comment_alert.update_layout(yaxis_showgrid=True, yaxis_ticksuffix="  ", yaxis=dict(dtick=25, tickfont=dict(size=12, family="Poppins", color="#8E8E8E"), griddash="dash", gridwidth=1, gridcolor="#DADADA"))
+        comment_alert.update_layout(yaxis_showgrid=True, yaxis_ticksuffix="  ", yaxis=dict(dtick=100, tickfont=dict(size=12, family="Poppins", color="#8E8E8E"), griddash="dash", gridwidth=1, gridcolor="#DADADA"))
         comment_alert.update_layout(xaxis_showgrid=False, xaxis=dict(tickfont=dict(size=10, family="Poppins", color="#052F5F"), tickangle=0))
         comment_alert.update_traces(mode="lines+markers", line=dict(width=2), marker=dict(sizemode="diameter", size=8, color="white", line=dict(width=2)))
         comment_alert.update_xaxes(fixedrange=True)
@@ -1212,9 +1213,14 @@ def perform_user_data_fetch(preview_button_click, generate_button_click, member_
 def update_report_page_saved_content(tab_value, pagination_page):
     start_report = (pagination_page-1)*5
     end_report = pagination_page*5
+    report_metadata_df = metadata_df.iloc[start_report:end_report]
+    report_metadata_df.reset_index(drop=True, inplace=True)
+
     saved_report_list = []
-    for index, row in report_metadata_df.iloc[start_report:end_report].iterrows():
-        report_container = html.Div(className="report_saved_card", children=[
+    for index, row in report_metadata_df.iterrows():
+        global report_metadata_dict
+        report_metadata_dict[index] = row.to_dict()
+        report_container = html.Button(className="report_saved_card", id=f"report_saved_card_{index}", children=[
             dbc.Row(children=[
                 dbc.Col(children=[
                     dbc.Row(children=[
@@ -1245,28 +1251,25 @@ def update_report_page_saved_content(tab_value, pagination_page):
                             width=6, align="center")
                     ])
                 ], width=8, align="center")
-            ]),
-            dmc.ActionIcon(className="report_saved_button", id=f"report_saved_button_{index}", children=DashIconify(icon="bx:file", width=20), variant="filled", color="blue", n_clicks=0, size="30px", radius="5px")
+            ])
         ])
         saved_report_list.append(report_container)
-
-    global report_saved_card_range
-    report_saved_card_range = list(report_metadata_df.iloc[start_report:end_report].index)
-    print(pagination_page, report_saved_card_range)
     return saved_report_list
 
 
 # Saved Report Output
 @app.callback(
-    Output("report_saved_output", "children"),
-    [Input(f"report_saved_button_{i}", "n_clicks") for i in report_saved_card_range],
-    prevent_initial_call=True
+    [Output("report_overview", "opened"), Output("report_overview", "children")],
+    [Input("report_saved_card_0", "n_clicks"), Input("report_saved_card_1", "n_clicks"), Input("report_saved_card_2", "n_clicks"), Input("report_saved_card_3", "n_clicks"), Input("report_saved_card_4", "n_clicks")]
 )
 def update_report_page_saved_output(*args):
-    button_id = callback_context.triggered[0]["prop_id"].split(".")[0]
-    button_value = int(button_id.split("_")[-1])
-    print(button_value, report_metadata_df.iloc[button_value])
-    return report_metadata_df.iloc[button_value]
+    print(callback_context.triggered)
+    if(all(context["value"] is None for context in callback_context.triggered)):
+        return False, None
+    else:
+        button_id = callback_context.triggered[0]["prop_id"].split(".")[0]
+        button_value = int(button_id.split("_")[-1])
+        return True, str(report_metadata_dict[button_value])
 
 
 # Running Main App
