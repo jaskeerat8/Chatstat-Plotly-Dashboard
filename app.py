@@ -4,7 +4,7 @@ import mysql_database
 import radial_bar_chart
 import invoke_lambda
 import pandas as pd
-import math, ast
+import math, ast, json
 import calendar
 from datetime import datetime, date, timedelta
 import dash_auth
@@ -20,8 +20,8 @@ report_metadata_dict = {0: {}, 1: {}, 2: {}, 3: {}, 4: {}}
 todays_date = datetime.now()
 
 # Read the latest Data directly from AWS or MySQL Database
-#df = pd.read_csv("Data/final_24-02-2024_02_05_40.csv")
-df = s3.get_data()
+df = pd.read_csv("Data/final_24-02-2024_02_05_40.csv")
+#df = s3.get_data()
 metadata_df = mysql_database.get_report_metadata("j.teng@chatstat.com")
 
 # Defining Colors and Plotly Graph Options
@@ -162,8 +162,8 @@ header = dmc.Header(className="header", height="8.5vh", fixed=False, children=[
 
 
 # Controls
-filters = dmc.Group([
-    dmc.Group(className="filter_container", children=[
+filters = html.Div(className="filter_row", children=[
+    html.Div(className="filter_container", children=[
         html.P("FILTERS", className="filter_label"),
         dmc.HoverCard(openDelay=1000, position="right", transition="pop", withArrow=True, children=[
             dmc.HoverCardTarget(
@@ -205,8 +205,7 @@ filters = dmc.Group([
             )
         ]),
         dmc.ActionIcon(DashIconify(icon="grommet-icons:power-reset", color="white", width=25, flip="horizontal"), id="reset_filter_container", className="reset_filter_container", n_clicks=0, variant="transparent")
-    ], spacing="10px"
-    ),
+    ]),
 
     html.Div(className="searchbar_container", children=[
         html.P("Child Overview Snapshot", className="searchbar_label"),
@@ -217,8 +216,7 @@ filters = dmc.Group([
             [{"group": "ID", "label": child_id.title(), "value": child_id} for child_id in list(df["id_childrens"].unique())]
         )
     ])
-], style={"margin": "10px"}, spacing="10px"
-)
+])
 
 
 # Overview Card
@@ -242,7 +240,7 @@ overview = html.Div(children=[
 
 # KPI Card
 kpi_cards = html.Div(className="kpi_container", children=[
-    dmc.Card(id="kpi_alert_count_container", className="kpi_alert_count_container", withBorder=True, radius="5px"),
+    html.Div(id="kpi_alert_count_container", className="kpi_alert_count_container"),
     html.Div(className="kpi_platform_count_container", children=[
         dcc.Store(id="kpi_platform_store", data=0),
         dmc.ActionIcon(DashIconify(icon="ep:arrow-left-bold", color="black", width=20), id="kpi_platform_backward", className="kpi_platform_backward",
@@ -255,27 +253,29 @@ kpi_cards = html.Div(className="kpi_container", children=[
 
 
 # Page Charts
-dashboard_charts = html.Div(children=[
+dashboard_charts = html.Div(className="dashboard_charts", children=[
     html.Div(className="row1", children=[
         html.Div(id="content_risk_classification_container", className="content_risk_classification_container", children=[
             html.Div(id="content_classification_radial_chart", className="content_classification_radial_chart"),
             html.Div(id="risk_categories_horizontal_bar", className="risk_categories_horizontal_bar"),
             dmc.ActionIcon(DashIconify(icon="f7:camera-fill", color="rgba(68, 68, 68, 0.3)", width=16), id="save_as_image", className="save_as_image", n_clicks=0, variant="transparent")
-            ], style={"width": "calc(65% - 5px)"}
-        ),
-        html.Div(id="content_risk_bar_chart", className="content_risk_bar_chart", style={"width": "calc(35% - 5px)"})
-    ], style={"margin": "10px", "padding": "0px"}
-    ),
+        ]),
+        html.Div(id="content_risk_bar_chart", className="content_risk_bar_chart")
+    ]),
     html.Div(className="row2", children=[
         html.Div(id="comment_alert_line_chart_container", className="comment_alert_line_chart_container", children=[
             html.Div(id="comment_alert_line_chart"),
             html.Div(className="comment_alert_line_chart_slider_container", children=dcc.RangeSlider(id="comment_alert_line_chart_slider", className="comment_alert_line_chart_slider", updatemode="drag", pushable=1, min=0, max=730, value=[0, 730]))
-            ], style={"width": "calc(65% - 5px)"}
-        ),
-        html.Div(id="comment_classification_pie_chart", className="comment_classification_pie_chart", style={"width": "calc(35% - 5px)"})
-    ], style={"margin": "10px", "padding": "0px"}
-    )
-], style={"height": "100%", "width": "100%", "margin": "0px", "padding": "0px"})
+        ]),
+        html.Div(id="comment_classification_pie_chart", className="comment_classification_pie_chart")
+    ])
+])
+
+
+# Analytic Charts
+analytic_charts = html.Div(children=[
+    html.Img(src="assets/images/coming_soon.png", height="100%")
+], style={"height": "calc(100vh - 8.5vh - 20px)", "width": "100%", "text-align": "center", "background-color": "white", "border-radius": "5px"})
 
 
 # Report Page
@@ -406,25 +406,30 @@ app.title = "Parent Dashboard"
 app.layout = html.Div(children=[
     dcc.Interval(id="time_interval", disabled=True),
     dcc.Location(id="url_path", refresh=False),
-    html.Div(children=[], style={"height": "8.5vh"}),
-    html.Div(children=[], style={"width": "4.5rem", "display": "inline-block"}),
-    html.Div(id="page_content", style={"display": "inline-block", "width": "calc(100% - 4.5rem)"})
+    sidebar, header,
+    html.Div(className="content_container", id="content_container", children=[
+        html.Div(className="sidebar_placeholder", children=[]),
+        html.Div(className="page_content", children=[
+            html.Div(className="header_placeholder", children=[]),
+            html.Div(className="content_outer_container", children=[
+                html.Div(className="content_inner_container", id="content_inner_container")
+            ])
+        ])
+    ])
 ])
 
 
 # Website Page Navigation
-@app.callback(Output("page_content", "children"),
+@app.callback(Output("content_inner_container", "children"),
               [Input("url_path", "pathname")]
 )
 def display_page(pathname):
     if pathname == "/Dashboard":
-        return [sidebar, header, filters, overview, kpi_cards, dashboard_charts]
+        return [filters, kpi_cards, dashboard_charts]
     elif pathname == "/Analytics":
-        return [sidebar, header, filters]
+        return [analytic_charts]
     elif pathname == "/Report&Logs":
-        return [sidebar, header, report_page]
-    else:
-        return [sidebar]
+        return [report_page]
 
 
 # Header
@@ -843,7 +848,7 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value,
             platform_df = kpi_platform_df[kpi_platform_df["platform"] == platform]
             title = platform.title()+f" - {alert_value} Alerts" if ((alert_value is not None) and (alert_value != "all")) else platform.title()
             kpi_platform_list.append(
-                dmc.Card(className="kpi_platform_card", children=[
+                html.Div(className="kpi_platform_card", children=[
                     dbc.Row(className="kpi_platform_card_row1", children=[
                         dbc.Col(dmc.Text(title, className="kpi_platform_count_label"), align="center", width=9),
                         dbc.Col(dmc.Text(className="kpi_platform_comparison", children=["--" if time_value == "all"
@@ -862,8 +867,7 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value,
                             for index, row in platform_df.iterrows()], align="flex-start", justify="flex-end", spacing="0px"),
                         dmc.Text(className="kpi_platform_number", children=platform_df["count"].sum())
                     ])
-                ], withBorder=True, radius="5px"
-                )
+                ])
             )
 
         # Producing Carousel
@@ -1263,13 +1267,19 @@ def update_report_page_saved_content(tab_value, pagination_page):
     [Input("report_saved_card_0", "n_clicks"), Input("report_saved_card_1", "n_clicks"), Input("report_saved_card_2", "n_clicks"), Input("report_saved_card_3", "n_clicks"), Input("report_saved_card_4", "n_clicks")]
 )
 def update_report_page_saved_output(*args):
-    print(callback_context.triggered)
     if(all(context["value"] is None for context in callback_context.triggered)):
         return False, None
     else:
         button_id = callback_context.triggered[0]["prop_id"].split(".")[0]
         button_value = int(button_id.split("_")[-1])
-        return True, str(report_metadata_dict[button_value])
+        payload = report_metadata_dict[button_value]
+        payload.pop("created_at", None)
+        payload["timerange"] = json.loads(payload["timerange"])
+        payload["platform"] = json.loads(payload["platform"])
+        payload["alert"] = json.loads(payload["alert"])
+        payload["contenttype"] = json.loads(payload["contenttype"])
+        lambda_response = invoke_lambda.generate_report(payload)
+        return True, bytes(lambda_response, "utf-8").decode("unicode-escape")
 
 
 # Running Main App

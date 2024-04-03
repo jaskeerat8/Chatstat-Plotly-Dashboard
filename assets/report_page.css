@@ -1,27 +1,30 @@
+/* Add Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap");
+
 /* Report Page Container */
 .report_page_container {
-    background-color: transparent;
-    margin: 10px;
-    padding: 0px;
-    border-radius: 5px;
+    height: calc(100vh - 8.5vh - 20px);
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    gap: 10px;
     align-items: start;
+    background-color: transparent;
+    border-radius: 5px;
     box-shadow: none;
-    height: calc(100vh - 8.5vh - 20px);
+    margin: 0px;
+    padding: 0px;
 }
 
 /* Report Main Container */
 .report_main_container {
+    height: 100%;
+    width: 65%;
     display: flex;
     flex-direction: column;
     position: relative;
     background-color: white;
-    height: 100%;
-    width: calc(65% - 5px);
-    padding: 15px;
     border-radius: 5px;
+    padding: 15px;
 }
 .report_main_container_header {
     display: flex;
@@ -119,7 +122,7 @@
 
 /* Report Side Container */
 .report_side_container {
-    width: calc(35% - 5px);
+    width: 35%;
 }
 .report_side_cards {
     border-radius: 5px;
@@ -195,11 +198,9 @@
 .report_filter_header {
     display: flex;
     flex-direction: row;
+    gap: 10px;
     justify-content: start;
     align-items: center;
-}
-.report_filter_header_icon {
-    margin-right: 10px;
 }
 .report_filter_header_text {
     color: #052F5F;
