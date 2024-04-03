@@ -391,7 +391,7 @@ report_generate_tab = html.Div(className="report_generate_container", children=[
 ])
 
 report_saved_tab = html.Div(className="report_saved_container", children=[
-    dmc.Modal(className="report_overview", id="report_overview", size="50%", zIndex=10, centered=True, overflow="outside", opened=False),
+    dmc.Modal(className="report_overview", id="report_overview", size="60%", zIndex=10, centered=True, overflow="outside", opened=False),
     html.Div(className="report_saved_card_list", id="report_saved_card_list"),
     dmc.Pagination(id="report_saved_card_pagination", total=((len(metadata_df)-1)//5)+1, page=1, siblings=1, color="green", withControls=True, radius="5px")
 ])
@@ -1243,7 +1243,6 @@ def update_report_page_saved_content(tab_value, pagination_page):
                             width=6, align="center"),
                         dbc.Col(html.Div(className="report_saved_filter", children=[DashIconify(icon="ic:round-computer", color="#2d96ff", width=22),
                                 html.P(", ".join(platform.title() for platform in ast.literal_eval(row["platform"]))) ]),
-
                             width=6, align="center")
                     ]),
                     dbc.Row(children=[
@@ -1273,13 +1272,45 @@ def update_report_page_saved_output(*args):
         button_id = callback_context.triggered[0]["prop_id"].split(".")[0]
         button_value = int(button_id.split("_")[-1])
         payload = report_metadata_dict[button_value]
+        overview_header = html.Button(className="report_saved_card", children=[
+            dbc.Row(children=[
+                dbc.Col(children=[
+                    dbc.Row(children=[
+                        html.Div(className="report_saved_header", children=[DashIconify(icon="ph:bookmark-duotone", color="#2d96ff", width=26),
+                        html.P(f"""Report for { payload["children"].title() }""")])
+                    ], justify="center"),
+                    dbc.Row(children=[
+                        html.Div(className="report_saved_header_text", children=[DashIconify(icon="icons8:create-new", color="#2d96ff", width=18),
+                        html.P(f"""Generated on { payload["created_at"].strftime("%d %B, %Y %I:%M %p") }""")])
+                    ], justify="center")
+                ], width=4, align="center"),
+                dbc.Col(children=[
+                    dbc.Row(children=[
+                        dbc.Col(html.Div(className="report_saved_filter", children=[DashIconify(icon="ph:clock-bold", color="#2d96ff", width=22),
+                                html.P("Between " + " & ".join(datetime.fromisoformat(d).strftime("%d %b'%y") for d in reversed(ast.literal_eval(payload["timerange"])) ) ) ]),
+                            width=6, align="center"),
+                        dbc.Col(html.Div(className="report_saved_filter", children=[DashIconify(icon="ic:round-computer", color="#2d96ff", width=22),
+                                html.P(", ".join(platform.title() for platform in ast.literal_eval(payload["platform"]))) ]),
+                            width=6, align="center")
+                    ]),
+                    dbc.Row(children=[
+                        dbc.Col(html.Div(className="report_saved_filter", children=[DashIconify(icon="ant-design:alert-outlined", color="#2d96ff", width=22),
+                                html.P(f"""{ ", ".join(alert.title() for alert in ast.literal_eval(payload["alert"])) } Alerts""")] ),
+                            width=6, align="center"),
+                        dbc.Col(html.Div(className="report_saved_filter", children=[DashIconify(icon="icon-park-outline:comments", color="#2d96ff", width=22),
+                                html.P(", ".join(content.title() for content in ast.literal_eval(payload["contenttype"]))) ]),
+                            width=6, align="center")
+                    ])
+                ], width=8, align="center")
+            ])
+        ])
         payload.pop("created_at", None)
         payload["timerange"] = json.loads(payload["timerange"])
         payload["platform"] = json.loads(payload["platform"])
         payload["alert"] = json.loads(payload["alert"])
         payload["contenttype"] = json.loads(payload["contenttype"])
-        lambda_response = invoke_lambda.generate_report(payload)
-        return True, bytes(lambda_response, "utf-8").decode("unicode-escape")
+        lambda_response = bytes(invoke_lambda.generate_report(payload), "utf-8").decode("unicode-escape")
+        return True, html.Div(children=[overview_header, html.Div(lambda_response)])
 
 
 # Running Main App
