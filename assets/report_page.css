@@ -346,6 +346,7 @@
 .report_saved_filter {
     display: flex;
     flex-direction: row;
+    gap: 10px;
     justify-content: start;
     align-items: center;
 }
@@ -356,8 +357,44 @@
     font-weight: 500;
     margin: 0px;
     padding: 0px;
-    white-space: pre-line;
 }
-.report_saved_filter svg {
-    margin: 0px 5px 0px 0px;
+
+/* Report Overview */
+.report_overview_title {
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+    align-items: center;
+}
+.report_overview_title p {
+    color: #052F5F;
+    font-size: 24px;
+    font-family: "Poppins";
+    font-weight: 600;
+    margin: 0px;
+    padding: 0px;
+}
+.report_overview_header {
+    width: 100%;
+    padding: 10px;
+    margin: 0px;
+    background-color: white;
+    border: transparent;
+    border-radius: 5px;
+    box-shadow: rgba(0, 0, 0, 0.3) 0px 0px 6px;
+}
+.report_overview_filter {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: start;
+    align-items: center;
+}
+.report_overview_filter p {
+    color: #052F5F;
+    font-size: 14px;
+    font-family: "Poppins";
+    font-weight: 500;
+    margin: 0px;
+    padding: 0px;
 }

@@ -12,7 +12,7 @@ import plotly.express as px
 import dash_mantine_components as dmc
 import dash_bootstrap_components as dbc
 from dash_iconify import DashIconify
-from dash import Dash, html, dcc, Input, Output, State, callback_context
+from dash import Dash, html, dcc, Input, Output, State, callback_context, dash_table
 from flask import request
 
 # Global Variables
@@ -1262,7 +1262,7 @@ def update_report_page_saved_content(tab_value, pagination_page):
 
 # Saved Report Output
 @app.callback(
-    [Output("report_overview", "opened"), Output("report_overview", "children")],
+    [Output("report_overview", "opened"), Output("report_overview", "title"), Output("report_overview", "children")],
     [Input("report_saved_card_0", "n_clicks"), Input("report_saved_card_1", "n_clicks"), Input("report_saved_card_2", "n_clicks"), Input("report_saved_card_3", "n_clicks"), Input("report_saved_card_4", "n_clicks")]
 )
 def update_report_page_saved_output(*args):
@@ -1272,45 +1272,39 @@ def update_report_page_saved_output(*args):
         button_id = callback_context.triggered[0]["prop_id"].split(".")[0]
         button_value = int(button_id.split("_")[-1])
         payload = report_metadata_dict[button_value]
-        overview_header = html.Button(className="report_saved_card", children=[
+        payload.pop("created_at", None)
+        for key in payload.keys():
+            try:
+                payload[key] = json.loads(payload[key])
+            except Exception as e:
+                pass
+        title = html.Div(className="report_overview_title", children=[DashIconify(icon="ph:bookmark-duotone", color="#2d96ff", width=26), html.P(f"""Report for { payload["children"].title() }""")])
+        overview_header = html.Button(className="report_overview_header", children=[
             dbc.Row(children=[
-                dbc.Col(children=[
-                    dbc.Row(children=[
-                        html.Div(className="report_saved_header", children=[DashIconify(icon="ph:bookmark-duotone", color="#2d96ff", width=26),
-                        html.P(f"""Report for { payload["children"].title() }""")])
-                    ], justify="center"),
-                    dbc.Row(children=[
-                        html.Div(className="report_saved_header_text", children=[DashIconify(icon="icons8:create-new", color="#2d96ff", width=18),
-                        html.P(f"""Generated on { payload["created_at"].strftime("%d %B, %Y %I:%M %p") }""")])
-                    ], justify="center")
-                ], width=4, align="center"),
-                dbc.Col(children=[
-                    dbc.Row(children=[
-                        dbc.Col(html.Div(className="report_saved_filter", children=[DashIconify(icon="ph:clock-bold", color="#2d96ff", width=22),
-                                html.P("Between " + " & ".join(datetime.fromisoformat(d).strftime("%d %b'%y") for d in reversed(ast.literal_eval(payload["timerange"])) ) ) ]),
-                            width=6, align="center"),
-                        dbc.Col(html.Div(className="report_saved_filter", children=[DashIconify(icon="ic:round-computer", color="#2d96ff", width=22),
-                                html.P(", ".join(platform.title() for platform in ast.literal_eval(payload["platform"]))) ]),
-                            width=6, align="center")
-                    ]),
-                    dbc.Row(children=[
-                        dbc.Col(html.Div(className="report_saved_filter", children=[DashIconify(icon="ant-design:alert-outlined", color="#2d96ff", width=22),
-                                html.P(f"""{ ", ".join(alert.title() for alert in ast.literal_eval(payload["alert"])) } Alerts""")] ),
-                            width=6, align="center"),
-                        dbc.Col(html.Div(className="report_saved_filter", children=[DashIconify(icon="icon-park-outline:comments", color="#2d96ff", width=22),
-                                html.P(", ".join(content.title() for content in ast.literal_eval(payload["contenttype"]))) ]),
-                            width=6, align="center")
-                    ])
-                ], width=8, align="center")
+                dbc.Col(html.Div(className="report_overview_filter", children=[
+                    DashIconify(icon="ph:clock-bold", color="#2d96ff", width=22),
+                    html.P("Between " + " & ".join(datetime.fromisoformat(d).strftime("%d %b'%y") for d in reversed(payload["timerange"])) )
+                    ]), width=6, align="center"),
+                dbc.Col(html.Div(className="report_overview_filter", children=[
+                    DashIconify(icon="ic:round-computer", color="#2d96ff", width=22),
+                    html.P(", ".join(platform.title() for platform in payload["platform"]))
+                    ]), width=6, align="center")
+            ]),
+            dbc.Row(children=[
+                dbc.Col(html.Div(className="report_overview_filter", children=[
+                    DashIconify(icon="ant-design:alert-outlined", color="#2d96ff", width=22),
+                    html.P(f"""{ ", ".join(alert.title() for alert in payload["alert"]) } Alerts""")
+                    ]), width=6, align="center"),
+                dbc.Col(html.Div(className="report_overview_filter", children=[
+                    DashIconify(icon="icon-park-outline:comments", color="#2d96ff", width=22),
+                    html.P(", ".join(content.title() for content in payload["contenttype"]))
+                    ]), width=6, align="center")
             ])
         ])
-        payload.pop("created_at", None)
-        payload["timerange"] = json.loads(payload["timerange"])
-        payload["platform"] = json.loads(payload["platform"])
-        payload["alert"] = json.loads(payload["alert"])
-        payload["contenttype"] = json.loads(payload["contenttype"])
-        lambda_response = bytes(invoke_lambda.generate_report(payload), "utf-8").decode("unicode-escape")
-        return True, html.Div(children=[overview_header, html.Div(lambda_response)])
+        response_table = dash_table.DataTable(json.loads(invoke_lambda.generate_report(payload)),
+            style_data={"whiteSpace": "normal", "height": "auto", "lineHeight": "15px"},
+            style_cell_conditional=[{"if": {"column_id": "text"}, "width": "50%"}])
+        return True, title, html.Div(children=[overview_header, response_table])
 
 
 # Running Main App
