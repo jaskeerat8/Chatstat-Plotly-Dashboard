@@ -360,13 +360,7 @@
 }
 
 /* Report Overview */
-.report_overview_title {
-    display: flex;
-    flex-direction: row;
-    justify-content: start;
-    align-items: center;
-}
-.report_overview_title p {
+.report_overview .mantine-Modal-title {
     color: #052F5F;
     font-size: 24px;
     font-family: "Poppins";
@@ -374,14 +368,34 @@
     margin: 0px;
     padding: 0px;
 }
+.report_overview .mantine-Modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+}
+.report_overview_header_container {
+    width: 99%;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+}
 .report_overview_header {
-    width: 100%;
+    width: 85%;
     padding: 10px;
-    margin: 0px;
-    background-color: white;
+}
+.report_overview_button {
+    height: 60px;
+    width: 15%;
+    font-size: 16px;
+    font-family: "Poppins";
+    font-weight: 500;
     border: transparent;
     border-radius: 5px;
-    box-shadow: rgba(0, 0, 0, 0.3) 0px 0px 6px;
+    background-color: rgb(64, 192, 87);
 }
 .report_overview_filter {
     display: flex;
@@ -393,6 +407,62 @@
 .report_overview_filter p {
     color: #052F5F;
     font-size: 14px;
+    font-family: "Poppins";
+    font-weight: 500;
+    margin: 0px;
+    padding: 0px;
+}
+
+/* Report Overview Children */
+.report_overview_children {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+}
+.report_page_children {
+    width: 99%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 10px;
+    background-color: white;
+    border: transparent;
+    border-radius: 5px;
+    box-shadow: rgba(0, 0, 0, 0.3) 0px 0px 6px;
+}
+.report_page_children_platform {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: start;
+    align-items: center;
+}
+.report_page_children_platform img {
+    width: 2vw;
+    aspect-ratio: 1 / 1;
+}
+.report_page_children_platform p {
+    color: #052F5F;
+    font-size: 18px;
+    font-family: "Poppins";
+    font-weight: 600;
+    margin: 0px;
+    padding: 0px;
+}
+.report_page_children_text {
+    color: black;
+    font-size: 16px;
+    font-family: "Poppins";
+    font-weight: 500;
+    margin: 0px;
+    padding: 0px;
+}
+.report_page_children_date {
+    color: black;
+    font-size: 12px;
     font-family: "Poppins";
     font-weight: 500;
     margin: 0px;
