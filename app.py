@@ -22,10 +22,10 @@ report_metadata_dict = {0: {}, 1: {}, 2: {}, 3: {}, 4: {}}
 report_payload = {}
 report_overview_body = []
 
-# Read the latest Data directly from AWS or MySQL Database
-#df = pd.read_csv("Data/final_24-02-2024_02_05_40.csv")
+# Read the latest Data directly from AWS and MySQL Database
 df = s3.get_data()
 metadata_df = mysql_database.get_report_metadata("j.teng@chatstat.com")
+#df = pd.read_csv("Data/final_24-02-2024_02_05_40.csv")
 
 # Defining Colors and Plotly Graph Options
 plot_config = {"modeBarButtonsToRemove": ["zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d", "resetScale2d", "hoverClosestCartesian", "hoverCompareCartesian"],
@@ -1292,6 +1292,8 @@ def generate_report_mail(generate_button_click, member_value, time_range, platfo
             "filetype": file_type
         }
         mysql_database.post_report_metadata(payload)
+        global metadata_df
+        metadata_df = mysql_database.get_report_metadata("j.teng@chatstat.com")
         lambda_response = invoke_lambda.generate_report(payload)
         return bytes(lambda_response, "utf-8").decode("unicode-escape")
 
@@ -1430,8 +1432,9 @@ def update_saved_report_mail_pagination(status, page):
     Input("report_saved_overview_button", "n_clicks")
 )
 def perform_user_email_push(n_clicks):
-    lambda_response = invoke_lambda.generate_report(report_payload)
-    return bytes(lambda_response, "utf-8").decode("unicode-escape")
+    if(callback_context.triggered[0]["value"]):
+        lambda_response = invoke_lambda.generate_report(report_payload)
+        return bytes(lambda_response, "utf-8").decode("unicode-escape")
 
 
 # Running Main App
