@@ -12,18 +12,19 @@ import plotly.express as px
 import dash_mantine_components as dmc
 import dash_bootstrap_components as dbc
 from dash_iconify import DashIconify
-from dash import Dash, html, dcc, Input, Output, State, callback_context, dash_table
+from dash import Dash, html, dcc, Input, Output, State, callback_context
 from flask import request
 
 # Global Variables
+todays_date = datetime.now()
+date_dict = {}
 report_metadata_dict = {0: {}, 1: {}, 2: {}, 3: {}, 4: {}}
 report_payload = {}
-report_body = []
-todays_date = datetime.now()
+report_overview_body = []
 
 # Read the latest Data directly from AWS or MySQL Database
-df = pd.read_csv("Data/final_24-02-2024_02_05_40.csv")
-#df = s3.get_data()
+#df = pd.read_csv("Data/final_24-02-2024_02_05_40.csv")
+df = s3.get_data()
 metadata_df = mysql_database.get_report_metadata("j.teng@chatstat.com")
 
 # Defining Colors and Plotly Graph Options
@@ -320,9 +321,15 @@ report_page = dbc.Card(className="report_page_container", id="report_page_contai
             ], href="https://chatstat.com/how-to-guide/", target="_blank", style={"text-decoration": "none"})
         ]),
 
-        html.Div(id="report_output"),
-        html.Div(id="report_saved_output"),
-        html.Div(id="report_overview_output")
+        html.Div(id="report_generate_output"),
+        html.Div(id="report_saved_overview_output")
+    ]),
+    dmc.Modal(className="report_preview_overview", id="report_preview_overview", size="45%", zIndex=10, centered=True, overflow="outside", opened=False, children=[
+        html.Div(className="report_preview_overview_header_container", children=[
+            html.Div(className="report_preview_overview_header", id="report_preview_overview_header")
+        ]),
+        html.Div(className="report_preview_overview_container", id="report_preview_overview_container"),
+        dmc.Pagination(id="report_preview_overview_pagination", total=1, page=1, siblings=1, color="green", withControls=True, radius="5px")
     ])
 ])
 
@@ -393,13 +400,13 @@ report_generate_tab = html.Div(className="report_generate_container", children=[
 ])
 
 report_saved_tab = html.Div(className="report_saved_container", children=[
-    dmc.Modal(className="report_overview", id="report_overview", size="45%", zIndex=10, centered=True, overflow="outside", opened=False, children=[
-        html.Div(className="report_overview_header_container", children=[
-            html.Div(className="report_overview_header", id="report_overview_header"),
-            html.Button("Publish", className="report_overview_button", id="report_overview_button", n_clicks=0)
+    dmc.Modal(className="report_saved_overview", id="report_saved_overview", size="45%", zIndex=10, centered=True, overflow="outside", opened=False, children=[
+        html.Div(className="report_saved_overview_header_container", children=[
+            html.Div(className="report_saved_overview_header", id="report_saved_overview_header"),
+            html.Button("Publish", className="report_saved_overview_button", id="report_saved_overview_button", n_clicks=0)
         ]),
-        html.Div(className="report_overview_children", id="report_overview_children"),
-        dmc.Pagination(id="report_overview_pagination", total=1, page=1, siblings=1, color="green", withControls=True, radius="5px")
+        html.Div(className="report_saved_overview_container", id="report_saved_overview_container"),
+        dmc.Pagination(id="report_saved_overview_pagination", total=1, page=1, siblings=1, color="green", withControls=True, radius="5px")
     ]),
     html.Div(className="report_saved_card_list", id="report_saved_card_list"),
     dmc.Pagination(id="report_saved_card_pagination", total=((len(metadata_df)-1)//5)+1, page=1, siblings=1, color="green", withControls=True, radius="5px")
@@ -1195,15 +1202,86 @@ def update_report_page_content(tab_value):
         return report_saved_tab, "Saved Reports", {"display": "flex"}
 
 
-# Report Output
+# Preview Report Mail
 @app.callback(
-    Output("report_output", "children"),
-    [Input("preview_report_button", "n_clicks"), Input("generate_report_button", "n_clicks")],
+    [Output("report_preview_overview", "opened"), Output("report_preview_overview", "title"), Output("report_preview_overview_header", "children")],
+    Input("preview_report_button", "n_clicks"),
     [State("report_filter_member", "value"), State("report_filter_daterange", "value"), State("report_filter_platform", "value"),
      State("report_filter_alert", "value"), State("report_filter_chip", "value"), State("report_filter_type", "value")]
 )
-def perform_user_data_fetch(preview_button_click, generate_button_click, member_value, time_range, platform_value, alert_value, content_type, file_type):
-    if(preview_button_click or generate_button_click):
+def update_report_preview_overview(preview_button_click, member_value, time_range, platform_value, alert_value, content_type, file_type):
+    if(callback_context.triggered[0]["value"]):
+        # Creating Payload
+        payload = {
+            "email": "j.teng@chatstat.com", "children": "test", "timerange": time_range, "platform": platform_value,
+            "alert": alert_value, "contenttype": content_type, "filetype": file_type
+        }
+        
+        # Calling Lambda for Response Body
+        response_json = json.loads(invoke_lambda.generate_report(payload))
+        response_div = []
+        for res in response_json:
+            response_div.append(html.Div(className="report_preview_overview_children", children=[
+                html.Div(className="report_preview_overview_children_platform", children=[
+                    html.Img(src=f"""assets/images/{res["platform"].title()}.png"""),
+                    html.P(children=res["type"].title())
+                ]),
+                html.P(className="report_preview_overview_children_text", children=res["text"]),
+                html.P(className="report_preview_overview_children_date", children=datetime.utcfromtimestamp(int(res["datetime"])/1000).strftime("%d %B %Y %I:%M%p"))
+            ]))
+        response_div = [response_div[i:i+4] for i in range(0, len(response_div), 4)]
+        global report_overview_body
+        report_overview_body = response_div
+
+        # Header for Response Body
+        report_preview_overview_header = [
+            dbc.Row(children=[
+                dbc.Col(html.Div(className="report_preview_overview_filter", children=[
+                    DashIconify(icon="ph:clock-bold", color="#2d96ff", width=22),
+                    html.P("Between " + " & ".join(datetime.fromisoformat(d).strftime("%d %b'%y") for d in reversed(payload["timerange"])) )
+                    ]), width="auto", align="center"),
+                dbc.Col(html.Div(className="report_preview_overview_filter", children=[
+                    DashIconify(icon="ic:round-computer", color="#2d96ff", width=22),
+                    html.P(", ".join(platform.title() for platform in payload["platform"]))
+                    ]), width="auto", align="center")
+            ]),
+            dbc.Row(children=[
+                dbc.Col(html.Div(className="report_preview_overview_filter", children=[
+                    DashIconify(icon="ant-design:alert-outlined", color="#2d96ff", width=22),
+                    html.P(f"""{ ", ".join(alert.title() for alert in payload["alert"]) } Alerts""")
+                    ]), width=6, align="center"),
+                dbc.Col(html.Div(className="report_preview_overview_filter", children=[
+                    DashIconify(icon="icon-park-outline:comments", color="#2d96ff", width=22),
+                    html.P(", ".join(content.title() for content in payload["contenttype"]))
+                    ]), width=6, align="center")
+            ])
+        ]
+        return True, f"""Report for { payload["children"].title() }""", report_preview_overview_header
+    else:
+        return False, "Preview Report", []
+
+
+# Preview Report Mail Overview Pagination
+@app.callback(
+    [Output("report_preview_overview_container", "children"), Output("report_preview_overview_pagination", "total")],
+    [Input("report_preview_overview", "opened"), Input("report_preview_overview_pagination", "page")]
+)
+def update_preview_report_mail_pagination(status, page):
+    if(status):
+        return report_overview_body[page-1], len(report_overview_body)
+    else:
+        return "", 1
+
+
+# Generate Report Mail
+@app.callback(
+    Output("report_generate_output", "children"),
+    Input("generate_report_button", "n_clicks"),
+    [State("report_filter_member", "value"), State("report_filter_daterange", "value"), State("report_filter_platform", "value"),
+     State("report_filter_alert", "value"), State("report_filter_chip", "value"), State("report_filter_type", "value")]
+)
+def generate_report_mail(generate_button_click, member_value, time_range, platform_value, alert_value, content_type, file_type):
+    if(callback_context.triggered[0]["value"]):
         payload = {
             "email": "j.teng@chatstat.com",
             "children": "test",
@@ -1271,10 +1349,10 @@ def update_report_page_saved_content(tab_value, pagination_page):
 
 # Saved Report Output
 @app.callback(
-    [Output("report_overview", "opened"), Output("report_overview", "title"), Output("report_overview_header", "children")],
+    [Output("report_saved_overview", "opened"), Output("report_saved_overview", "title"), Output("report_saved_overview_header", "children")],
     [Input("report_saved_card_0", "n_clicks"), Input("report_saved_card_1", "n_clicks"), Input("report_saved_card_2", "n_clicks"), Input("report_saved_card_3", "n_clicks"), Input("report_saved_card_4", "n_clicks")]
 )
-def update_report_page_saved_output(report0_click, report1_click, report2_click, report3_click, report4_click):
+def update_report_saved_overview(report0_click, report1_click, report2_click, report3_click, report4_click):
     if(all(context["value"] is None for context in callback_context.triggered)):
         return False, "Report OverView", []
     else:
@@ -1296,60 +1374,60 @@ def update_report_page_saved_output(report0_click, report1_click, report2_click,
         response_json = json.loads(invoke_lambda.generate_report(payload))
         response_div = []
         for res in response_json:
-            response_div.append(html.Div(className="report_page_children", children=[
-                html.Div(className="report_page_children_platform", children=[
+            response_div.append(html.Div(className="report_saved_overview_children", children=[
+                html.Div(className="report_saved_overview_children_platform", children=[
                     html.Img(src=f"""assets/images/{res["platform"].title()}.png"""),
                     html.P(children=res["type"].title())
                 ]),
-                html.P(className="report_page_children_text", children=res["text"]),
-                html.P(className="report_page_children_date", children=datetime.utcfromtimestamp(int(res["datetime"])/1000).strftime("%d %B %Y %I:%M%p"))
+                html.P(className="report_saved_overview_children_text", children=res["text"]),
+                html.P(className="report_saved_overview_children_date", children=datetime.utcfromtimestamp(int(res["datetime"])/1000).strftime("%d %B %Y %I:%M%p"))
             ]))
         response_div = [response_div[i:i+4] for i in range(0, len(response_div), 4)]
-        global report_body
-        report_body = response_div
+        global report_overview_body
+        report_overview_body = response_div
 
         # Header Filter
-        overview_header = [
+        report_saved_overview_header = [
             dbc.Row(children=[
-                dbc.Col(html.Div(className="report_overview_filter", children=[
+                dbc.Col(html.Div(className="report_saved_overview_filter", children=[
                     DashIconify(icon="ph:clock-bold", color="#2d96ff", width=22),
                     html.P("Between " + " & ".join(datetime.fromisoformat(d).strftime("%d %b'%y") for d in reversed(payload["timerange"])) )
                     ]), width="auto", align="center"),
-                dbc.Col(html.Div(className="report_overview_filter", children=[
+                dbc.Col(html.Div(className="report_saved_overview_filter", children=[
                     DashIconify(icon="ic:round-computer", color="#2d96ff", width=22),
                     html.P(", ".join(platform.title() for platform in payload["platform"]))
                     ]), width="auto", align="center")
             ]),
             dbc.Row(children=[
-                dbc.Col(html.Div(className="report_overview_filter", children=[
+                dbc.Col(html.Div(className="report_saved_overview_filter", children=[
                     DashIconify(icon="ant-design:alert-outlined", color="#2d96ff", width=22),
                     html.P(f"""{ ", ".join(alert.title() for alert in payload["alert"]) } Alerts""")
                     ]), width=6, align="center"),
-                dbc.Col(html.Div(className="report_overview_filter", children=[
+                dbc.Col(html.Div(className="report_saved_overview_filter", children=[
                     DashIconify(icon="icon-park-outline:comments", color="#2d96ff", width=22),
                     html.P(", ".join(content.title() for content in payload["contenttype"]))
                     ]), width=6, align="center")
             ])
         ]
-        return True, f"""Report for { payload["children"].title() }""", overview_header
+        return True, f"""Report for { payload["children"].title() }""", report_saved_overview_header
 
 
 # Report Overview Pagination
 @app.callback(
-    [Output("report_overview_children", "children"), Output("report_overview_pagination", "total")],
-    [Input("report_overview", "opened"), Input("report_overview_pagination", "page")]
+    [Output("report_saved_overview_container", "children"), Output("report_saved_overview_pagination", "total")],
+    [Input("report_saved_overview", "opened"), Input("report_saved_overview_pagination", "page")]
 )
-def update_report_overview_children(status, page):
+def update_saved_report_mail_pagination(status, page):
     if(status):
-        return report_body[page-1], len(report_body)
+        return report_overview_body[page-1], len(report_overview_body)
     else:
         return "", 1
 
 
 # Report Overview Email Push
 @app.callback(
-    Output("report_overview_output", "children"),
-    Input("report_overview_button", "n_clicks")
+    Output("report_saved_overview_output", "children"),
+    Input("report_saved_overview_button", "n_clicks")
 )
 def perform_user_email_push(n_clicks):
     lambda_response = invoke_lambda.generate_report(report_payload)
