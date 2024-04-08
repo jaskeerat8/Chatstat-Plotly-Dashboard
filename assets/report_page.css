@@ -357,6 +357,7 @@
 .report_preview_overview_children_platform img {
     width: 2vw;
     aspect-ratio: 1 / 1;
+    border-radius: 100%;
 }
 .report_preview_overview_children_platform p {
     color: #052F5F;
@@ -541,6 +542,7 @@
 .report_saved_overview_children_platform img {
     width: 2vw;
     aspect-ratio: 1 / 1;
+    border-radius: 100%;
 }
 .report_saved_overview_children_platform p {
     color: #052F5F;

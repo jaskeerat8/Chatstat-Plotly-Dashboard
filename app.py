@@ -91,7 +91,7 @@ def slider_filter(dataframe, slider_value):
 # Function if No Data is available
 def no_data_graph():
     message = html.Div(className="no_data_container", children=[
-        html.Img(src="assets/images/empty_ghost.gif", width="40%"),
+        html.Img(src="assets/images/empty_ghost.gif", alt="Empty", width="40%"),
         html.P("No Data to Display", className="no_data_message"),
         html.P("Please make a different Filter Selection", className="no_data_selection")
         ], style={"height": "100%"}
@@ -103,33 +103,33 @@ def no_data_graph():
 sidebar = html.Div(className="sidebar", children=[
     html.Div(children=[
         html.A(html.Div(className="sidebar_header", children=[
-            html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/chatstatlogo.png"),
+            html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/chatstatlogo.png", alt="Logo"),
             html.H2("chatstat")
             ]), href="https://chatstat.com/", target="_blank", style={"color": "#25D366", "textDecoration": "none"}
         ),
 
         html.Div(className="sidebar_navlink_menu", children=[html.P("Main Menu"), html.Hr()]),
         dbc.Nav(className="sidebar_navlink", children=[
-            dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/dashboard.png"), html.Span("Dashboard")],
+            dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/dashboard.png", alt="Dashboard"), html.Span("Dashboard")],
                         href="/Dashboard", active="exact", className="sidebar_navlink_option"),
-            dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/analytics.png"), html.Span("Analytics")],
+            dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/analytics.png", alt="Analytics"), html.Span("Analytics")],
                         href="/Analytics", active="exact", className="sidebar_navlink_option"),
-            dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/report.png"), html.Span("Report & Logs")],
+            dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/report.png", alt="Report"), html.Span("Report & Logs")],
                         href="/Report&Logs", active="exact", className="sidebar_navlink_option")
         ], vertical=True, pills=True),
 
         html.Div(className="sidebar_navlink_menu", children=[html.P("General"), html.Hr()]),
         dbc.Nav(className="sidebar_navlink", children=[
-            dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/account.png"), html.Span("My Account")],
+            dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/account.png", alt="Account"), html.Span("My Account")],
                         external_link=True, href="https://au.linkedin.com/in/lawrence-kusz", target="_blank", className="sidebar_navlink_option"),
-            dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/setting.png"), html.Span("Settings")],
+            dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/setting.png", alt="Settings"), html.Span("Settings")],
                         external_link=True, href="https://www.linkedin.com/company/chatstat/mycompany/", target="_blank", className="sidebar_navlink_option")
         ], vertical=True, pills=True)
     ]),
 
-    html.Img(className="sidebar_help", src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/help_circle.png"),
+    html.Img(className="sidebar_help", src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/help_circle.png", alt="Need Help"),
     html.Div(className="sidebar_help_container", children=[
-        html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/help_circle.png", width="20%",
+        html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/help_circle.png", alt="Need Help", width="20%",
                  style={"position": "absolute", "top": "-15%", "padding": "5px", "border-radius": "100%", "background-color": "#25D366"}),
         html.P("Need Help?"),
         html.A(html.P("Go to Learning Centre", style={"padding": "0px 10px", "background-color": "#052F5F", "border-radius": "5px"}),
@@ -169,7 +169,7 @@ filters = html.Div(className="filter_row", children=[
         html.P("FILTERS", className="filter_label"),
         dmc.HoverCard(openDelay=1000, position="right", transition="pop", withArrow=True, children=[
             dmc.HoverCardTarget(
-                dmc.SegmentedControl(id="time_control", className="time_control", value="all", radius="md", size="xs", data=[
+                dmc.SegmentedControl(id="time_control", className="time_control", value="Q", radius="md", size="xs", data=[
                     {"label": "Daily", "value": "D"},
                     {"label": "Weekly", "value": "W"},
                     {"label": "Monthly", "value": "M"},
@@ -212,7 +212,7 @@ filters = html.Div(className="filter_row", children=[
     html.Div(className="searchbar_container", children=[
         html.P("Child Overview Snapshot", className="searchbar_label"),
         dmc.Select(className="searchbar", id="searchbar", clearable=False, searchable=True, placeholder="Search...", nothingFound="Nothing Found",
-            iconWidth=40, icon=html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/chatstatlogo_black.png", width="60%"),
+            iconWidth=40, icon=html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/chatstatlogo_black.png", alt="Logo", width="60%"),
             rightSection=DashIconify(icon="radix-icons:chevron-right", color="black"), limit=5,
             data=[{"group": "Members", "label": child_name.title(), "value": child_name} for child_name in list(df["name_childrens"].unique())] +
             [{"group": "ID", "label": child_id.title(), "value": child_id} for child_id in list(df["id_childrens"].unique())]
@@ -276,7 +276,7 @@ dashboard_charts = html.Div(className="dashboard_charts", children=[
 
 # Analytic Charts
 analytic_charts = html.Div(children=[
-    html.Img(src="assets/images/coming_soon.png", height="100%")
+    html.Img(src="assets/images/coming_soon_green.jpg", alt="Coming Soon", height="100%")
 ], style={"height": "calc(100vh - 8.5vh - 20px)", "width": "100%", "text-align": "center", "background-color": "white", "border-radius": "5px"})
 
 
@@ -285,7 +285,7 @@ report_page = dbc.Card(className="report_page_container", id="report_page_contai
     html.Div(className="report_main_container", children=[
         html.Div(className="report_main_container_header", children=[
             html.Div(className="report_main_logo_container", children=[
-                html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/New-Report.png", alt="New_Report_Icon"),
+                html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/New-Report.png", alt="New Report Icon"),
                 html.P(id="report_main_logo_text")
             ]),
             dmc.Tabs(id="report_main_container_tabs", children=[
@@ -297,11 +297,11 @@ report_page = dbc.Card(className="report_page_container", id="report_page_contai
         ]),
         html.Div(className="report_subheader_container", children=[
             html.P("Report will provide a quick overview of your child's activity.", className="report_subheader"),
-            html.Div(className="report_subheader_dropdown_container", id="report_subheader_dropdown_container", children=[
-                html.P("Top"),
-                dmc.Select(className="report_subheader_dropdown", id="report_subheader_dropdown", clearable=False, searchable=False,
-                           value="5", data=["5", "10", "15"], rightSection=DashIconify(icon="radix-icons:chevron-down", color="black"))
-            ])
+            # html.Div(className="report_subheader_dropdown_container", id="report_subheader_dropdown_container", children=[
+            #     html.P("Top"),
+            #     dmc.Select(className="report_subheader_dropdown", id="report_subheader_dropdown", clearable=False, searchable=False,
+            #                value="5", data=["5", "10", "15"], rightSection=DashIconify(icon="radix-icons:chevron-down", color="black"))
+            # ])
         ]),
         html.Div(id="report_page_content", className="report_page_content")
     ]),
@@ -441,7 +441,7 @@ app.layout = html.Div(children=[
 )
 def display_page(pathname):
     if pathname == "/Dashboard":
-        return [filters, kpi_cards, dashboard_charts]
+        return [filters, overview, kpi_cards, dashboard_charts]
     elif pathname == "/Analytics":
         return [analytic_charts]
     elif pathname == "/Report&Logs":
@@ -874,7 +874,7 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value,
                         align="center", width="auto")
                     ], justify="between"),
                     html.Div(className="kpi_platform_card_row2", children=[
-                        html.Img(className="kpi_platform_image", src=f"assets/images/{platform}.png"),
+                        html.Img(className="kpi_platform_image", src=f"assets/images/{platform}.png", alt=f"{platform}"),
                         dmc.Stack(className="kpi_platform_classification_container", children=[
                             html.Div(children=[
                                 dmc.Text(className="kpi_platform_classification", children=row["result"]),
@@ -935,7 +935,7 @@ def update_radial_chart(time_value, date_range_value, member_value, platform_val
         return [
             html.P(title, style={"color": "#052F5F", "fontWeight": "bold", "fontSize": 17, "margin": "10px 25px 0px 25px"}),
             html.Div(className="content_classification_image", children=[
-                html.Img(src=radial_bar_chart.radial_chart(result_contents_df), width="100%", style={"object-fit": "cover"})]
+                html.Img(src=radial_bar_chart.radial_chart(result_contents_df), alt="Radial Chart", width="100%", style={"object-fit": "cover"})]
             )
         ]
 
@@ -1192,14 +1192,14 @@ def update_pie_chart(time_value, date_range_value, member_value, platform_value,
 
 # Report Page Content
 @app.callback(
-    [Output("report_page_content", "children"), Output("report_main_logo_text", "children"), Output("report_subheader_dropdown_container", "style")],
+    [Output("report_page_content", "children"), Output("report_main_logo_text", "children")],
     Input("report_main_container_tabs", "value")
 )
 def update_report_page_content(tab_value):
     if(tab_value == "generate"):
-        return report_generate_tab, "New Report", {"display": "none"}
+        return report_generate_tab, "New Report"
     elif(tab_value == "saved"):
-        return report_saved_tab, "Saved Reports", {"display": "flex"}
+        return report_saved_tab, "Saved Reports"
 
 
 # Preview Report Mail
@@ -1223,7 +1223,7 @@ def update_report_preview_overview(preview_button_click, member_value, time_rang
         for res in response_json:
             response_div.append(html.Div(className="report_preview_overview_children", children=[
                 html.Div(className="report_preview_overview_children_platform", children=[
-                    html.Img(src=f"""assets/images/{res["platform"].title()}.png"""),
+                    html.Img(src=f"""assets/images/{res["platform"].title()}.png""", alt=f"""{res["platform"].title()}"""),
                     html.P(children=res["type"].title())
                 ]),
                 html.P(className="report_preview_overview_children_text", children=res["text"]),
@@ -1238,12 +1238,12 @@ def update_report_preview_overview(preview_button_click, member_value, time_rang
             dbc.Row(children=[
                 dbc.Col(html.Div(className="report_preview_overview_filter", children=[
                     DashIconify(icon="ph:clock-bold", color="#2d96ff", width=22),
-                    html.P("Between " + " & ".join(datetime.fromisoformat(d).strftime("%d %b'%y") for d in reversed(payload["timerange"])) )
-                    ]), width="auto", align="center"),
+                    html.P("Btw " + " & ".join(datetime.fromisoformat(d).strftime("%d %b'%y") for d in reversed(payload["timerange"])) )
+                    ]), width=6, align="center"),
                 dbc.Col(html.Div(className="report_preview_overview_filter", children=[
                     DashIconify(icon="ic:round-computer", color="#2d96ff", width=22),
                     html.P(", ".join(platform.title() for platform in payload["platform"]))
-                    ]), width="auto", align="center")
+                    ]), width=6, align="center")
             ]),
             dbc.Row(children=[
                 dbc.Col(html.Div(className="report_preview_overview_filter", children=[
@@ -1306,11 +1306,11 @@ def generate_report_mail(generate_button_click, member_value, time_range, platfo
 def update_report_page_saved_content(tab_value, pagination_page):
     start_report = (pagination_page-1)*5
     end_report = pagination_page*5
-    report_metadata_df = metadata_df.iloc[start_report:end_report]
-    report_metadata_df.reset_index(drop=True, inplace=True)
+    page_df = metadata_df.iloc[start_report:end_report]
+    page_df.reset_index(drop=True, inplace=True)
 
     saved_report_list = []
-    for index, row in report_metadata_df.iterrows():
+    for index, row in page_df.iterrows():
         global report_metadata_dict
         report_metadata_dict[index] = row.to_dict()
         report_container = html.Button(className="report_saved_card", id=f"report_saved_card_{index}", children=[
@@ -1328,7 +1328,7 @@ def update_report_page_saved_content(tab_value, pagination_page):
                 dbc.Col(children=[
                     dbc.Row(children=[
                         dbc.Col(html.Div(className="report_saved_filter", children=[DashIconify(icon="ph:clock-bold", color="#2d96ff", width=22),
-                                html.P("Between " + " & ".join(datetime.fromisoformat(d).strftime("%d %b'%y") for d in reversed(ast.literal_eval(row["timerange"])) ) ) ]),
+                                html.P("Btw " + " & ".join(datetime.fromisoformat(d).strftime("%d %b'%y") for d in reversed(ast.literal_eval(row["timerange"])) ) ) ]),
                             width=6, align="center"),
                         dbc.Col(html.Div(className="report_saved_filter", children=[DashIconify(icon="ic:round-computer", color="#2d96ff", width=22),
                                 html.P(", ".join(platform.title() for platform in ast.literal_eval(row["platform"]))) ]),
@@ -1346,6 +1346,9 @@ def update_report_page_saved_content(tab_value, pagination_page):
             ])
         ])
         saved_report_list.append(report_container)
+
+    while(len(saved_report_list) < 5):
+        saved_report_list.append(html.Button(className="report_saved_card", id=f"report_saved_card_{len(saved_report_list)}", style={"display": "none"}))
     return saved_report_list
 
 
@@ -1354,7 +1357,7 @@ def update_report_page_saved_content(tab_value, pagination_page):
     [Output("report_saved_overview", "opened"), Output("report_saved_overview", "title"), Output("report_saved_overview_header", "children")],
     [Input("report_saved_card_0", "n_clicks"), Input("report_saved_card_1", "n_clicks"), Input("report_saved_card_2", "n_clicks"), Input("report_saved_card_3", "n_clicks"), Input("report_saved_card_4", "n_clicks")]
 )
-def update_report_saved_overview(report0_click, report1_click, report2_click, report3_click, report4_click):
+def update_report_saved_overview(*args):
     if(all(context["value"] is None for context in callback_context.triggered)):
         return False, "Report OverView", []
     else:
@@ -1378,7 +1381,7 @@ def update_report_saved_overview(report0_click, report1_click, report2_click, re
         for res in response_json:
             response_div.append(html.Div(className="report_saved_overview_children", children=[
                 html.Div(className="report_saved_overview_children_platform", children=[
-                    html.Img(src=f"""assets/images/{res["platform"].title()}.png"""),
+                    html.Img(src=f"""assets/images/{res["platform"].title()}.png""", alt=f"""{res["platform"].title()}"""),
                     html.P(children=res["type"].title())
                 ]),
                 html.P(className="report_saved_overview_children_text", children=res["text"]),
@@ -1393,12 +1396,12 @@ def update_report_saved_overview(report0_click, report1_click, report2_click, re
             dbc.Row(children=[
                 dbc.Col(html.Div(className="report_saved_overview_filter", children=[
                     DashIconify(icon="ph:clock-bold", color="#2d96ff", width=22),
-                    html.P("Between " + " & ".join(datetime.fromisoformat(d).strftime("%d %b'%y") for d in reversed(payload["timerange"])) )
-                    ]), width="auto", align="center"),
+                    html.P("Btw " + " & ".join(datetime.fromisoformat(d).strftime("%d %b'%y") for d in reversed(payload["timerange"])) )
+                    ]), width=6, align="center"),
                 dbc.Col(html.Div(className="report_saved_overview_filter", children=[
                     DashIconify(icon="ic:round-computer", color="#2d96ff", width=22),
                     html.P(", ".join(platform.title() for platform in payload["platform"]))
-                    ]), width="auto", align="center")
+                    ]), width=6, align="center")
             ]),
             dbc.Row(children=[
                 dbc.Col(html.Div(className="report_saved_overview_filter", children=[
