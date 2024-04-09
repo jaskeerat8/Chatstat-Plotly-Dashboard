@@ -409,7 +409,9 @@ report_saved_tab = html.Div(className="report_saved_container", children=[
         dmc.Pagination(id="report_saved_overview_pagination", total=1, page=1, siblings=1, color="green", withControls=True, radius="5px")
     ]),
     html.Div(className="report_saved_card_list", id="report_saved_card_list"),
-    dmc.Pagination(id="report_saved_card_pagination", total=((len(metadata_df)-1)//5)+1, page=1, siblings=1, color="green", withControls=True, radius="5px")
+    html.Div(className="report_saved_card_pagination_container", children=[
+        dmc.Pagination(id="report_saved_card_pagination", total=((len(metadata_df)-1)//5)+1, page=1, siblings=1, color="green", withControls=True, radius="5px")
+    ])
 ])
 
 
@@ -1322,7 +1324,7 @@ def update_report_page_saved_content(tab_value, pagination_page):
                     ], justify="center"),
                     dbc.Row(children=[
                         html.Div(className="report_saved_header_text", children=[DashIconify(icon="icons8:create-new", color="#2d96ff", width=18),
-                        html.P(f"""Generated on { row["created_at"].strftime("%d %B, %Y %I:%M %p") }""")])
+                        html.P(row["created_at"].strftime("%d %b, %Y %I:%M %p"))])
                     ], justify="center")
                 ], width=4, align="center"),
                 dbc.Col(children=[

@@ -389,21 +389,29 @@
     flex: 1 1 100%;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    gap: 10px;
     align-items: center;
 }
 .report_saved_card_list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    height: 85%;
     width: 100%;
 }
 .report_saved_card {
     width: 100%;
     position: relative;
     padding: 10px 5px;
-    margin: 0px 0px 15px 0px;
     background-color: white;
     border: transparent;
     border-radius: 5px;
     box-shadow: rgba(0, 0, 0, 0.3) 0px 0px 6px;
+}
+.report_saved_card_pagination_container {
+    display: flex;
+    align-items: center;
+    height: 15%;
 }
 .report_saved_button {
     position: absolute;
