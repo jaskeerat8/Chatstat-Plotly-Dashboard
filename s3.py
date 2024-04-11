@@ -29,7 +29,7 @@ def get_data():
     file_key = file["Key"]
 
     obj = s3_client.get_object(Bucket=bucket_name, Key=file_key)
-    df = pd.read_csv(obj["Body"])
+    df = pd.read_csv(obj["Body"], low_memory=False)
     return df
 
 if __name__ == "__main__":

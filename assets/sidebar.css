@@ -74,7 +74,9 @@
 }
 .sidebar_navlink_option {
     display: flex;
-    justify-content: left;
+    flex-direction: row;
+    gap: 1rem;
+    justify-content: start;
     align-items: center;
     overflow: hidden;
     white-space: nowrap;
@@ -134,7 +136,6 @@
     color: white;
     font-family: "Poppins";
     font-weight: 450;
-    margin-left: 1rem;
 }
 .sidebar:hover .sidebar_help {
     display: none;

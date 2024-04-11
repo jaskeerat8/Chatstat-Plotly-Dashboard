@@ -54,8 +54,9 @@
 }
 .report_main_container_tab_list {
     gap: 0px;
-    background-color: #e6e6e6;
+    background-color: #B9D9EB;
     border-radius: 5px;
+    box-shadow: #e6e6e6 0px 0px 6px;
 }
 .report_main_container_tab_option {
     font-size: 14px;
@@ -63,7 +64,7 @@
     font-weight: 600;
 }
 .report_main_container_tab_option:hover {
-    background-color: #e6e6e6;
+    background-color: #B9D9EB;
 }
 .report_subheader_container {
     display: flex;
@@ -275,6 +276,9 @@
     width: 30%;
     border: 2px solid black;
 }
+.report_button:hover {
+    box-shadow: #e6e6e6 0px 0px 6px;
+}
 
 /* Report Image */
 .report_image {
@@ -400,6 +404,7 @@
     width: 100%;
 }
 .report_saved_card {
+    height: 100%;
     width: 100%;
     position: relative;
     padding: 10px 5px;
@@ -500,9 +505,14 @@
     font-size: 18px;
     font-family: "Poppins";
     font-weight: 600;
-    border: transparent;
+    white-space: nowrap;
+    border: 2px solid black;
     border-radius: 5px;
     background-color: rgb(64, 192, 87);
+    padding: 0px;
+}
+.report_saved_overview_button:hover {
+    background-color: #3fb555;
 }
 .report_saved_overview_filter {
     display: flex;

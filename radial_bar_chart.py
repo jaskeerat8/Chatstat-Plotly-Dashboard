@@ -3,10 +3,10 @@ import base64
 from io import BytesIO
 import numpy as np
 import matplotlib
-matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 from matplotlib.patches import Patch
+matplotlib.use("Agg")
 
 # Custom Font
 label_font_path = "assets/fonts/Poppins-SemiBold.ttf"
@@ -30,15 +30,16 @@ def radial_chart(result_contents_df):
 
         plt.figure().set_figheight(5.5)
         ax = plt.subplot(projection="polar")
-        total_radial_bars = ax.barh(categories, total_radial, color="#d8dce2", height=0.8)
-        radial_bars = ax.barh(categories, radial, color=colors, edgecolor="black", linewidth=1.5, height=0.77)
+        ax.barh(categories, total_radial, color="#d8dce2", height=0.8)
+        ax.barh(categories, radial, color=colors, edgecolor="black", linewidth=1.5, height=0.77)
         for category, count in zip(categories, counts):
             ax.text(0, category, category + "  (" + str(count) + ") ", color="black", ha="right", va="center",
                     fontsize=12, fontproperties=label_prop)
 
         ax.set_theta_zero_location("N")
         ax.set_theta_direction(-1)
-        ax.set_xticklabels(["", "", "", "", "", "", f"Total {counts.sum()}       "], fontproperties=label_prop, fontsize=12, color="black")
+        ax.set_xticks(np.linspace(0, 2 * np.pi, 5))
+        ax.set_xticklabels(["", "", "", f"Total {counts.sum()}       ", ""], fontproperties=label_prop, fontsize=12, color="black")
         ax.set_yticklabels([])
         ax.set_frame_on(False)
         ax.grid(False)
@@ -62,7 +63,6 @@ def radial_chart(result_contents_df):
     image_data = base64.b64encode(image_buffer.getvalue()).decode("utf8")
     image_buffer.close()
     matplotlib_image = f"data:image/image/png;base64,{image_data}"
-
     return matplotlib_image
 
 if __name__ == "__main__":
