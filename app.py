@@ -410,21 +410,22 @@ app = Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=["h
 server = app.server
 app.css.config.serve_locally = True
 app.title = "Parent Dashboard"
-app.layout = html.Div(children=[
-    dcc.Interval(id="time_interval", disabled=True),
-    dcc.Location(id="url_path", refresh=False),
-    sidebar, header,
-    html.Div(className="content_container", id="content_container", children=[
-        html.Div(className="sidebar_placeholder", children=[]),
-        html.Div(className="page_content", children=[
-            html.Div(className="header_placeholder", children=[]),
-            html.Div(className="content_outer_container", children=[
-                html.Div(className="content_inner_container", id="content_inner_container")
+app.layout = dmc.NotificationsProvider(
+    html.Div(children=[
+        dcc.Interval(id="time_interval", disabled=True),
+        dcc.Location(id="url_path", refresh=False),
+        sidebar, header, html.Div(id="dashboard_notification"), html.Div(id="preview_report_notification"), html.Div(id="saved_report_notification"),
+        html.Div(className="content_container", id="content_container", children=[
+            html.Div(className="sidebar_placeholder", children=[]),
+            html.Div(className="page_content", children=[
+                html.Div(className="header_placeholder", children=[]),
+                html.Div(className="content_outer_container", children=[
+                    html.Div(className="content_inner_container", id="content_inner_container")
+                ])
             ])
         ])
-    ])
-])
-
+    ]), zIndex=1
+)
 
 # Website Page Navigation
 @app.callback(Output("content_inner_container", "children"),
@@ -1464,6 +1465,48 @@ def perform_user_email_push(n_clicks):
     if(callback_context.triggered[0]["value"]):
         lambda_response = invoke_lambda.generate_report(report_payload)
         return bytes(lambda_response, "utf-8").decode("unicode-escape")
+
+
+# Dashboard Notification
+@app.callback(
+    Output("dashboard_notification", "children"),
+    Input("searchbar", "value")
+)
+def update_dashboard_notification(searchbar_value):
+    if(searchbar_value is None):
+        raise PreventUpdate
+    else:
+        return dmc.Notification(id="dashboard_notification_message", action="show", autoClose=3000, loading=True, color="green",
+            title="Loading Over View", message="Fetching data and producing content"
+        )
+
+
+# Preview Report Notification
+@app.callback(
+    Output("preview_report_notification", "children"),
+    Input("preview_report_button", "n_clicks")
+)
+def update_preview_report_notification(preview_button_click):
+    if(callback_context.triggered[0]["value"] == 0):
+        raise PreventUpdate
+    else:
+        return dmc.Notification(id="preview_report_notification_message", action="show", autoClose=5000, loading=True, color="green",
+            title="Loading Content", message="Creating content from selected options"
+        )
+
+
+# Saved Report Notification
+@app.callback(
+    Output("saved_report_notification", "children"),
+    [Input("report_saved_card_0", "n_clicks"), Input("report_saved_card_1", "n_clicks"), Input("report_saved_card_2", "n_clicks"), Input("report_saved_card_3", "n_clicks"), Input("report_saved_card_4", "n_clicks")]
+)
+def update_saved_report_notification(*args):
+    if(any(context["value"] is None for context in callback_context.triggered)):
+        raise PreventUpdate
+    else:
+        return dmc.Notification(id="saved_report_notification_message", action="show", autoClose=5000, loading=True, color="green",
+            title="Loading Content", message="Creating content from previously selected options"
+        )
 
 
 # Running Main App

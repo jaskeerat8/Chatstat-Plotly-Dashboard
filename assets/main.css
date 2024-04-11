@@ -38,3 +38,17 @@ body {
     flex-direction: column;
     gap: 10px;
 }
+
+/* Notification */
+.mantine-Notification-title {
+    color: #052F5F;
+    font-size: 18px;
+    font-family: "Poppins";
+    font-weight: 600;
+}
+.mantine-Notification-description {
+    color: black;
+    font-size: 14px;
+    font-family: "Poppins";
+    font-weight: 500;
+}
