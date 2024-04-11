@@ -291,9 +291,6 @@ report_page = dbc.Card(className="report_page_container", id="report_page_contai
                 ])
             ], value="generate", color="green", variant="pills")
         ]),
-        html.Div(className="report_subheader_container", children=[
-            html.P("Report will provide a quick overview of your child's activity.", className="report_subheader")
-        ]),
         html.Div(id="report_page_content", className="report_page_content")
     ]),
 
@@ -325,6 +322,7 @@ report_page = dbc.Card(className="report_page_container", id="report_page_contai
 ])
 
 report_generate_tab = html.Div(className="report_generate_container", children=[
+    html.P("Report will provide a quick overview of your child's activity.", className="report_subheader"),
     dbc.Row(children=[
         dbc.Col(html.Div(className="report_filter_header", children=[
             DashIconify(className="report_filter_header_icon", icon="mdi:account-circle", color="#2d96ff", width=22),
