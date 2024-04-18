@@ -30,7 +30,7 @@ def generate_report(payload):
     lambda_client, value = aws()
     response = lambda_client.invoke(FunctionName=value["lambda_generate_report"], InvocationType="RequestResponse", Payload=json.dumps(payload))
     response_payload = json.loads(response["Payload"].read().decode("utf-8"))
-    return response_payload["body"]
+    return response_payload["body"], response_payload["url"]
 
 if __name__ == "__main__":
     print("Invoked Lambda")

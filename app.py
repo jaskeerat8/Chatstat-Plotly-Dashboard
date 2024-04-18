@@ -7,21 +7,14 @@ import pandas as pd
 import math, ast, json
 import calendar
 from datetime import datetime, date, timedelta
-import dash_auth
 import plotly.express as px
 import dash_mantine_components as dmc
 import dash_bootstrap_components as dbc
 from dash_iconify import DashIconify
 from dash import Dash, html, dcc, Input, Output, State, callback_context, no_update
 from dash.exceptions import PreventUpdate
-from flask import request
-
-# Global Variables
-todays_date = datetime.now()
-date_dict = {}
-report_metadata_dict = {0: {}, 1: {}, 2: {}, 3: {}, 4: {}}
-report_payload = {}
-report_overview_body = []
+from flask import Flask, session, request
+import secrets
 
 # Read the latest Data directly from AWS and MySQL Database
 df = s3.get_data()
@@ -48,7 +41,7 @@ def time_filter(dataframe, time_value, date_range_value):
         dataframe = dataframe[(dataframe["createTime_contents"] >= start_date) & (dataframe["createTime_contents"] <= end_date)]
         return dataframe
     else:
-        end_date = datetime.combine(todays_date, datetime.max.time())
+        end_date = datetime.combine(datetime.now(), datetime.max.time())
         if(time_value == "W"):
             start_date = end_date - timedelta(days=end_date.weekday())
         elif(time_value == "M"):
@@ -80,10 +73,9 @@ def alert_filter(dataframe, alert_value):
         dataframe = dataframe[dataframe["alert_contents"] == alert_value]
     return dataframe
 
-def slider_filter(dataframe, slider_value):
-    global date_dict
-    start_date = pd.to_datetime(date_dict[slider_value[0]], format="%Y-%m-%d").date()
-    end_date = pd.to_datetime(date_dict[slider_value[1]], format="%Y-%m-%d").date()
+def slider_filter(dataframe, slider_value, date_dict):
+    start_date = pd.to_datetime(date_dict[str(slider_value[0])], format="%Y-%m-%d").date()
+    end_date = pd.to_datetime(date_dict[str(slider_value[1])], format="%Y-%m-%d").date()
     dataframe["commentTime_comments"] = pd.to_datetime(dataframe["commentTime_comments"], format="%Y-%m-%d %H:%M:%S").dt.date
     dataframe = dataframe[(dataframe["commentTime_comments"] >= start_date) & (dataframe["commentTime_comments"] <= end_date)]
     return dataframe
@@ -184,8 +176,8 @@ filters = html.Div(className="filter_row", children=[
         dbc.Popover(id="popover_date_picker", className="popover_date_picker", children=[
             dbc.PopoverHeader("Selected Date Range", className="popover_date_picker_label"),
             dmc.DateRangePicker(id="date_range_picker", className="date_range_picker", clearable=False, inputFormat="MMM DD, YYYY",
-                                icon=DashIconify(icon=f"arcticons:calendar-simple-{todays_date.day}", color="black", width=30),
-                                value=[todays_date.date()-timedelta(days=500), todays_date.date()]
+                                icon=DashIconify(icon=f"arcticons:calendar-simple-{datetime.now().day}", color="black", width=30),
+                                value=[datetime.now().date()-timedelta(days=500), datetime.now().date()]
             )
             ], target="time_control", placement="bottom", trigger="legacy", hide_arrow=True
         ),
@@ -263,6 +255,7 @@ dashboard_charts = html.Div(className="dashboard_charts", children=[
     html.Div(className="row2", children=[
         html.Div(id="comment_alert_line_chart_container", className="comment_alert_line_chart_container", children=[
             html.Div(id="comment_alert_line_chart"),
+            dcc.Store(id="comment_alert_line_chart_slider_storage", storage_type="memory"),
             html.Div(className="comment_alert_line_chart_slider_container", children=dcc.RangeSlider(id="comment_alert_line_chart_slider", className="comment_alert_line_chart_slider", updatemode="drag", pushable=1, min=0, max=730, value=[0, 730]))
         ]),
         html.Div(id="comment_classification_pie_chart", className="comment_classification_pie_chart")
@@ -309,9 +302,10 @@ report_page = dbc.Card(className="report_page_container", id="report_page_contai
             ], href="https://chatstat.com/how-to-guide/", target="_blank", style={"text-decoration": "none"})
         ]),
 
-        html.Div(id="report_generate_output"),
-        html.Div(id="report_saved_overview_output")
+        dcc.Store(id="report_generate_url_store", storage_type="session"), dcc.Store(id="report_saved_url_store", storage_type="session"),
+        html.Div(className="report_side_download", id="report_side_download")
     ]),
+    dcc.Store(id="report_preview_modal_overview_store", storage_type="memory"),
     dmc.Modal(className="report_preview_overview", id="report_preview_overview", size="50%", zIndex=10, centered=True, overflow="outside", opened=False, children=[
         html.Div(className="report_preview_overview_header_container", children=[
             html.Div(className="report_preview_overview_header", id="report_preview_overview_header")
@@ -339,7 +333,7 @@ report_generate_tab = html.Div(className="report_generate_container", children=[
         ]),
         dmc.DateRangePicker(className="report_filter_daterange", id="report_filter_daterange", dropdownPosition="right", amountOfMonths=2,
             value=[datetime.now() - timedelta(days=365*2), datetime.now()],  inputFormat="MMMM DD, YYYY",
-            icon=DashIconify(icon=f"arcticons:calendar-simple-{todays_date.day}", color="black", width=30)
+            icon=DashIconify(icon=f"arcticons:calendar-simple-{datetime.now().day}", color="black", width=30)
         )
     ]),
     html.Div(className="report_filter_row", children=[
@@ -389,15 +383,18 @@ report_generate_tab = html.Div(className="report_generate_container", children=[
 ])
 
 report_saved_tab = html.Div(className="report_saved_container", children=[
+    dcc.Store(id="report_saved_modal_overview_store", storage_type="memory"),
     dmc.Modal(className="report_saved_overview", id="report_saved_overview", size="50%", zIndex=10, centered=True, overflow="outside", opened=False, children=[
         html.Div(className="report_saved_overview_header_container", children=[
             html.Div(className="report_saved_overview_header", id="report_saved_overview_header"),
-            html.Button("Publish", className="report_saved_overview_button", id="report_saved_overview_button", n_clicks=0)
+            html.Button("Download", className="report_saved_overview_button", id="report_saved_overview_button", n_clicks=0)
         ]),
         html.Div(className="report_saved_overview_container", id="report_saved_overview_container"),
         dmc.Pagination(id="report_saved_overview_pagination", total=1, page=1, siblings=1, color="green", withControls=True, radius="5px")
     ]),
+    dcc.Store(id="report_saved_card_list_store", storage_type="memory"),
     html.Div(className="report_saved_card_list", id="report_saved_card_list"),
+    dcc.Store(id="report_saved_card_store", storage_type="memory"),
     html.Div(className="report_saved_card_pagination_container", children=[
         dmc.Pagination(id="report_saved_card_pagination", total=((len(metadata_df)-1)//5)+1, page=1, siblings=1, color="green", withControls=True, radius="5px")
     ])
@@ -405,16 +402,25 @@ report_saved_tab = html.Div(className="report_saved_container", children=[
 
 
 # Designing Main App
-app = Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=["https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap", dbc.themes.BOOTSTRAP, dbc.themes.MATERIA, dbc.icons.FONT_AWESOME])
-#auth = dash_auth.BasicAuth(app, {"jaskeerat.singh@uqconnect.edu.au": "", "l.kusz@chatstat.com": "", "": ""})
-server = app.server
+server = Flask(__name__)
+app = Dash(__name__, server=server, suppress_callback_exceptions=True, external_stylesheets=["https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap", dbc.themes.BOOTSTRAP, dbc.themes.MATERIA, dbc.icons.FONT_AWESOME])
+app.server.secret_key = secrets.token_hex(16)
 app.css.config.serve_locally = True
 app.title = "Parent Dashboard"
 app.layout = dmc.NotificationsProvider(
     html.Div(children=[
         dcc.Interval(id="time_interval", disabled=True),
         dcc.Location(id="url_path", refresh=False),
-        sidebar, header, html.Div(id="dashboard_notification"), html.Div(id="preview_report_notification"), html.Div(id="saved_report_notification"),
+        sidebar, header,
+        dmc.Notification(id="preview_report_notification_message", action="hide", autoClose=5000, loading=True, color="green",
+            title="Loading Preview", message="Creating preview from selected options"
+        ),
+        dmc.Notification(id="saved_report_notification_message", action="hide", autoClose=5000, loading=True, color="green",
+            title="Loading Report", message="Creating report from saved options"
+        ),
+        dmc.Notification(id="generate_report_notification_message", action="hide", autoClose=5000, loading=True, color="green",
+            title="Generating Report", message="Producing file ... "
+        ),
         html.Div(className="content_container", id="content_container", children=[
             html.Div(className="sidebar_placeholder", children=[]),
             html.Div(className="page_content", children=[
@@ -470,11 +476,11 @@ def update_user_info(time_interval):
 def update_time_control_information(time_interval):
     information = html.Div([
         DashIconify(icon="ion:information-circle", color="#0b71aa", width=30, style={"position": "absolute", "top": "10px", "right": "10px"}),
-        html.P(className="time_control_info_option", children=[html.Strong("Daily:"), f" For Today's Date {todays_date.strftime('%d %B, %Y')}"]),
+        html.P(className="time_control_info_option", children=[html.Strong("Daily:"), f" For Today's Date {datetime.now().strftime('%d %B, %Y')}"]),
         html.P(className="time_control_info_option", children=[html.Strong("Weekly:"), f" From Monday to Sunday"]),
-        html.P(className="time_control_info_option", children=[html.Strong("Monthly:"), f" From the 1st of {todays_date.strftime('%B')}"]),
-        html.P(className="time_control_info_option", children=[html.Strong("Quarterly:"), f" For this Quarter starting from {todays_date.replace(month=3*round((todays_date.month - 1) // 3 + 1) - 2).strftime('%B')}"]),
-        html.P(className="time_control_info_option", children=[html.Strong("Yearly:"), f" From the Beginning of {todays_date.year}"]),
+        html.P(className="time_control_info_option", children=[html.Strong("Monthly:"), f" From the 1st of {datetime.now().strftime('%B')}"]),
+        html.P(className="time_control_info_option", children=[html.Strong("Quarterly:"), f" For this Quarter starting from {datetime.now().replace(month=3*round((datetime.now().month - 1) // 3 + 1) - 2).strftime('%B')}"]),
+        html.P(className="time_control_info_option", children=[html.Strong("Yearly:"), f" From the Beginning of {datetime.now().year}"]),
         html.P(className="time_control_info_option", children=[html.Strong("Custom Range:"), " Select from Date Picker"])
     ])
     return information
@@ -591,7 +597,7 @@ def update_alert_checkbox(time_interval, member_value):
     prevent_initial_call=True
 )
 def reset_filters(n_clicks):
-    return "all", "all", "all", "all"
+    return "A", "all", "all", "all"
 
 
 # SearchBar Reset on Overview Open/Close
@@ -600,8 +606,8 @@ def reset_filters(n_clicks):
     Input("child_overview", "opened"),
     prevent_initial_call=True
 )
-def reset_searchbar(status):
-    if(status):
+def reset_searchbar(modal_status):
+    if(modal_status):
         return no_update
     else:
         return None
@@ -794,23 +800,23 @@ def update_kpi_count(time_value, date_range_value, member_value, alert_value):
         alert_count_df = alert_count_df.sort_values(by="date", ascending=False)
 
         if(time_value == "W"):
-            today = todays_date.date()
+            today = datetime.now().date()
             date_comparison = today + timedelta(days=(6 - today.weekday()) % 7)
             metric_text = "vs Last Week"
         elif(time_value == "M"):
-            today = todays_date.date()
+            today = datetime.now().date()
             date_comparison = datetime(today.year, today.month, calendar.monthrange(today.year, today.month)[-1]).date()
             metric_text = "vs Last Month"
         elif(time_value == "Q"):
-            today = todays_date.date()
+            today = datetime.now().date()
             date_comparison = (today + pd.tseries.offsets.QuarterEnd(0)).date()
             metric_text = "vs Last Quarter"
         elif(time_value == "A"):
-            today = todays_date.date()
+            today = datetime.now().date()
             date_comparison = datetime(today.year, 12, 31).date()
             metric_text = "vs Last Year"
         else:
-            date_comparison = todays_date.date()
+            date_comparison = datetime.now().date()
             metric_text = "vs Last Day"
 
         if(date_comparison in alert_count_df["date"].values):
@@ -1092,16 +1098,16 @@ def update_bar_chart(time_value, date_range_value, member_value, platform_value)
 # Comment Alert Line Chart
 @app.callback(
     Output("comment_alert_line_chart", "children"),
-    [Input("member_dropdown", "value"), Input("alert_dropdown", "value"), Input("comment_alert_line_chart_slider", "value")]
+    [Input("member_dropdown", "value"), Input("alert_dropdown", "value"), Input("comment_alert_line_chart_slider", "value"), Input("comment_alert_line_chart_slider_storage", "data")]
 )
-def update_line_chart(member_value, alert_value, slider_value):
+def update_line_chart(member_value, alert_value, slider_value, storage_dict):
     alert_comment_df = df.copy()
     alert_comment_df = alert_comment_df[(alert_comment_df["alert_comments"].str.lower() != "no") & (alert_comment_df["alert_comments"].str.lower() != "") & (alert_comment_df["alert_comments"].notna())]
 
     # Filters
     alert_comment_df = member_filter(alert_comment_df, member_value)
     alert_comment_df = alert_filter(alert_comment_df, alert_value)
-    alert_comment_df = slider_filter(alert_comment_df, slider_value)
+    alert_comment_df = slider_filter(alert_comment_df, slider_value, storage_dict)
 
     if(len(alert_comment_df) == 0):
         return no_data_graph()
@@ -1136,8 +1142,8 @@ def update_line_chart(member_value, alert_value, slider_value):
 
 # Comment Alert Line Chart Slider
 @app.callback(
-    [Output("comment_alert_line_chart_slider", "marks"), Output("comment_alert_line_chart_slider", "max"),
-     Output("comment_alert_line_chart_slider", "min"), Output("comment_alert_line_chart_slider", "value")],
+    [Output("comment_alert_line_chart_slider", "marks"), Output("comment_alert_line_chart_slider", "max"), Output("comment_alert_line_chart_slider", "min"),
+     Output("comment_alert_line_chart_slider", "value"), Output("comment_alert_line_chart_slider_storage", "data")],
     [Input("member_dropdown", "value")]
 )
 def update_line_chart_slider(member_value):
@@ -1155,18 +1161,17 @@ def update_line_chart_slider(member_value):
         max_date = slider_df["commentTime_comments"].max()
         date_range = range((max_date - min_date).days + 1)
     except:
-        min_date = todays_date - timedelta(days=365)
-        max_date = todays_date
+        min_date = datetime.now() - timedelta(days=365)
+        max_date = datetime.now()
         date_range = range((max_date - min_date).days + 1)
 
     maximum_mark = max(date_range)
     minimum_mark = min(date_range)
     date_list = [min_date + timedelta(days=i) for i in date_range]
 
-    global date_dict
     date_dict = {i: d.strftime("%Y-%m-%d") for i, d in enumerate(date_list)}
     marks = {i: {"label": d.strftime("%b'%y"), "style": {"font-family": "Poppins", "font-weight": 600, "font-size": "10px"}} for i, d in enumerate(date_list) if ((d.month in [1, 4, 7, 10]) and (d.day == 1))}
-    return marks, maximum_mark, minimum_mark, [minimum_mark, maximum_mark]
+    return marks, maximum_mark, minimum_mark, [minimum_mark, maximum_mark], date_dict
 
 
 # Comment Classification Pie Chart
@@ -1217,6 +1222,19 @@ def update_pie_chart(time_value, date_range_value, member_value, platform_value,
         return dcc.Graph(figure=comment_classification, config=plot_config)
 
 
+# Report Page Tab Value
+@app.callback(
+    Output("report_main_container_tabs", "value"),
+    Input("report_side_download_no_data_button", "n_clicks"),
+    prevent_initial_call=True
+)
+def update_report_page_tab(button_click):
+    if(button_click):
+        return "saved"
+    else:
+        raise PreventUpdate
+
+
 # Report Page Content
 @app.callback(
     [Output("report_page_content", "children"), Output("report_main_logo_text", "children")],
@@ -1231,7 +1249,7 @@ def update_report_page_content(tab_value):
 
 # Preview Report Mail
 @app.callback(
-    [Output("report_preview_overview", "opened"), Output("report_preview_overview", "title"), Output("report_preview_overview_header", "children")],
+    [Output("report_preview_overview", "opened"), Output("report_preview_overview", "title"), Output("report_preview_overview_header", "children"), Output("report_preview_modal_overview_store", "data")],
     Input("preview_report_button", "n_clicks"),
     [State("report_filter_member", "value"), State("report_filter_daterange", "value"), State("report_filter_platform", "value"),
      State("report_filter_alert", "value"), State("report_filter_chip", "value"), State("report_filter_type", "value")]
@@ -1245,10 +1263,10 @@ def update_report_preview_overview(preview_button_click, member_value, time_rang
         }
         
         # Calling Lambda for Response Body
-        response_json = json.loads(invoke_lambda.generate_report(payload))
-        response_div = []
-        for res in response_json:
-            response_div.append(html.Div(className="report_preview_overview_children", children=[
+        response_json, response_url = invoke_lambda.generate_report(payload)
+        response_modal_div = []
+        for res in json.loads(response_json):
+            response_modal_div.append(html.Div(className="report_preview_overview_children", children=[
                 html.Div(className="report_preview_overview_children_platform", children=[
                     html.Img(src=f"""assets/images/{res["platform"].title()}.png""", alt=f"""{res["platform"].title()}"""),
                     html.P(children=res["type"].title())
@@ -1256,9 +1274,7 @@ def update_report_preview_overview(preview_button_click, member_value, time_rang
                 html.P(className="report_preview_overview_children_text", children=res["text"]),
                 html.P(className="report_preview_overview_children_date", children=datetime.utcfromtimestamp(int(res["datetime"])/1000).strftime("%d %B %Y %I:%M%p"))
             ]))
-        response_div = [response_div[i:i+4] for i in range(0, len(response_div), 4)]
-        global report_overview_body
-        report_overview_body = response_div
+        response_modal_div = [response_modal_div[i:i+4] for i in range(0, len(response_modal_div), 4)]
 
         # Header for Response Body
         report_preview_overview_header = [
@@ -1283,26 +1299,27 @@ def update_report_preview_overview(preview_button_click, member_value, time_rang
                     ]), width=6, align="center")
             ])
         ]
-        return True, f"""Report for { payload["children"].title() }""", report_preview_overview_header
+        return True, f"""Report for { payload["children"].title() }""", report_preview_overview_header, response_modal_div
     else:
-        return False, "Preview Report", []
+        return False, "Preview Report", [], []
 
 
 # Preview Report Mail Overview Pagination
 @app.callback(
-    [Output("report_preview_overview_container", "children"), Output("report_preview_overview_pagination", "total")],
-    [Input("report_preview_overview", "opened"), Input("report_preview_overview_pagination", "page")]
+    [Output("report_preview_overview_container", "children"), Output("report_preview_overview_pagination", "total"), Output("report_preview_overview_pagination", "page")],
+    [Input("report_preview_overview", "opened"), Input("report_preview_overview_pagination", "page")],
+    State("report_preview_modal_overview_store", "data")
 )
-def update_preview_report_mail_pagination(status, page):
-    if(status):
-        return report_overview_body[page-1], len(report_overview_body)
+def update_preview_report_mail_pagination(modal_status, page, report_modal_data):
+    if(modal_status):
+        return report_modal_data[page-1], len(report_modal_data), page
     else:
-        return "", 1
+        return "", 1, 1
 
 
 # Generate Report Mail
 @app.callback(
-    Output("report_generate_output", "children"),
+    Output("report_generate_url_store", "data"),
     Input("generate_report_button", "n_clicks"),
     [State("report_filter_member", "value"), State("report_filter_daterange", "value"), State("report_filter_platform", "value"),
      State("report_filter_alert", "value"), State("report_filter_chip", "value"), State("report_filter_type", "value")]
@@ -1319,15 +1336,14 @@ def generate_report_mail(generate_button_click, member_value, time_range, platfo
             "filetype": file_type
         }
         mysql_database.post_report_metadata(payload)
-        global metadata_df
-        metadata_df = mysql_database.get_report_metadata("j.teng@chatstat.com")
-        lambda_response = invoke_lambda.generate_report(payload)
-        return bytes(lambda_response, "utf-8").decode("unicode-escape")
+        lambda_response, response_url = invoke_lambda.generate_report(payload)
+        session["report_url"] = response_url
+        return response_url
 
 
 # Report Page Saved Tab Content
 @app.callback(
-    Output("report_saved_card_list", "children"),
+    [Output("report_saved_card_list", "children"), Output("report_saved_card_list_store", "data")],
     [Input("report_main_container_tabs", "value"), Input("report_saved_card_pagination", "page")]
 )
 def update_report_page_saved_content(tab_value, pagination_page):
@@ -1337,9 +1353,9 @@ def update_report_page_saved_content(tab_value, pagination_page):
     page_df.reset_index(drop=True, inplace=True)
 
     saved_report_list = []
+    saved_report_dict = {0: {}, 1: {}, 2: {}, 3: {}, 4: {}}
     for index, row in page_df.iterrows():
-        global report_metadata_dict
-        report_metadata_dict[index] = row.to_dict()
+        saved_report_dict[index] = row.to_dict()
         report_container = html.Button(className="report_saved_card", id=f"report_saved_card_{index}", children=[
             dbc.Row(children=[
                 dbc.Col(children=[
@@ -1376,37 +1392,36 @@ def update_report_page_saved_content(tab_value, pagination_page):
 
     while(len(saved_report_list) < 5):
         saved_report_list.append(html.Button(className="report_saved_card", id=f"report_saved_card_{len(saved_report_list)}", style={"display": "none"}))
-    return saved_report_list
+    return saved_report_list, saved_report_dict
 
 
 # Saved Report Output
 @app.callback(
-    [Output("report_saved_overview", "opened"), Output("report_saved_overview", "title"), Output("report_saved_overview_header", "children")],
-    [Input("report_saved_card_0", "n_clicks"), Input("report_saved_card_1", "n_clicks"), Input("report_saved_card_2", "n_clicks"), Input("report_saved_card_3", "n_clicks"), Input("report_saved_card_4", "n_clicks")]
+    [Output("report_saved_overview", "opened"), Output("report_saved_overview", "title"), Output("report_saved_overview_header", "children"), Output("report_saved_card_store", "data"), Output("report_saved_modal_overview_store", "data")],
+    [Input("report_saved_card_0", "n_clicks"), Input("report_saved_card_1", "n_clicks"), Input("report_saved_card_2", "n_clicks"), Input("report_saved_card_3", "n_clicks"), Input("report_saved_card_4", "n_clicks")],
+    State("report_saved_card_list_store", "data")
 )
-def update_report_saved_overview(*args):
+def update_report_saved_overview(card0_click, card1_click, card2_click, card3_click, card4_click, store_data):
     if(all(context["value"] is None for context in callback_context.triggered)):
-        return False, "Report OverView", []
+        return False, "Report OverView", [], {}, []
     else:
         button_id = callback_context.triggered[0]["prop_id"].split(".")[0]
         button_value = int(button_id.split("_")[-1])
 
         # Creating Payload
-        payload = report_metadata_dict[button_value]
+        payload = store_data[str(button_value)]
         payload.pop("created_at", None)
         for key in payload.keys():
             try:
                 payload[key] = json.loads(payload[key])
             except Exception as e:
                 pass
-        global report_payload
-        report_payload = payload
 
         # Calling Lambda for response body
-        response_json = json.loads(invoke_lambda.generate_report(payload))
-        response_div = []
-        for res in response_json:
-            response_div.append(html.Div(className="report_saved_overview_children", children=[
+        response_json, response_url = invoke_lambda.generate_report(payload)
+        response_modal_div = []
+        for res in json.loads(response_json):
+            response_modal_div.append(html.Div(className="report_saved_overview_children", children=[
                 html.Div(className="report_saved_overview_children_platform", children=[
                     html.Img(src=f"""assets/images/{res["platform"].title()}.png""", alt=f"""{res["platform"].title()}"""),
                     html.P(children=res["type"].title())
@@ -1414,9 +1429,7 @@ def update_report_saved_overview(*args):
                 html.P(className="report_saved_overview_children_text", children=res["text"]),
                 html.P(className="report_saved_overview_children_date", children=datetime.utcfromtimestamp(int(res["datetime"])/1000).strftime("%d %B %Y %I:%M%p"))
             ]))
-        response_div = [response_div[i:i+4] for i in range(0, len(response_div), 4)]
-        global report_overview_body
-        report_overview_body = response_div
+        response_modal_div = [response_modal_div[i:i+4] for i in range(0, len(response_modal_div), 4)]
 
         # Header Filter
         report_saved_overview_header = [
@@ -1441,72 +1454,97 @@ def update_report_saved_overview(*args):
                     ]), width=6, align="center")
             ])
         ]
-        return True, f"""Report for { payload["children"].title() }""", report_saved_overview_header
+        return True, f"""Report for { payload["children"].title() }""", report_saved_overview_header, payload, response_modal_div
 
 
-# Report Overview Pagination
+# Saved Report Overview Pagination
 @app.callback(
-    [Output("report_saved_overview_container", "children"), Output("report_saved_overview_pagination", "total")],
-    [Input("report_saved_overview", "opened"), Input("report_saved_overview_pagination", "page")]
+    [Output("report_saved_overview_container", "children"), Output("report_saved_overview_pagination", "total"), Output("report_saved_overview_pagination", "page")],
+    [Input("report_saved_overview", "opened"), Input("report_saved_overview_pagination", "page")],
+    State("report_saved_modal_overview_store", "data")
 )
-def update_saved_report_mail_pagination(status, page):
-    if(status):
-        return report_overview_body[page-1], len(report_overview_body)
+def update_saved_report_mail_pagination(modal_status, page, report_modal_data):
+    if(modal_status):
+        return report_modal_data[page-1], len(report_modal_data), page
     else:
-        return "", 1
+        return "", 1, 1
 
 
-# Report Overview Email Push
+# Saved Report Overview Email Push
 @app.callback(
-    Output("report_saved_overview_output", "children"),
-    Input("report_saved_overview_button", "n_clicks")
+    Output("report_saved_url_store", "data"),
+    Input("report_saved_overview_button", "n_clicks"),
+    State("report_saved_card_store", "data")
 )
-def perform_user_email_push(n_clicks):
+def perform_user_email_push(overview_button_click, saved_payload):
     if(callback_context.triggered[0]["value"]):
-        lambda_response = invoke_lambda.generate_report(report_payload)
-        return bytes(lambda_response, "utf-8").decode("unicode-escape")
+        lambda_response, response_url = invoke_lambda.generate_report(saved_payload)
+        session["report_url"] = response_url
+        return response_url
 
 
-# Dashboard Notification
+# Download Report
 @app.callback(
-    Output("dashboard_notification", "children"),
-    Input("searchbar", "value")
+    Output("report_side_download", "children"),
+    [Input("report_generate_url_store", "data"), Input("report_saved_url_store", "data")]
 )
-def update_dashboard_notification(searchbar_value):
-    if(searchbar_value is None):
-        raise PreventUpdate
+def update_download_report(generate_url, saved_url):
+    latest_url = session.get("report_url", None)
+    if(latest_url is None):
+        return html.Div(className="report_side_download_no_data", children=[
+            DashIconify(icon="pajamas:download", width=65, color="#25D366"),
+            html.Strong("No Report Downloaded"),
+            html.P("Your Latest Report will appear here"),
+            html.Button(id="report_side_download_no_data_button", children="Check out saved reports", n_clicks=0)
+        ])
     else:
-        return dmc.Notification(id="dashboard_notification_message", action="show", autoClose=3000, loading=True, color="green",
-            title="Loading Over View", message="Fetching data and producing content"
-        )
+        return html.Div(className="report_side_download_data", children=[
+            html.Div(className="report_side_download_data_header", children=[
+                DashIconify(icon="icon-park-twotone:check-one", width=65, color="#25D366"),
+                html.Strong("Your Report is ready to download")
+            ]),
+            html.A(className="report_side_download_data_button_link", children=html.Button(className="report_side_download_data_button", children="Download"), href=latest_url),
+            html.Div(className="report_side_download_data_link_container", children=[
+                html.Strong("or download using this link (valid for 15 min):"),
+                html.P(latest_url)
+            ])
+        ])
 
 
 # Preview Report Notification
 @app.callback(
-    Output("preview_report_notification", "children"),
+    Output("preview_report_notification_message", "action"),
     Input("preview_report_button", "n_clicks")
 )
 def update_preview_report_notification(preview_button_click):
     if(callback_context.triggered[0]["value"] == 0):
-        raise PreventUpdate
+        return "hide"
     else:
-        return dmc.Notification(id="preview_report_notification_message", action="show", autoClose=5000, loading=True, color="green",
-            title="Loading Content", message="Creating content from selected options"
-        )
+        return "show"
 
 
 # Saved Report Notification
 @app.callback(
-    Output("saved_report_notification", "children"),
+    Output("saved_report_notification_message", "action"),
     [Input("report_saved_card_0", "n_clicks"), Input("report_saved_card_1", "n_clicks"), Input("report_saved_card_2", "n_clicks"), Input("report_saved_card_3", "n_clicks"), Input("report_saved_card_4", "n_clicks")]
 )
-def update_saved_report_notification(*args):
-    if(any(context["value"] is None for context in callback_context.triggered)):
-        raise PreventUpdate
+def update_saved_report_notification(card0_click, card1_click, card2_click, card3_click, card4_click):
+    if(all(context["value"] is None for context in callback_context.triggered)):
+        return "hide"
     else:
-        return dmc.Notification(id="saved_report_notification_message", action="show", autoClose=5000, loading=True, color="green",
-            title="Loading Content", message="Creating content from previously selected options"
-        )
+        return "show"
+
+
+# Generate Report Notification
+@app.callback(
+    Output("generate_report_notification_message", "action"),
+    Input("generate_report_button", "n_clicks")
+)
+def update_generate_report_notification(generate_button_click):
+    if(callback_context.triggered[0]["value"] == 0):
+        return "hide"
+    else:
+        return "show"
 
 
 # Running Main App
