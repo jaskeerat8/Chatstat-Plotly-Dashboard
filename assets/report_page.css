@@ -24,7 +24,7 @@
     position: relative;
     background-color: white;
     border-radius: 5px;
-    padding: 15px;
+    padding: 15px 15px 0px 15px;
 }
 .report_main_container_header {
     display: flex;
@@ -148,6 +148,7 @@
     padding: 0px;
 }
 .report_side_download_no_data button {
+    color: black;
     font-size: 14px;
     font-family: "Poppins";
     font-weight: 600;
@@ -184,7 +185,7 @@
 }
 .report_side_download_data_button {
     width: 100%;
-    color: #052F5F;
+    color: black;
     font-size: 18px;
     font-family: "Poppins";
     font-weight: 600;
@@ -466,31 +467,34 @@
     flex: 1 1 100%;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 0px;
     align-items: center;
     padding-top: 15px;
 }
 .report_saved_card_list {
+    height: 90%;
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 15px;
     justify-content: start;
-    height: 85%;
-    width: 100%;
 }
 .report_saved_card {
+    flex: 1;
+    max-height: 85px;
     width: 100%;
-    position: relative;
-    padding: 10px 5px;
+    padding: 5px;
     background-color: white;
     border: transparent;
     border-radius: 5px;
     box-shadow: rgba(0, 0, 0, 0.3) 0px 0px 6px;
 }
 .report_saved_card_pagination_container {
-    display: flex;
-    align-items: center;
     height: 15%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 .report_saved_button {
     position: absolute;
