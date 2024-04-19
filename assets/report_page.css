@@ -182,6 +182,7 @@
 }
 .report_side_download_data_button_link {
     width: 40%;
+    text-decoration: none;
 }
 .report_side_download_data_button {
     width: 100%;
