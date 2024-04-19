@@ -13,7 +13,7 @@ import dash_bootstrap_components as dbc
 from dash_iconify import DashIconify
 from dash import Dash, html, dcc, Input, Output, State, callback_context, no_update
 from dash.exceptions import PreventUpdate
-from flask import Flask, session, request
+from flask import Flask, session
 import secrets
 
 # Read the latest Data directly from AWS and MySQL Database
@@ -114,9 +114,9 @@ sidebar = html.Div(className="sidebar", children=[
         html.Div(className="sidebar_navlink_menu", children=[html.P("General"), html.Hr()]),
         dbc.Nav(className="sidebar_navlink", children=[
             dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/account.png", alt="Account"), html.Span("My Account")],
-                        external_link=True, href="https://au.linkedin.com/in/lawrence-kusz", target="_blank", className="sidebar_navlink_option"),
+                        external_link=True, href="https://family.chatstat.com/family", target="_blank", className="sidebar_navlink_option"),
             dbc.NavLink(children=[html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/setting.png", alt="Settings"), html.Span("Settings")],
-                        external_link=True, href="https://www.linkedin.com/company/chatstat/mycompany/", target="_blank", className="sidebar_navlink_option")
+                        external_link=True, href="https://family.chatstat.com/settings", target="_blank", className="sidebar_navlink_option")
         ], vertical=True, pills=True)
     ]),
 
@@ -148,9 +148,9 @@ header = dmc.Header(className="header", height="8.5vh", fixed=False, children=[
                        href="https://family.chatstat.com/pricing", style={"textDecoration": "none"})
             ]),
             dmc.MenuDivider(),
-            dmc.MenuItem(className="user_container_option", children="My Account", icon=DashIconify(icon="material-symbols:account-box-outline", width=30), href="https://au.linkedin.com/in/lawrence-kusz", target="_blank"),
-            dmc.MenuItem(className="user_container_option", children="Settings", icon=DashIconify(icon="lets-icons:setting-alt-line", width=30), href="https://www.linkedin.com/company/chatstat/mycompany/", target="_blank"),
-            dmc.MenuItem(className="user_container_option", children="Sign Out", icon=DashIconify(icon="tabler:logout-2", color="red", width=30), style={"color": "red"})
+            dmc.MenuItem(className="user_container_option", children="My Account", icon=DashIconify(icon="material-symbols:account-box-outline", width=30), href="https://family.chatstat.com/family", target="_blank"),
+            dmc.MenuItem(className="user_container_option", children="Settings", icon=DashIconify(icon="lets-icons:setting-alt-line", width=30), href="https://family.chatstat.com/settings", target="_blank"),
+            dmc.MenuItem(className="user_container_option", children="Sign Out", icon=DashIconify(icon="tabler:logout-2", color="red", width=30), style={"color": "red"}, href="https://family.chatstat.com/signin")
         ])
     ])
 ])
@@ -371,7 +371,7 @@ report_generate_tab = html.Div(className="report_generate_container", children=[
                 html.P("Export File Type", className="report_filter_header_text")
             ]),
             dmc.RadioGroup([dmc.Radio("PDF", value="pdf", color="green"), dmc.Radio("Excel", value="excel", color="green")],
-                value="pdf", orientation="horizontal", className="report_filter_type", id="report_filter_type"
+                value="excel", orientation="horizontal", className="report_filter_type", id="report_filter_type"
             )
         ])
     ]),
@@ -409,18 +409,15 @@ app.css.config.serve_locally = True
 app.title = "Parent Dashboard"
 app.layout = dmc.NotificationsProvider(
     html.Div(children=[
+        dmc.Notification(className="dashboard_notification", id="preview_report_notification_message", action="hide", autoClose=6000, loading=True,
+                         color="green", title="Loading Preview", message="Creating preview from selected options"),
+        dmc.Notification(className="dashboard_notification", id="saved_report_notification_message", action="hide", autoClose=5000, loading=True,
+                         color="green", title="Loading Report", message="Creating report from saved options"),
+        dmc.Notification(className="dashboard_notification", id="generate_report_notification_message", action="hide", autoClose=5000, loading=True,
+                         color="green", title="Generating Report", message="Producing file ... "),
         dcc.Interval(id="time_interval", disabled=True),
         dcc.Location(id="url_path", refresh=False),
         sidebar, header,
-        dmc.Notification(id="preview_report_notification_message", action="hide", autoClose=5000, loading=True, color="green",
-            title="Loading Preview", message="Creating preview from selected options"
-        ),
-        dmc.Notification(id="saved_report_notification_message", action="hide", autoClose=5000, loading=True, color="green",
-            title="Loading Report", message="Creating report from saved options"
-        ),
-        dmc.Notification(id="generate_report_notification_message", action="hide", autoClose=5000, loading=True, color="green",
-            title="Generating Report", message="Producing file ... "
-        ),
         html.Div(className="content_container", id="content_container", children=[
             html.Div(className="sidebar_placeholder", children=[]),
             html.Div(className="page_content", children=[
@@ -430,7 +427,7 @@ app.layout = dmc.NotificationsProvider(
                 ])
             ])
         ])
-    ]), zIndex=1
+    ]), zIndex=5, position="top-right"
 )
 
 # Website Page Navigation
@@ -1237,14 +1234,15 @@ def update_report_page_tab(button_click):
 
 # Report Page Content
 @app.callback(
-    [Output("report_page_content", "children"), Output("report_main_logo_text", "children")],
+    [Output("report_page_content", "children"), Output("report_main_logo_text", "children"), Output("preview_report_notification_message", "action"),
+     Output("generate_report_notification_message", "action"), Output("saved_report_notification_message", "action")],
     Input("report_main_container_tabs", "value")
 )
 def update_report_page_content(tab_value):
     if(tab_value == "generate"):
-        return report_generate_tab, "New Report"
+        return report_generate_tab, "New Report", "hide", "hide", "hide"
     elif(tab_value == "saved"):
-        return report_saved_tab, "Saved Reports"
+        return report_saved_tab, "Saved Reports", "hide", "hide", "hide"
 
 
 # Preview Report Mail
@@ -1501,7 +1499,7 @@ def update_download_report(generate_url, saved_url):
         return html.Div(className="report_side_download_data", children=[
             html.Div(className="report_side_download_data_header", children=[
                 DashIconify(icon="icon-park-twotone:check-one", width=65, color="#25D366"),
-                html.Strong("Your Report is ready to download")
+                html.Strong("Your Report is ready for download")
             ]),
             html.A(className="report_side_download_data_button_link", children=html.Button(className="report_side_download_data_button", children="Download"), href=latest_url),
             html.Div(className="report_side_download_data_link_container", children=[
@@ -1513,8 +1511,9 @@ def update_download_report(generate_url, saved_url):
 
 # Preview Report Notification
 @app.callback(
-    Output("preview_report_notification_message", "action"),
-    Input("preview_report_button", "n_clicks")
+    Output("preview_report_notification_message", "action", allow_duplicate=True),
+    Input("preview_report_button", "n_clicks"),
+    prevent_initial_call=True
 )
 def update_preview_report_notification(preview_button_click):
     if(callback_context.triggered[0]["value"] == 0):
@@ -1523,25 +1522,27 @@ def update_preview_report_notification(preview_button_click):
         return "show"
 
 
-# Saved Report Notification
+# Generate Report Notification
 @app.callback(
-    Output("saved_report_notification_message", "action"),
-    [Input("report_saved_card_0", "n_clicks"), Input("report_saved_card_1", "n_clicks"), Input("report_saved_card_2", "n_clicks"), Input("report_saved_card_3", "n_clicks"), Input("report_saved_card_4", "n_clicks")]
+    Output("generate_report_notification_message", "action", allow_duplicate=True),
+    Input("generate_report_button", "n_clicks"),
+    prevent_initial_call=True
 )
-def update_saved_report_notification(card0_click, card1_click, card2_click, card3_click, card4_click):
-    if(all(context["value"] is None for context in callback_context.triggered)):
+def update_generate_report_notification(generate_button_click):
+    if(callback_context.triggered[0]["value"] == 0):
         return "hide"
     else:
         return "show"
 
 
-# Generate Report Notification
+# Saved Report Notification
 @app.callback(
-    Output("generate_report_notification_message", "action"),
-    Input("generate_report_button", "n_clicks")
+    Output("saved_report_notification_message", "action", allow_duplicate=True),
+    [Input("report_saved_card_0", "n_clicks"), Input("report_saved_card_1", "n_clicks"), Input("report_saved_card_2", "n_clicks"), Input("report_saved_card_3", "n_clicks"), Input("report_saved_card_4", "n_clicks")],
+    prevent_initial_call=True
 )
-def update_generate_report_notification(generate_button_click):
-    if(callback_context.triggered[0]["value"] == 0):
+def update_saved_report_notification(card0_click, card1_click, card2_click, card3_click, card4_click):
+    if(all(context["value"] is None for context in callback_context.triggered)):
         return "hide"
     else:
         return "show"
