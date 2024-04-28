@@ -11,15 +11,15 @@ import plotly.express as px
 import dash_mantine_components as dmc
 import dash_bootstrap_components as dbc
 from dash_iconify import DashIconify
-from dash import Dash, html, dcc, Input, Output, State, callback_context, no_update
+from dash import Dash, html, dcc, Input, Output, State, callback_context, clientside_callback, no_update
 from dash.exceptions import PreventUpdate
 from flask import Flask, session
 import secrets
 
 # Read the latest Data directly from AWS and MySQL Database
+# df = pd.read_csv("Data/final_24-02-2024_02_05_40.csv")
 df = s3.get_data()
 metadata_df = mysql_database.get_report_metadata("j.teng@chatstat.com")
-#df = pd.read_csv("Data/final_24-02-2024_02_05_40.csv")
 
 # Defining Colors and Plotly Graph Options
 plot_config = {"modeBarButtonsToRemove": ["zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d", "resetScale2d", "hoverClosestCartesian", "hoverCompareCartesian"],
@@ -33,6 +33,10 @@ platform_icons = {"Instagram": "skill-icons:instagram", "Twitter": "devicon:twit
 
 
 # Filter Functions
+def user_filter(dataframe, user_value):
+    dataframe = dataframe[dataframe["email_users"] == user_value]
+    return dataframe
+
 def time_filter(dataframe, time_value, date_range_value):
     if(time_value == "all"):
         end_date = datetime.combine(datetime.strptime(date_range_value[1], "%Y-%m-%d"), datetime.max.time())
@@ -270,7 +274,7 @@ analytic_charts = html.Div(children=[
 
 
 # Report Page
-report_page = dbc.Card(className="report_page_container", id="report_page_container", children=[
+report_page = html.Div(className="report_page_container", id="report_page_container", children=[
     html.Div(className="report_main_container", children=[
         html.Div(className="report_main_container_header", children=[
             html.Div(className="report_main_logo_container", children=[
@@ -403,7 +407,7 @@ report_saved_tab = html.Div(className="report_saved_container", children=[
 
 # Designing Main App
 server = Flask(__name__)
-app = Dash(__name__, server=server, suppress_callback_exceptions=True, external_stylesheets=["https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap", dbc.themes.BOOTSTRAP, dbc.themes.MATERIA, dbc.icons.FONT_AWESOME])
+app = Dash(__name__, server=server, suppress_callback_exceptions=True, update_title=None, external_stylesheets=[dbc.themes.BOOTSTRAP, "https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap"])
 app.server.secret_key = secrets.token_hex(16)
 app.css.config.serve_locally = True
 app.title = "Parent Dashboard"
@@ -415,8 +419,8 @@ app.layout = dmc.NotificationsProvider(
                          color="green", title="Loading Report", message="Creating report from saved options"),
         dmc.Notification(className="dashboard_notification", id="generate_report_notification_message", action="hide", autoClose=5000, loading=True,
                          color="green", title="Generating Report", message="Producing file ... "),
-        dcc.Interval(id="time_interval", disabled=True),
-        dcc.Location(id="url_path", refresh=False),
+        dcc.Interval(id="time_interval", disabled=True), html.Div(id="data_refresh"), dcc.Interval(id="data_refresh_interval", interval=3600000),
+        html.Div(id="page_title"), dcc.Location(id="url_path", refresh=False),
         sidebar, header,
         html.Div(className="content_container", id="content_container", children=[
             html.Div(className="sidebar_placeholder", children=[]),
@@ -429,6 +433,7 @@ app.layout = dmc.NotificationsProvider(
         ])
     ]), zIndex=5, position="top-right"
 )
+
 
 # Website Page Navigation
 @app.callback(Output("content_inner_container", "children"),
@@ -443,14 +448,43 @@ def display_page(pathname):
         return [report_page]
 
 
+# Page Title
+clientside_callback(
+    """
+    function(pathname) {
+        if (pathname == "/Dashboard") {
+            document.title = "Dashboard"
+        } else if (pathname == "/Analytics") {
+            document.title = "Analytics"
+        } else if (pathname == "/Report&Logs") {
+            document.title = "Reports"
+        }
+    }
+    """,
+    Output("page_title", "children"),
+    Input("url_path", "pathname")
+)
+
+
 # Header
 @app.callback(
     Output("header_title", "children"),
     [Input("url_path", "pathname")]
 )
 def update_header(pathname):
-    title = pathname[1:].replace("&", " & ")
+    title = pathname.split("/")[-1].replace("&", " & ")
     return title
+
+
+# Refresh Data
+@app.callback(
+    Output("data_refresh", "children"),
+    Input("data_refresh_interval", "n_intervals")
+)
+def update_global_data(data_time_interval):
+    global df
+    df = s3.get_data()
+    return ""
 
 
 # User Info
@@ -577,9 +611,9 @@ def update_alert_dropdown(alert_value):
 # Alert Checkbox
 @app.callback(
     Output("report_filter_alert", "children"),
-    [Input("time_interval", "n_intervals"), Input("report_filter_member", "value")]
+    Input("time_interval", "n_intervals")
 )
-def update_alert_checkbox(time_interval, member_value):
+def update_alert_checkbox(time_interval):
     alert_list = df["alert_contents"].unique()
     data = [dmc.Checkbox(label=alert.title(), value=alert.lower(), color="green") for alert in sorted(alert_list, key=lambda x: ["high", "medium", "low"].index(x.lower())
         if isinstance(x, str) and x.lower() in ["high", "medium", "low"] else float("inf"))

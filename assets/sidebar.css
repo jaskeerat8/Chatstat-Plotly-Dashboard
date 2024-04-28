@@ -51,6 +51,9 @@
     overflow: hidden;
     padding: 0px;
 }
+.nav-pills .nav-link.active {
+    background-color: #2D96FF;
+}
 .sidebar_navlink_menu {
     display: none;
     position: relative;
@@ -135,7 +138,7 @@
     visibility: visible;
     color: white;
     font-family: "Poppins";
-    font-weight: 450;
+    font-weight: 500;
 }
 .sidebar:hover .sidebar_help {
     display: none;
