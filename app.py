@@ -7,6 +7,7 @@ import pandas as pd
 import math, ast, json
 import calendar
 from datetime import datetime, date, timedelta
+import dash
 import plotly.express as px
 import dash_mantine_components as dmc
 import dash_bootstrap_components as dbc
@@ -88,7 +89,7 @@ def slider_filter(dataframe, slider_value, date_dict):
 # Function if No Data is available
 def no_data_graph():
     message = html.Div(className="no_data_container", children=[
-        html.Img(src="assets/images/empty_ghost.gif", alt="Empty", width="40%"),
+        html.Img(src=dash.get_asset_url("images/empty_ghost.gif"), alt="Empty", width="40%"),
         html.P("No Data to Display", className="no_data_message"),
         html.P("Please make a different Filter Selection", className="no_data_selection")
         ], style={"height": "100%"}
@@ -269,7 +270,7 @@ dashboard_charts = html.Div(className="dashboard_charts", children=[
 
 # Analytic Charts
 analytic_charts = html.Div(children=[
-    html.Img(src="assets/images/coming_soon_green.jpg", alt="Coming Soon", height="100%")
+    html.Img(src="https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/coming_soon_green.jpg", alt="Coming Soon", height="100%")
 ], style={"height": "calc(100vh - 8.5vh - 20px)", "width": "100%", "text-align": "center", "background-color": "white", "border-radius": "5px"})
 
 
@@ -407,7 +408,7 @@ report_saved_tab = html.Div(className="report_saved_container", children=[
 
 # Designing Main App
 server = Flask(__name__)
-app = Dash(__name__, server=server, suppress_callback_exceptions=True, update_title=None, external_stylesheets=[dbc.themes.BOOTSTRAP, "https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap"])
+app = Dash(__name__, server=server, assets_folder="desktop_assets", suppress_callback_exceptions=True, update_title=None, external_stylesheets=[dbc.themes.BOOTSTRAP, "https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap"])
 app.server.secret_key = secrets.token_hex(16)
 app.css.config.serve_locally = True
 app.title = "Parent Dashboard"
@@ -453,11 +454,11 @@ clientside_callback(
     """
     function(pathname) {
         if (pathname == "/Dashboard") {
-            document.title = "Dashboard"
+            document.title = "Chatstat Dashboard"
         } else if (pathname == "/Analytics") {
-            document.title = "Analytics"
+            document.title = "Chatstat Analytics"
         } else if (pathname == "/Report&Logs") {
-            document.title = "Reports"
+            document.title = "Chatstat Reports"
         }
     }
     """,
@@ -938,7 +939,7 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value,
                         align="center", width="auto")
                     ], justify="between"),
                     html.Div(className="kpi_platform_card_row2", children=[
-                        html.Img(className="kpi_platform_image", src=f"assets/images/{platform}.png", alt=f"{platform}"),
+                        html.Img(className="kpi_platform_image", src=dash.get_asset_url(f"images/{platform}.png"), alt=f"{platform}"),
                         dmc.Stack(className="kpi_platform_classification_container", children=[
                             html.Div(children=[
                                 dmc.Text(className="kpi_platform_classification", children=row["result"]),
@@ -999,7 +1000,7 @@ def update_radial_chart(time_value, date_range_value, member_value, platform_val
         return [
             html.P(title, style={"color": "#052F5F", "fontWeight": "bold", "fontSize": 17, "margin": "10px 25px 0px 25px"}),
             html.Div(className="content_classification_image", children=[
-                html.Img(src=radial_bar_chart.radial_chart(result_contents_df), alt="Radial Chart", width="100%", style={"object-fit": "cover"})]
+                html.Img(src=radial_bar_chart.radial_chart("desktop_assets", result_contents_df), alt="Radial Chart", width="100%", style={"object-fit": "cover"})]
             )
         ]
 
@@ -1153,7 +1154,7 @@ def update_line_chart(member_value, alert_value, slider_value, storage_dict):
         comment_alert.update_layout(margin=dict(l=25, r=25, b=0), height=400)
         comment_alert.update_layout(legend=dict(font=dict(family="Poppins"), traceorder="grouped", orientation="h", x=1, y=1, xanchor="right", yanchor="bottom", title_text=""))
         comment_alert.update_layout(xaxis_title="", yaxis_title="", legend_title_text="", plot_bgcolor="rgba(0, 0, 0, 0)")
-        comment_alert.update_layout(yaxis_showgrid=True, yaxis_ticksuffix="  ", yaxis=dict(dtick=50, tickfont=dict(size=12, family="Poppins", color="#8E8E8E"), griddash="dash", gridwidth=1, gridcolor="#DADADA"))
+        comment_alert.update_layout(yaxis_showgrid=True, yaxis_ticksuffix="  ", yaxis=dict(dtick=75, tickfont=dict(size=12, family="Poppins", color="#8E8E8E"), griddash="dash", gridwidth=1, gridcolor="#DADADA"))
         comment_alert.update_layout(xaxis_showgrid=False, xaxis=dict(tickfont=dict(size=10, family="Poppins", color="#052F5F"), tickangle=0))
         comment_alert.update_traces(mode="lines+markers", line=dict(width=2), marker=dict(sizemode="diameter", size=8, color="white", line=dict(width=2)))
         comment_alert.update_xaxes(fixedrange=True)
@@ -1300,7 +1301,7 @@ def update_report_preview_overview(preview_button_click, member_value, time_rang
         for res in json.loads(response_json):
             response_modal_div.append(html.Div(className="report_preview_overview_children", children=[
                 html.Div(className="report_preview_overview_children_platform", children=[
-                    html.Img(src=f"""assets/images/{res["platform"].title()}.png""", alt=f"""{res["platform"].title()}"""),
+                    html.Img(src=dash.get_asset_url(f"""images/{res["platform"].title()}.png"""), alt=f"""{res["platform"].title()}"""),
                     html.P(children=res["type"].title())
                 ]),
                 html.P(className="report_preview_overview_children_text", children=res["text"]),
@@ -1455,7 +1456,7 @@ def update_report_saved_overview(card0_click, card1_click, card2_click, card3_cl
         for res in json.loads(response_json):
             response_modal_div.append(html.Div(className="report_saved_overview_children", children=[
                 html.Div(className="report_saved_overview_children_platform", children=[
-                    html.Img(src=f"""assets/images/{res["platform"].title()}.png""", alt=f"""{res["platform"].title()}"""),
+                    html.Img(src=dash.get_asset_url(f"""images/{res["platform"].title()}.png"""), alt=f"""{res["platform"].title()}"""),
                     html.P(children=res["type"].title())
                 ]),
                 html.P(className="report_saved_overview_children_text", children=res["text"]),

@@ -8,19 +8,20 @@ import matplotlib.font_manager as fm
 from matplotlib.patches import Patch
 matplotlib.use("Agg")
 
-# Custom Font
-label_font_path = "assets/fonts/Poppins-SemiBold.ttf"
-legend_font_path = "assets/fonts/Poppins-Regular.ttf"
-label_prop = fm.FontProperties(fname=label_font_path)
-legend_prop = fm.FontProperties(fname=legend_font_path)
-legend_prop.set_size(11)
-
 # Colors
 content_classification_colors = {"Mental & Emotional Health": "#FFD334", "Other Toxic Content": "#2D96FF", "Violence & Threats": "#FF5100", "Cyberbullying": "#25D366", "Self Harm & Death": "#f77d07", "Sexual & Inappropriate Content": "#a020f0"}
 
 # Matplotlib Image Code
-def radial_chart(result_contents_df):
+def radial_chart(asset_folder, result_contents_df):
     try:
+        # Custom Font
+        label_font_path = f"{asset_folder}/fonts/Poppins-SemiBold.ttf"
+        legend_font_path = f"{asset_folder}/fonts/Poppins-Regular.ttf"
+        label_prop = fm.FontProperties(fname=label_font_path)
+        legend_prop = fm.FontProperties(fname=legend_font_path)
+        legend_prop.set_size(11)
+
+        # Reading Data Frame
         categories = result_contents_df["classification"]
         counts = result_contents_df["count"]
         radial = np.radians(result_contents_df["radial"])
