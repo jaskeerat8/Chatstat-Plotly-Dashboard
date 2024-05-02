@@ -220,16 +220,19 @@
     display: flex;
     flex-direction: row;
     gap: 10px;
-    justify-content: center;
+    justify-content: start;
     align-items: center;
     height: 100%;
 }
 .kpi_platform_card {
+    height: 100%;
+    width: calc(100% / 3);
     display: flex;
     flex-direction: column;
     background-color: white;
     border-radius: 5px;
     padding: 10px;
+    transition: transform 0.2s ease-in-out;
 }
 .kpi_platform_count_label {
     color: black;
@@ -276,6 +279,26 @@
     text-align: center;
     border-radius: 15px;
 }
+.kpi_add_platform_card_link {
+    flex: 1;
+    height: 100%;
+}
+.kpi_add_platform_card {
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    color: #052F5F;
+    font-size: 22px;
+    font-family: "Poppins";
+    font-weight: 600;
+    background-color: white;
+    border-radius: 5px;
+    padding: 10px;
+    transition: transform 0.2s ease-in-out;
+}
 .kpi_platform_card_no_data {
     height: 100%;
     width: 100%;
@@ -292,12 +315,10 @@
     margin: 0px;
     padding: 0px;
 }
-.kpi_platform_card {
-    flex: 1;
-    height: 100%;
-    transition: transform 0.2s ease-in-out;
-}
 .kpi_platform_card:hover {
+    transform: translateY(-5px);
+}
+.kpi_add_platform_card:hover {
     transform: translateY(-5px);
 }
 .kpi_platform_card_no_data:hover {

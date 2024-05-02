@@ -951,11 +951,13 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value,
                 ])
             )
 
+        kpi_platform_list.append(dcc.Link(className="kpi_add_platform_card_link", children=[
+            html.Div(className="kpi_add_platform_card", children=[html.Strong("Add more Platforms"), DashIconify(icon="basil:add-outline", color="#25D366", width=40)])
+        ], href="https://family.chatstat.com/addchild", target="_blank", style={"text-decoration": "none"})
+        )
+
         # Producing Carousel
-        if(len(kpi_platform_list) in [1, 2]):
-            kpi_group_list = [kpi_platform_list[i:i+len(kpi_platform_list)] for i in range(len(kpi_platform_list) - (len(kpi_platform_list)-1))]
-        else:
-            kpi_group_list = [kpi_platform_list[i:i+3] for i in range(len(kpi_platform_list) - 2)]
+        kpi_group_list = [kpi_platform_list[i:i+3] for i in range(len(kpi_platform_list) - 2)]
         button_id = callback_context.triggered[0]["prop_id"].split(".")[0]
         if(button_id == "kpi_platform_backward"):
             current_index = max(0, current_index - 1)
