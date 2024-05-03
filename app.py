@@ -951,13 +951,17 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value,
                 ])
             )
 
+        # Add more Platforms
         kpi_platform_list.append(dcc.Link(className="kpi_add_platform_card_link", children=[
             html.Div(className="kpi_add_platform_card", children=[html.Strong("Add more Platforms"), DashIconify(icon="basil:add-outline", color="#25D366", width=40)])
         ], href="https://family.chatstat.com/addchild", target="_blank", style={"text-decoration": "none"})
         )
 
         # Producing Carousel
-        kpi_group_list = [kpi_platform_list[i:i+3] for i in range(len(kpi_platform_list) - 2)]
+        if(len(kpi_platform_list) < 3):
+            kpi_group_list = [kpi_platform_list[i:i+len(kpi_platform_list)] for i in range(len(kpi_platform_list) - (len(kpi_platform_list)-1))]
+        else:
+            kpi_group_list = [kpi_platform_list[i:i+3] for i in range(len(kpi_platform_list) - 2)]
         button_id = callback_context.triggered[0]["prop_id"].split(".")[0]
         if(button_id == "kpi_platform_backward"):
             current_index = max(0, current_index - 1)
@@ -1002,7 +1006,7 @@ def update_radial_chart(time_value, date_range_value, member_value, platform_val
         return [
             html.P(title, style={"color": "#052F5F", "fontWeight": "bold", "fontSize": 17, "margin": "10px 25px 0px 25px"}),
             html.Div(className="content_classification_image", children=[
-                html.Img(src=radial_bar_chart.radial_chart("desktop_assets", result_contents_df), alt="Radial Chart", width="100%", style={"object-fit": "cover"})]
+                html.Img(src=radial_bar_chart.radial_chart(result_contents_df, "desktop_assets"), alt="Radial Chart", width="100%", style={"object-fit": "cover"})]
             )
         ]
 
@@ -1156,7 +1160,7 @@ def update_line_chart(member_value, alert_value, slider_value, storage_dict):
         comment_alert.update_layout(margin=dict(l=25, r=25, b=0), height=400)
         comment_alert.update_layout(legend=dict(font=dict(family="Poppins"), traceorder="grouped", orientation="h", x=1, y=1, xanchor="right", yanchor="bottom", title_text=""))
         comment_alert.update_layout(xaxis_title="", yaxis_title="", legend_title_text="", plot_bgcolor="rgba(0, 0, 0, 0)")
-        comment_alert.update_layout(yaxis_showgrid=True, yaxis_ticksuffix="  ", yaxis=dict(dtick=75, tickfont=dict(size=12, family="Poppins", color="#8E8E8E"), griddash="dash", gridwidth=1, gridcolor="#DADADA"))
+        comment_alert.update_layout(yaxis_showgrid=True, yaxis_ticksuffix="  ", yaxis=dict(dtick=100, tickfont=dict(size=12, family="Poppins", color="#8E8E8E"), griddash="dash", gridwidth=1, gridcolor="#DADADA"))
         comment_alert.update_layout(xaxis_showgrid=False, xaxis=dict(tickfont=dict(size=10, family="Poppins", color="#052F5F"), tickangle=0))
         comment_alert.update_traces(mode="lines+markers", line=dict(width=2), marker=dict(sizemode="diameter", size=8, color="white", line=dict(width=2)))
         comment_alert.update_xaxes(fixedrange=True)

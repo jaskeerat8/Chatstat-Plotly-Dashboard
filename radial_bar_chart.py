@@ -12,7 +12,7 @@ matplotlib.use("Agg")
 content_classification_colors = {"Mental & Emotional Health": "#FFD334", "Other Toxic Content": "#2D96FF", "Violence & Threats": "#FF5100", "Cyberbullying": "#25D366", "Self Harm & Death": "#f77d07", "Sexual & Inappropriate Content": "#a020f0"}
 
 # Matplotlib Image Code
-def radial_chart(asset_folder, result_contents_df):
+def radial_chart(result_contents_df, asset_folder="assets"):
     try:
         # Custom Font
         label_font_path = f"{asset_folder}/fonts/Poppins-SemiBold.ttf"
