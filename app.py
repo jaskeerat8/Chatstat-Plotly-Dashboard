@@ -17,8 +17,8 @@ from flask import Flask, session
 import secrets
 
 # Read the latest Data directly from AWS and MySQL Database
-# df = pd.read_csv("Data/final_24-02-2024_02_05_40.csv")
-df = s3.get_data()
+#df = s3.get_data()
+df = pd.read_csv("Data/final_16-06-2024_02_07_51.csv")
 metadata_df = mysql_database.get_report_metadata("j.teng@chatstat.com")
 
 # Defining Colors and Plotly Graph Options
