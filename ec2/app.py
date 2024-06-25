@@ -21,6 +21,7 @@ import secrets
 #metadata_df = mysql_database.get_report_metadata("j.teng@chatstat.com")
 df = pd.read_csv("Data/final_16-06-2024_02_07_51.csv")
 metadata_df = pd.read_csv("Data/metadata.csv")
+metadata_df["created_at"] = pd.to_datetime(metadata_df["created_at"])
 
 # Defining Colors and Plotly Graph Options
 image_folder = "https://chatstat-dashboard.s3.ap-southeast-2.amazonaws.com/images/"
@@ -111,10 +112,10 @@ sidebar = html.Div(className="sidebar", children=[
         dbc.Nav(className="sidebar_navlink", children=[
             dbc.NavLink(children=[html.Img(src=image_folder + "dashboard.png", alt="Dashboard"), html.Span("Dashboard")],
                         href="/Dashboard", active="exact", className="sidebar_navlink_option"),
-            dbc.NavLink(children=[html.Img(src=image_folder + "analytics.png", alt="Analytics"), html.Span("Analytics")],
-                        href="/Analytics", active="exact", className="sidebar_navlink_option"),
             dbc.NavLink(children=[html.Img(src=image_folder + "report.png", alt="Report"), html.Span("Report & Logs")],
-                        href="/Report&Logs", active="exact", className="sidebar_navlink_option")
+                        href="/Report&Logs", active="exact", className="sidebar_navlink_option"),
+            dbc.NavLink(children=[html.Img(src=image_folder + "analytics.png", alt="Analytics"), html.Span("Analytics")],
+                        href="/Analytics", active="exact", className="sidebar_navlink_option")
         ], vertical=True, pills=True),
 
         html.Div(className="sidebar_navlink_menu", children=[html.P("General"), html.Hr()]),
@@ -1607,4 +1608,4 @@ def update_saved_report_notification(card0_click, card1_click, card2_click, card
 
 # Running Main App
 if __name__ == "__main__":
-    app.run_server(debug=False)
+    app.run_server(debug=False, host="0.0.0.0", port=8001)
