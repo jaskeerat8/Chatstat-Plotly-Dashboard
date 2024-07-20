@@ -169,7 +169,7 @@ filters = html.Div(className="filter_row", children=[
         html.P("FILTERS", className="filter_label"),
         dmc.HoverCard(openDelay=1000, position="right", transition="pop", withArrow=True, children=[
             dmc.HoverCardTarget(
-                dmc.SegmentedControl(id="time_control", className="time_control", value="A", radius="md", size="xs", data=[
+                dmc.SegmentedControl(id="time_control", className="time_control", value="all", radius="md", size="xs", data=[
                     {"label": "Daily", "value": "D"},
                     {"label": "Weekly", "value": "W"},
                     {"label": "Monthly", "value": "M"},
@@ -184,7 +184,7 @@ filters = html.Div(className="filter_row", children=[
             dbc.PopoverHeader("Selected Date Range", className="popover_date_picker_label"),
             dmc.DateRangePicker(id="date_range_picker", className="date_range_picker", clearable=False, inputFormat="MMM DD, YYYY",
                                 icon=DashIconify(icon=f"arcticons:calendar-simple-{datetime.now().day}", color="black", width=30),
-                                value=[datetime.now().date()-timedelta(days=500), datetime.now().date()]
+                                value=[datetime.now().date()-timedelta(days=1000), datetime.now().date()]
             )
             ], target="time_control", placement="bottom", trigger="legacy", hide_arrow=True
         ),
