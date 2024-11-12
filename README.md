@@ -9,3 +9,7 @@ View Dashboard Here - http://3.25.35.63:8001/ (Give a min to load) or https://ch
 ![image](https://github.com/user-attachments/assets/0729ef15-c80b-4d3d-869e-ac4da7d3de70)
 * The final data is saved on s3, that will be used to drive the application that consists of 3 pages - Dashboard, Analytics and Reports Page.
 ![Chatstat Dashboard](https://github.com/user-attachments/assets/b8cc92c4-5bdc-4006-a3db-bc74a7b97984)
+
+**Demo**
+
+https://github.com/user-attachments/assets/125ff119-039d-4d8b-957c-aba8cd635352
