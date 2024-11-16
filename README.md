@@ -1,4 +1,4 @@
-View Dashboard Here - http://3.25.35.63:8001/ (Give a min to load) or https://chatstatdash.onrender.com (Give 2 min to load and refresh)
+View Dashboard Here - http://3.25.35.63:8001/ (Give a min to load).
 
 * The process followed in the backend to drive the flask app developed using Plotly Dash.
 * The application uses a live mongodb database that serves as the source.
