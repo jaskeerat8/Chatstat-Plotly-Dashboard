@@ -1,5 +1,5 @@
 # Importing Libraries
-import json
+import json, base64
 import miscellaneous_functions
 import radial_bar_chart
 import pandas as pd
@@ -245,6 +245,7 @@ kpi_cards = html.Div(className="kpi_container", children=[
 
 # Page Charts
 dashboard_charts = html.Div(className="dashboard_charts", children=[
+    dcc.Download(id="download_radial_chart"), dcc.Store(id="download_radial_chart_store", storage_type="memory"),
     html.Div(className="row1", children=[
         html.Div(id="content_risk_classification_container", className="content_risk_classification_container", children=[
             html.Div(id="content_classification_radial_chart", className="content_classification_radial_chart"),
@@ -261,20 +262,6 @@ dashboard_charts = html.Div(className="dashboard_charts", children=[
         ]),
         html.Div(id="comment_classification_pie_chart", className="comment_classification_pie_chart")
     ])
-])
-
-
-# Analytic Charts
-analytic_charts = html.Div(className="analytic_charts", children=[
-    html.Img(src=image_folder + "coming_soon_green.jpg", alt="Coming Soon", height="100%")
-], style={"height": "calc(100vh - 8.5vh - 20px)", "width": "100%", "text-align": "center", "background-color": "white", "border-radius": "5px"})
-
-
-# Default Page
-default_page = html.Div(className="default_page_container", children=[
-    html.Img(src=image_folder + "chatstatlogoheader.png", alt="Chatstat", className="default_image"),
-    html.P("Welcome to chatstat", className="default_heading"),
-    html.P("Your Ally in Social Media Safety Monitoring", className="default_subheading")
 ])
 
 
@@ -411,6 +398,20 @@ report_saved_tab = html.Div(className="report_saved_container", children=[
     html.Div(className="report_saved_card_pagination_container", children=[
         dmc.Pagination(id="report_saved_card_pagination", total=((len(metadata_df)-1)//5)+1, page=1, siblings=1, color="green", withControls=True, radius="5px")
     ])
+])
+
+
+# Analytic Charts
+analytic_charts = html.Div(className="analytic_charts", children=[
+    html.Img(src=image_folder + "coming_soon_green.jpg", alt="Coming Soon", height="100%")
+], style={"height": "calc(100vh - 8.5vh - 20px)", "width": "100%", "text-align": "center", "background-color": "white", "border-radius": "5px"})
+
+
+# Default Page
+default_page = html.Div(className="default_page_container", children=[
+    html.Img(src=image_folder + "chatstatlogoheader.png", alt="Chatstat", className="default_image"),
+    html.P("Welcome to chatstat", className="default_heading"),
+    html.P("Your Ally in Social Media Safety Monitoring", className="default_subheading")
 ])
 
 
@@ -993,7 +994,7 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value,
 
 # Content Classification Radial Chart
 @app.callback(
-    Output("content_classification_radial_chart", "children"),
+    [Output("content_classification_radial_chart", "children"), Output("download_radial_chart_store", "data")],
     [Input("time_control", "value"), Input("date_range_picker", "value"), Input("member_dropdown", "value"), Input("platform_dropdown", "value"), Input("alert_dropdown", "value")]
 )
 def update_radial_chart(time_value, date_range_value, member_value, platform_value, alert_value):
@@ -1024,12 +1025,27 @@ def update_radial_chart(time_value, date_range_value, member_value, platform_val
             title = f"Content Risk Classification - {alert_value} Alerts"
         else:
             title = "Content Risk Classification"
+
+        radial_image_src, radial_data_bytes = radial_bar_chart.radial_chart(result_contents_df, "desktop_assets")
         return [
             html.P(title, style={"color": "#052F5F", "fontWeight": "bold", "fontSize": 17, "margin": "10px 25px 0px 25px"}),
             html.Div(className="content_classification_image", children=[
-                html.Img(src=radial_bar_chart.radial_chart(result_contents_df, "desktop_assets"), alt="Radial Chart", width="100%", style={"object-fit": "cover"})]
+                html.Img(src=radial_image_src, alt="Radial Chart", width="100%", style={"object-fit": "cover"})]
             )
-        ]
+        ], base64.b64encode(radial_data_bytes).decode("utf-8")
+
+
+# Download Radial Chart to User Local Machine
+@app.callback(
+    Output("download_radial_chart", "data"),
+    [Input("save_as_image", "n_clicks"), Input("download_radial_chart_store", "data")],
+    prevent_initial_call=True
+)
+def download_radial_chart(btn, data_base64):
+    if not btn:
+        raise PreventUpdate
+    data_bytes = base64.b64decode(data_base64)
+    return dcc.send_bytes(lambda buf: buf.write(data_bytes), filename="content_classification.png")
 
 
 # Risk Categories Horizontal Bar
@@ -1644,4 +1660,4 @@ def update_saved_report_notification(card0_click, card1_click, card2_click, card
 
 # Running Main App
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=8001)
+    app.run(debug=False, host="0.0.0.0", port=8001)

@@ -34,7 +34,7 @@ def radial_chart(result_contents_df, asset_folder="assets"):
         ax.barh(categories, total_radial, color="#d8dce2", height=0.8)
         ax.barh(categories, radial, color=colors, edgecolor="black", linewidth=1.5, height=0.77)
         for category, count in zip(categories, counts):
-            ax.text(0, category, category + "  ", color="black", ha="right", va="center",
+            ax.text(0, category, category + f" ({str(count)}) ", color="black", ha="right", va="center",
                     fontsize=12, fontproperties=label_prop)
 
         ax.set_theta_zero_location("N")
@@ -61,10 +61,11 @@ def radial_chart(result_contents_df, asset_folder="assets"):
     plt.tight_layout()
     plt.savefig(image_buffer, format="png", dpi=300)
     plt.close()
+    image_bytes = image_buffer.getvalue()
+
     image_data = base64.b64encode(image_buffer.getvalue()).decode("utf8")
-    image_buffer.close()
     matplotlib_image = f"data:image/image/png;base64,{image_data}"
-    return matplotlib_image
+    return matplotlib_image, image_bytes
 
 if __name__ == "__main__":
     print("File For Develolping Radial Bar Chart")
