@@ -1,0 +1,322 @@
+/* Add Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap");
+
+/* filter container */
+.filter_row {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    margin: 0px;
+    padding: 0px;
+}
+.filter_container {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    padding: 5px 10px 5px 5px;
+    border-radius: 5px;
+    background-color: #0b71aa;
+    width: 85%;
+}
+.filter_label {
+    color: white;
+    font-size: 14px;
+    font-family: "Poppins";
+    font-weight: 500;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    margin: 0px;
+    padding: 0px;
+    border-left: 3px solid black;
+    width: auto;
+}
+
+/* date segment control filter */
+.mantine-SegmentedControl-root {
+    border-radius: 5px;
+    background-color: #c7e4ff;
+    border: 2px solid #052F5F;
+    align-items: center;
+    width: auto;
+}
+.mantine-SegmentedControl-active {
+    color: #0074e2;
+    border: 2px solid black;
+}
+.mantine-SegmentedControl-label {
+    color: #2D96FF;
+    font-size: 14px;
+    font-family: "Poppins";
+    font-weight: 600;
+}
+.mantine-SegmentedControl-label:hover {
+    color: #0074e2;
+    font-weight: 600;
+}
+.mantine-SegmentedControl-labelActive {
+    color: #0080ff;
+    font-size: 14px;
+    font-family: "Poppins";
+    font-weight: 600;
+}
+.mantine-s28z26:not(:first-of-type) {
+    border-style: solid;
+    border-width: 0px 0px 0px 2px;
+    border-color: #0074e2;
+}
+
+/* Date Range Picker */
+.popover_date_picker {
+    font-family: "Poppins";
+    text-align: center;
+    width: 300px;
+    border-radius: 5px;
+    position: relative;
+    z-index: 2 !important;
+}
+.popover_date_picker_label {
+    color: black;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.date_range_picker .mantine-DateRangePicker-icon {
+    background-color: white;
+    border: 2px solid black;
+    border-right: 2px solid black;
+    border-radius: 0px 0px 0px 5px;
+}
+.date_range_picker .mantine-DateRangePicker-input {
+    text-align: center;
+    border-radius: 0px 0px 5px 5px;
+    border: 2px solid black;
+    background-color: #25D366;
+    font-size: 16px;
+    font-weight: 600;
+}
+.date_range_picker .mantine-DateRangePicker-dropdown {
+    border: 2px solid black;
+    position: absolute !important;
+    top: 110% !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    z-index: 2 !important;
+}
+
+/* time control information */
+.time_control_information {
+    z-index: 4 !important;
+}
+.time_control_info_option {
+    font-size: 12px;
+    font-family: "Poppins";
+    margin: 0px;
+    padding: 0px;
+}
+
+/* member dropdown */
+.member_dropdown_container {
+    position: relative;
+    flex: 1;
+}
+.member_dropdown_label {
+    z-index: 1;
+    top: -20%;
+    left: 10%;
+    position: absolute;
+    padding: 0px 5px;
+    margin: 0px;
+    font-size: 12px;
+    font-family: "Poppins";
+    font-weight: 600;
+    color: black;
+    background-color: white;
+    border-radius: 2px 2px 0px 0px;
+}
+.member_dropdown_avatar {
+    font-size: 15px;
+    border: 2px solid black;
+}
+.member_dropdown {
+    border-radius: 8px;
+    align-items: center;
+}
+.member_dropdown .mantine-Select-input {
+    font-size: 16px;
+    font-family: "Poppins";
+    font-weight: 600;
+    text-align: center;
+    border: 2px solid black;
+}
+.member_dropdown .mantine-Select-input:focus {
+    border: 2px solid black;
+}
+.member_dropdown .mantine-Select-dropdown {
+    z-index: 2 !important;
+    border: 2px solid black;
+}
+.member_dropdown .mantine-Select-item {
+    font-size: 14px;
+    font-family: "Poppins";
+    font-weight: 500;
+}
+.member_dropdown .mantine-Select-rightSection {
+    background-color: transparent;
+    pointer-events: none;
+    transition: transform 0.3s ease-in-out;
+}
+.member_dropdown .mantine-Select-input:focus + .mantine-Select-rightSection {
+    transform: rotate(180deg);
+}
+
+/* platform dropdown */
+.platform_dropdown_container {
+    position: relative;
+    flex: 1;
+}
+.platform_dropdown_label {
+    z-index: 1;
+    top: -20%;
+    left: 10%;
+    position: absolute;
+    padding: 0px 5px;
+    margin: 0px;
+    font-size: 12px;
+    font-family: "Poppins";
+    font-weight: 600;
+    color: black;
+    background: white;
+    border-radius: 2px 2px 0px 0px;
+}
+.platform_dropdown {
+    border-radius: 8px;
+    align-items: center;
+}
+.platform_dropdown .mantine-Select-input {
+    font-size: 16px;
+    font-family: "Poppins";
+    font-weight: 600;
+    text-align: center;
+    border: 2px solid black;
+}
+.platform_dropdown .mantine-Select-input:focus {
+    border: 2px solid black;
+}
+.platform_dropdown .mantine-Select-dropdown {
+    z-index: 2 !important;
+    border: 2px solid black;
+}
+.platform_dropdown .mantine-Select-item {
+    font-size: 14px;
+    font-family: "Poppins";
+    font-weight: 500;
+}
+.platform_dropdown .mantine-Select-rightSection {
+    background-color: transparent;
+    pointer-events: none;
+    transition: transform 0.3s ease-in-out;
+}
+.platform_dropdown .mantine-Select-input:focus + .mantine-Select-rightSection {
+    transform: rotate(180deg);
+}
+
+/* alert dropdown */
+.alert_dropdown_container {
+    position: relative;
+    flex: 1;
+}
+.alert_dropdown_label {
+    z-index: 1;
+    top: -20%;
+    left: 10%;
+    position: absolute;
+    padding: 0px 5px;
+    margin: 0px;
+    font-size: 12px;
+    font-family: "Poppins";
+    font-weight: 600;
+    color: black;
+    background-color: white;
+    border-radius: 2px 2px 0px 0px;
+}
+.alert_dropdown {
+    border-radius: 8px;
+    align-items: center;
+}
+.alert_dropdown .mantine-Select-input {
+    font-size: 16px;
+    font-family: "Poppins";
+    font-weight: 600;
+    text-align: center;
+    border: 2px solid black;
+}
+.alert_dropdown .mantine-Select-input:focus {
+    border: 2px solid black;
+}
+.alert_dropdown .mantine-Select-dropdown {
+    z-index: 2 !important;
+    border: 2px solid black;
+}
+.alert_dropdown .mantine-Select-item {
+    font-size: 14px;
+    font-family: "Poppins";
+    font-weight: 500;
+}
+.alert_dropdown .mantine-Select-rightSection {
+    background-color: transparent;
+    pointer-events: none;
+    transition: transform 0.3s ease-in-out;
+}
+.alert_dropdown .mantine-Select-input:focus + .mantine-Select-rightSection {
+    transform: rotate(180deg);
+}
+
+/* Reset the Filters */
+.reset_filter_container {
+    width: auto;
+}
+.reset_filter_container:hover {
+    transition: transform 1s ease;
+    transform: rotate(-360deg);
+}
+
+/* Search Bar */
+.searchbar_container {
+    flex: 1;
+    display: inline-block;
+    font-size: 14px;
+    font-family: "Poppins";
+    font-weight: 600;
+}
+.searchbar_label {
+    font-size: 14px;
+    font-family: "Poppins";
+    font-weight: 600;
+    color: black;
+    margin: 0px 0px 2px 0px;
+    text-align: center;
+}
+.searchbar .mantine-Select-input {
+    font-size: 16px;
+    font-family: "Poppins";
+    font-weight: 600;
+    border: 2px solid black;
+    border-radius: 5px;
+    padding-left: 50px;
+}
+.searchbar .mantine-Select-icon {
+    background-color: #25D366;
+    border: 2px solid black;
+    border-radius: 5px 0px 0px 5px;
+}
+.searchbar_container .mantine-Select-dropdown {
+    z-index: 2 !important;
+    border: 2px solid black;
+}

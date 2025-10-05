@@ -1,0 +1,67 @@
+/* Add Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap");
+
+/* Page Header */
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #F5F5F5;
+    padding: 10px;
+    border-bottom: 3px solid black;
+    position: fixed;
+    z-index: 3;
+    margin-left: 4.5rem;
+    transition: margin-left 0.2s ease-in-out;
+}
+.sidebar:hover + .header {
+    margin-left: 14rem;
+    transition: margin-left 0.2s ease-in-out;
+}
+.header_title {
+    color: #25D366;
+    font-size: 32px;
+    font-family: "Poppins";
+    font-weight: 600;
+}
+
+/* user container */
+.user_information {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.user_name {
+    color: #25D366;
+    font-size: 3.5vh;
+    font-family: "Poppins";
+    font-weight: 600;
+    margin-left: 10px;
+}
+.user_avatar {
+    border: 3px solid gold;
+}
+.mantine-Menu-dropdown {
+    border-radius: 5px;
+}
+.user_container_info {
+    display: flex;
+    flex-direction: row;
+    font-family: "Poppins";
+    width: 175px;
+}
+.user_container_info p {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.user_container_option {
+    font-size: 14px;
+    font-family: "Poppins";
+}
+.user_container_option .mantine-Menu-itemLabel {
+    margin-left: 10px;
+}
+.user_container_option:hover {
+    font-weight: 600;
+}

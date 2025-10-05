@@ -1,0 +1,580 @@
+/* Add Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap");
+
+/* Default Page */
+.default_page_container {
+    position: relative;
+    height: calc(100vh - 8.5vh - 20px);
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    border-radius: 5px;
+}
+.default_image {
+    height: 20%;
+    position: absolute;
+    top: 10%;
+}
+.default_heading {
+    font-size: 55px;
+    font-family: "Poppins";
+    font-weight: 600;
+    color: #052F5F;
+}
+.default_subheading {
+    font-size: 36px;
+    font-family: "Poppins";
+    font-weight: 500;
+    color: black;
+}
+
+/* No data after Filter Message */
+.no_data_container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: "Poppins";
+    background-color: white;
+}
+.no_data_message {
+    font-size: 24px;
+    font-family: "Poppins";
+    color: red;
+    margin: 0px;
+}
+.no_data_selection {
+    font-size: 18px;
+    font-family: "Poppins";
+    color: black;
+    margin: 0px;
+}
+
+/* Member Overview Card */
+.child_overview .mantine-Modal-title {
+    color: #052F5F;
+    font-size: 18px;
+    font-family: "Poppins";
+    font-weight: 600;
+}
+.child_overview hr {
+    width: 99%;
+    border: 1px solid black;
+    border-radius: 5px;
+    align-items: center;
+    opacity: unset;
+}
+.overview_info_container {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    justify-content: left;
+    align-items: center;
+    font-family: "Poppins";
+}
+.overview_avatar .mantine-Avatar-placeholder{
+    font-size: 30px;
+    font-family: "Poppins";
+    font-weight: 600;
+    color: white;
+    background-color: #fa5252;
+    border: 2px solid black;
+}
+.overview_info {
+    display: flex;
+    flex-direction: column;
+}
+.overview_info_option {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    overflow: hidden;
+}
+.overview_info_option strong {
+    white-space: nowrap;
+}
+.overview_info_option p {
+    margin: 0px;
+    padding: 0px;
+}
+.overview_title {
+    position: relative;
+    color: #052F5F;
+    font-size: 14px;
+    font-family: "Poppins";
+    font-weight: 600;
+    margin: 30px 0px;
+}
+.overview_title p {
+    position: absolute;
+    top: -10px;
+    left: 25px;
+    padding: 0px 10px;
+    background-color: white;
+}
+.overview_platform_container {
+    margin: -20px 0px;
+    padding: 0px;
+}
+.overview_platform_label {
+    font-size: 16px;
+    font-family: "Poppins";
+    font-weight: 600;
+}
+.overview_platform_count {
+    color: #081A51;
+    font-size: 14px;
+    font-family: "Poppins";
+    font-weight: 600;
+    text-align: center;
+}
+.overview_platform_graph_label {
+    font-size: 20px;
+    font-family: "Poppins";
+    font-weight: 600;
+    white-space: pre-line;
+    text-align: center;
+    line-height: 1;
+}
+.overview_alert_option {
+    text-align: center;
+    font-family: "Poppins";
+}
+.overview_alert_avatar .mantine-Avatar-placeholder {
+    font-size: 25px;
+    white-space: nowrap !important;
+}
+.overview_alert_label {
+    font-size: 14px;
+    font-family: "Poppins";
+    font-weight: 600;
+}
+
+/* KPI Container */
+.kpi_container {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    margin: 0px;
+    padding: 0px;
+}
+
+/* kpi_alert_count */
+.kpi_alert_count_container {
+    width: auto;
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    border-radius: 5px;
+    padding: 10px;
+    transition: transform 0.2s ease-in-out;
+}
+.kpi_alert_count_container:hover {
+    transform: translateY(-5px);
+}
+.kpi_alert_count_label {
+    font-size: 18px;
+    font-family: "Poppins";
+    font-weight: 600;
+    text-align: center;
+    margin: 0px 10px 0px 10px;
+    padding: 0px;
+    color: #2D96FF;
+}
+.kpi_alert_number {
+    color: #052F5F;
+    font-size: 35px;
+    font-family: "Poppins";
+    font-weight: 600;
+}
+.kpi_alert_info {
+    color: #90949C;
+    font-size: 12px;
+    font-family: "Poppins";
+    font-weight: 500;
+    text-align: center;
+    white-space: pre-line;
+}
+.kpi_alert_count {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.kpi_alert_count_no_data {
+    color: #052F5F;
+    font-size: 17px;
+    font-family: "Poppins";
+    font-weight: 600;
+    text-align: center;
+}
+
+/* KPI Buttons */
+.kpi_platform_backward{
+    position: absolute;
+    left: -10px;
+    z-index: 2;
+    border-radius: 100%;
+    background-color: white;
+    box-shadow: 0px 0px 1px black;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+.kpi_platform_count_container:hover .kpi_platform_backward {
+    opacity: 1;
+}
+.kpi_platform_forward{
+    position: absolute;
+    right: -10px;
+    z-index: 2;
+    border-radius: 100%;
+    background-color: white;
+    box-shadow: 0px 0px 1px black;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+.kpi_platform_count_container:hover .kpi_platform_forward {
+    opacity: 1;
+}
+
+/* kpi_platform_count */
+.kpi_platform_count_container {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+.kpi_platform_count {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: start;
+    align-items: center;
+    height: 100%;
+}
+.kpi_platform_card {
+    height: 100%;
+    width: calc(100% / 3);
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    border-radius: 5px;
+    padding: 10px;
+    transition: transform 0.2s ease-in-out;
+}
+.kpi_platform_count_label {
+    color: black;
+    font-size: 18px;
+    font-family: "Poppins";
+    font-weight: 600;
+}
+.kpi_platform_card_row2 {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+}
+.kpi_platform_classification_container {
+    padding: 0px;
+    flex: auto;
+}
+.kpi_platform_classification {
+    color: #90949C;
+    font-size: 12px;
+    font-family: "Poppins";
+    font-weight: 500;
+}
+.kpi_platform_classification_count {
+    color: #052F5F;
+    font-size: 12px;
+    font-family: "Poppins";
+    font-weight: 600;
+}
+.kpi_platform_number {
+    color: #052F5F;
+    font-size: 35px;
+    font-family: "Poppins";
+    font-weight: 600;
+}
+.kpi_platform_count {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+}
+.kpi_platform_image {
+    width: 3.5vw;
+    aspect-ratio: 1 / 1;
+    text-align: center;
+    border-radius: 15px;
+}
+.kpi_add_platform_card_link {
+    flex: 1;
+    height: 100%;
+}
+.kpi_add_platform_card {
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    color: #052F5F;
+    font-size: 22px;
+    font-family: "Poppins";
+    font-weight: 600;
+    background-color: white;
+    border-radius: 5px;
+    padding: 10px;
+    transition: transform 0.2s ease-in-out;
+}
+.kpi_platform_card_no_data {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.2s ease-in-out;
+}
+.kpi_platform_card_no_data p {
+    color: #052F5F;
+    font-size: 17px;
+    font-family: "Poppins";
+    font-weight: 600;
+    margin: 0px;
+    padding: 0px;
+}
+.kpi_platform_card:hover {
+    transform: translateY(-5px);
+}
+.kpi_add_platform_card:hover {
+    transform: translateY(-5px);
+}
+.kpi_platform_card_no_data:hover {
+    transform: translateY(-5px);
+}
+.kpi_platform_comparison {
+    font-size: 12px;
+    font-family: "Poppins";
+    font-weight: 600;
+    padding: 0px 5px;
+    border: 2px solid;
+    border-radius: 5px;
+}
+
+/* Chart Container */
+.dashboard_charts {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0px;
+    padding: 0px;
+}
+
+/* Row 1 */
+.row1{
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    margin: 0px;
+    padding: 0px;
+}
+
+/* Content Categories*/
+.content_risk_classification_container {
+    width: 65%;
+    display: flex;
+    flex-direction: row;
+    border-radius: 5px;
+    overflow: hidden;
+    transition: transform 0.2s ease-in-out;
+}
+.content_risk_classification_container:hover {
+    transform: translateY(-5px);
+}
+
+/* Radial Chart */
+.content_classification_radial_chart {
+    font-family: "Poppins";
+    background-color: white;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.content_classification_image {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Progress Bar */
+.risk_categories_horizontal_bar {
+    font-family: "Poppins";
+    background-color: white;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.risk_categories_progress_bar {
+    width: 95%;
+}
+.risk_categories_progress_bar_container {
+    border: 3px solid #052F5F;
+    border-radius: 5px;
+    background-color: #c1dfff;
+    margin: 10px;
+    padding: 20px 0px 0px 0px;
+    height: 100%;
+    align-items: center;
+}
+.risk_categories_progress_bar_label {
+    font-size: 18px;
+    font-family: "Poppins";
+    font-weight: 600;
+    color: #052F5F;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+}
+.risk_categories_progress_bar .mantine-Progress-label {
+    color: black;
+    font-size: 11px;
+    font-family: "Poppins";
+}
+.risk_categories_progress_bar .mantine-Progress-bar {
+    border: 1.5px solid black;
+}
+.risk_categories_progress_legend {
+    margin: 0px 20px;
+    padding: 0px;
+}
+.risk_categories_progress_legend_symbol {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+.risk_categories_progress_legend_marking {
+    font-size: 14px;
+    font-family: "Poppins";
+    font-weight: 600;
+    color: black;
+}
+.risk_categories_progress_legend_avatar .mantine-Avatar-placeholder {
+    font-size: 12px;
+    font-family: "Poppins";
+    font-weight: 600;
+    border: 2px solid #228be6;
+}
+
+/* Save As Image */
+.save_as_image {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: none;
+}
+.content_risk_classification_container:hover .save_as_image {
+    display: block;
+}
+
+/* Risk Bar Chart */
+.content_risk_bar_chart {
+    width: 35%;
+    font-family: "Poppins";
+    background-color: white;
+    border-radius: 5px;
+    overflow: hidden;
+    transition: transform 0.2s ease-in-out;
+}
+.content_risk_bar_chart:hover {
+    transform: translateY(-5px);
+}
+
+/* Row 2 */
+.row2{
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    margin: 0px;
+    padding: 0px;
+}
+
+/* Comment Alert Line Chart */
+.comment_alert_line_chart_container {
+    width: 65%;
+    border-radius: 5px;
+    background-color: white;
+    overflow: hidden;
+    transition: transform 0.2s ease-in-out;
+}
+.comment_alert_line_chart_container:hover {
+    transform: translateY(-5px);
+}
+
+/* date slider filter */
+.comment_alert_line_chart_slider_container {
+    height: 50px;
+}
+.comment_alert_line_chart_slider .rc-slider-track {
+    background-color: black;
+    height: 6px;
+}
+.comment_alert_line_chart_slider .rc-slider-step {
+    position: absolute;
+    width: 100%;
+    height: 6px;
+    background: transparent;
+}
+.comment_alert_line_chart_slider .rc-slider-handle {
+    background-color: #eb2b5d;
+    border-color: black;
+    box-shadow: 0 0 0 3px #96dbfa;
+    width: 16px;
+    height: 16px;
+}
+.comment_alert_line_chart_slider .rc-slider-handle:hover {
+    box-shadow: 0 0 0 5px #96dbfa;
+}
+.comment_alert_line_chart_slider .rc-slider-handle-dragging:focus {
+    background-color: #eb2b5d;
+    border-color: black;
+    box-shadow: 0 0 0 5px #96dbfa;
+    width: 16px;
+    height: 16px;
+}
+.comment_alert_line_chart_slider .rc-slider-dot {
+    border-color: #eb2b5d;
+    width: 10px;
+    height: 10px;
+}
+.comment_alert_line_chart_slider .rc-slider-dot:hover {
+    background-color: #eb2b5d;
+    width: 10px;
+    height: 10px;
+}
+
+/* Comment Classification Pie Chart */
+.comment_classification_pie_chart {
+    width: 35%;
+    border-radius: 5px;
+    overflow: hidden;
+    transition: transform 0.2s ease-in-out;
+}
+.comment_classification_pie_chart:hover {
+    transform: translateY(-5px);
+}

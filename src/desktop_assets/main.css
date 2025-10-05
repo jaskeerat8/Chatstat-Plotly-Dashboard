@@ -1,0 +1,54 @@
+/* Add Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap");
+
+/* Main Layout */
+body {
+    height: 100%;
+    width: 100%;
+    font-family: "Poppins";
+    background-color: #B9D9EB;
+}
+.content_container {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+}
+.sidebar_placeholder {
+    height: 100%;
+    width: 4.5rem;
+}
+.page_content {
+    height: 100%;
+    width: calc(100% - 4.5rem);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.header_placeholder {
+    height: 8.5vh;
+}
+.content_outer_container {
+    padding: 10px;
+}
+.content_inner_container {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Notification */
+.mantine-Notification-title {
+    color: #052F5F;
+    font-size: 18px;
+    font-family: "Poppins";
+    font-weight: 600;
+}
+.mantine-Notification-description {
+    color: black;
+    font-size: 14px;
+    font-family: "Poppins";
+    font-weight: 500;
+}
