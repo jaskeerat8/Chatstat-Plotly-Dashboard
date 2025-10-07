@@ -693,7 +693,7 @@ def update_overview_card(searchbar_value, time_value, date_range_value):
         overview_platform_df = overview_platform_df[(overview_platform_df["alert_contents"].str.lower() != "no") & (overview_platform_df["alert_contents"].str.lower() != "") & (overview_platform_df["alert_contents"].notna())]
         overview_platform_df = overview_platform_df[(overview_platform_df["result_contents"].str.lower() != "no") & (overview_platform_df["result_contents"].str.lower() != "") & (overview_platform_df["result_contents"].notna())]
 
-        if(len(overview_platform_df) == 0):
+        if overview_platform_df.empty:
             platform_div = no_data_graph()
         else:
             overview_platform_df["createTime_contents"] = pd.to_datetime(overview_platform_df["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f")
@@ -723,7 +723,7 @@ def update_overview_card(searchbar_value, time_value, date_range_value):
         overview_alert_df = overview_alert_df[(overview_alert_df["alert_contents"].str.lower() != "no") & (overview_alert_df["alert_contents"].str.lower() != "") & (overview_alert_df["alert_contents"].notna())]
         overview_alert_df = overview_alert_df.groupby(by=["alert_contents"], as_index=False)["id_contents"].nunique()
 
-        if(len(overview_alert_df) == 0):
+        if overview_alert_df.empty:
             overview_alert_df = pd.DataFrame(columns=["alert", "count"])
         else:
             overview_alert_df.columns = ["alert", "count"]
@@ -748,7 +748,7 @@ def update_overview_card(searchbar_value, time_value, date_range_value):
         overview_classification_df = overview_classification_df[(overview_classification_df["result_contents"].str.lower() != "no") & (overview_classification_df["result_contents"].str.lower() != "") & (overview_classification_df["result_contents"].notna())]
         overview_classification_df = overview_classification_df[(overview_classification_df["alert_contents"].str.lower() != "no") & (overview_classification_df["alert_contents"].str.lower() != "") & (overview_classification_df["alert_contents"].notna())]
 
-        if(len(overview_classification_df) == 0):
+        if overview_classification_df.empty:
             content_classification_chart = no_data_graph()
         else:
             overview_classification_df = overview_classification_df.groupby(by=["result_contents"], as_index=False)["id_contents"].nunique()
@@ -778,7 +778,7 @@ def update_overview_card(searchbar_value, time_value, date_range_value):
         overview_comments_df["commentTime_comments"] = pd.to_datetime(overview_comments_df["commentTime_comments"], format="%Y-%m-%d %H:%M:%S")
         overview_comments_df = overview_comments_df[overview_comments_df["commentTime_comments"] >= datetime.now()-relativedelta(years=1)]
 
-        if(len(overview_comments_df) == 0):
+        if overview_comments_df.empty:
             comment_area_chart = no_data_graph()
         else:
             overview_comments_df["commentTime_comments"] = pd.to_datetime(overview_comments_df["commentTime_comments"].apply(lambda x: x.replace(day=1))).dt.date
@@ -906,13 +906,15 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value,
     kpi_platform_df = df.copy()
     kpi_platform_df = kpi_platform_df[(kpi_platform_df["alert_contents"].str.lower() != "no") & (kpi_platform_df["alert_contents"].str.lower() != "") & (kpi_platform_df["alert_contents"].notna())]
     kpi_platform_df = kpi_platform_df[(kpi_platform_df["result_contents"].str.lower() != "no") & (kpi_platform_df["result_contents"].str.lower() != "") & (kpi_platform_df["result_contents"].notna())]
+    kpi_platform_df["createTime_contents"] = pd.to_datetime(kpi_platform_df["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f")
 
     # Filters
-    kpi_platform_df = time_filter(kpi_platform_df, time_value, date_range_value)
     kpi_platform_df = member_filter(kpi_platform_df, member_value)
     kpi_platform_df = alert_filter(kpi_platform_df, alert_value)
+    kpi_platform_df_copy = kpi_platform_df.copy()
+    kpi_platform_df = time_filter(kpi_platform_df, time_value, date_range_value)
 
-    if(len(kpi_platform_df) == 0):
+    if kpi_platform_df.empty:
         card = dmc.Card(className="kpi_platform_card_no_data", children=[html.P("No Cards to Display")], withBorder=True, radius="5px")
         current_index = 0
         return card, current_index
@@ -926,15 +928,9 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value,
 
             # Producing Increase for each Platform
             if(time_value != "all"):
-                kpi_platform_count_df = df.copy()
-                kpi_platform_count_df = kpi_platform_count_df[(kpi_platform_count_df["alert_contents"].str.lower() != "no") & (kpi_platform_count_df["alert_contents"].str.lower() != "") & (kpi_platform_count_df["alert_contents"].notna())]
-                kpi_platform_count_df = kpi_platform_count_df[(kpi_platform_count_df["result_contents"].str.lower() != "no") & (kpi_platform_count_df["result_contents"].str.lower() != "") & (kpi_platform_count_df["result_contents"].notna())]
-                kpi_platform_count_df["createTime_contents"] = pd.to_datetime(kpi_platform_count_df["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f")
-
                 # Filters
+                kpi_platform_count_df = kpi_platform_df_copy.copy()
                 kpi_platform_count_df = kpi_platform_count_df[kpi_platform_count_df["platform_contents"] == platform]
-                kpi_platform_count_df = member_filter(kpi_platform_count_df, member_value)
-                kpi_platform_count_df = alert_filter(kpi_platform_count_df, alert_value)
 
                 kpi_platform_count_df.set_index("createTime_contents", inplace=True)
                 kpi_platform_count_df = kpi_platform_count_df.resample(time_value)["id_contents"].nunique()
@@ -980,21 +976,22 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value,
         )
 
         # Producing Carousel
-        if(len(kpi_platform_list) < 3):
-            kpi_group_list = [kpi_platform_list[i:i+len(kpi_platform_list)] for i in range(len(kpi_platform_list) - (len(kpi_platform_list)-1))]
+        window_size = 3
+        if len(kpi_platform_list) <= window_size:
+            kpi_group_list = [kpi_platform_list]
         else:
-            kpi_group_list = [kpi_platform_list[i:i+3] for i in range(len(kpi_platform_list) - 2)]
-        button_id = callback_context.triggered[0]["prop_id"].split(".")[0]
-        if(button_id == "kpi_platform_backward"):
+            kpi_group_list = [ kpi_platform_list[i:i + window_size] for i in range(len(kpi_platform_list) - window_size + 1)]
+
+        if(ctx.triggered_id == "kpi_platform_backward"):
             current_index = max(0, current_index - 1)
-        elif(button_id == "kpi_platform_forward"):
+        elif(ctx.triggered_id == "kpi_platform_forward"):
             current_index = min(len(kpi_group_list) - 1, current_index + 1)
         return kpi_group_list[current_index], current_index
 
 
 # Content Classification Radial Chart
 @app.callback(
-    [Output("content_classification_radial_chart", "children"), Output("download_radial_chart_store", "data")],
+    [Output("content_classification_radial_chart", "children"), Output("save_as_image", "style"), Output("download_radial_chart_store", "data")],
     [Input("time_control", "value"), Input("date_range_picker", "value"), Input("member_dropdown", "value"), Input("platform_dropdown", "value"), Input("alert_dropdown", "value")]
 )
 def update_radial_chart(time_value, date_range_value, member_value, platform_value, alert_value):
@@ -1008,8 +1005,8 @@ def update_radial_chart(time_value, date_range_value, member_value, platform_val
     result_contents_df = platform_filter(result_contents_df, platform_value)
     result_contents_df = alert_filter(result_contents_df, alert_value)
 
-    if(len(result_contents_df) == 0):
-        return no_data_graph()
+    if result_contents_df.empty:
+        return no_data_graph(), {"display": "none"}, None
     else:
         result_contents_df = result_contents_df.groupby(by=["result_contents"], as_index=False)["id_contents"].nunique()
         result_contents_df.columns = ["classification", "count"]
@@ -1032,7 +1029,7 @@ def update_radial_chart(time_value, date_range_value, member_value, platform_val
             html.Div(className="content_classification_image", children=[
                 html.Img(src=radial_image_src, alt="Radial Chart", width="100%", style={"object-fit": "cover"})]
             )
-        ], base64.b64encode(radial_data_bytes).decode("utf-8")
+        ], {"display": "block"}, base64.b64encode(radial_data_bytes).decode("utf-8")
 
 
 # Download Radial Chart to User Local Machine
@@ -1041,8 +1038,8 @@ def update_radial_chart(time_value, date_range_value, member_value, platform_val
     [Input("save_as_image", "n_clicks"), Input("download_radial_chart_store", "data")],
     prevent_initial_call=True
 )
-def download_radial_chart(btn, data_base64):
-    if not btn:
+def download_radial_chart(button_click, data_base64):
+    if (ctx.triggered_id != "save_as_image") or (not button_click):
         raise PreventUpdate
     data_bytes = base64.b64decode(data_base64)
     return dcc.send_bytes(lambda buf: buf.write(data_bytes), filename="content_classification.png")
@@ -1063,7 +1060,7 @@ def update_horizontal_bar(time_value, date_range_value, member_value, platform_v
     risk_categories_df = member_filter(risk_categories_df, member_value)
     risk_categories_df = platform_filter(risk_categories_df, platform_value)
 
-    if(len(risk_categories_df) == 0):
+    if risk_categories_df.empty:
         return no_data_graph()
     else:
         risk_categories_df = risk_categories_df.groupby(by=["result_contents"], as_index=False)["id_contents"].nunique()
@@ -1116,7 +1113,7 @@ def update_bar_chart(time_value, date_range_value, member_value, platform_value)
     risk_content_df = member_filter(risk_content_df, member_value)
     risk_content_df = platform_filter(risk_content_df, platform_value)
 
-    if(len(risk_content_df) == 0):
+    if risk_content_df.empty:
         return no_data_graph()
     else:
         risk_content_df["createTime_contents"] = pd.to_datetime(risk_content_df["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f")
@@ -1208,7 +1205,8 @@ def update_line_chart_slider(member_value):
 # Comment Alert Line Chart
 @app.callback(
     Output("comment_alert_line_chart", "children"),
-    [Input("member_dropdown", "value"), Input("alert_dropdown", "value"), Input("comment_alert_line_chart_slider", "value"), Input("comment_alert_line_chart_slider_storage", "data")]
+    [Input("member_dropdown", "value"), Input("alert_dropdown", "value"),
+     Input("comment_alert_line_chart_slider", "value"), Input("comment_alert_line_chart_slider_storage", "data")]
 )
 def update_line_chart(member_value, alert_value, slider_value, storage_dict):
     alert_comment_df = df.copy()
@@ -1219,7 +1217,7 @@ def update_line_chart(member_value, alert_value, slider_value, storage_dict):
     alert_comment_df = alert_filter(alert_comment_df, alert_value)
     alert_comment_df = slider_filter(alert_comment_df, slider_value, storage_dict)
 
-    if(len(alert_comment_df) == 0):
+    if alert_comment_df.empty:
         return no_data_graph()
     else:
         alert_comment_df["commentTime_comments"] = pd.to_datetime(alert_comment_df["commentTime_comments"], format="%Y-%m-%d").dt.strftime("%b %Y")
@@ -1232,12 +1230,13 @@ def update_line_chart(member_value, alert_value, slider_value, storage_dict):
         comment_alert.update_layout(margin=dict(l=25, r=25, b=0), height=400)
         comment_alert.update_layout(legend=dict(font=dict(family="Poppins"), traceorder="grouped", orientation="h", x=1, y=1, xanchor="right", yanchor="bottom", title_text=""))
         comment_alert.update_layout(xaxis_title="", yaxis_title="", legend_title_text="", plot_bgcolor="rgba(0, 0, 0, 0)")
-        comment_alert.update_layout(yaxis_showgrid=True, yaxis_ticksuffix="  ", yaxis=dict(dtick=100, tickfont=dict(size=12, family="Poppins", color="#8E8E8E"), griddash="dash", gridwidth=1, gridcolor="#DADADA"))
+        comment_alert.update_layout(yaxis_showgrid=True, yaxis_ticksuffix="  ", yaxis=dict(tickfont=dict(size=12, family="Poppins", color="#8E8E8E"), griddash="dash", gridwidth=1, gridcolor="#DADADA"))
         comment_alert.update_layout(xaxis_showgrid=False, xaxis=dict(tickfont=dict(size=10, family="Poppins", color="#052F5F"), tickangle=0))
         comment_alert.update_traces(mode="lines+markers", line=dict(width=2), marker=dict(sizemode="diameter", size=8, color="white", line=dict(width=2)))
         comment_alert.update_xaxes(fixedrange=True)
         comment_alert.update_yaxes(fixedrange=True)
-        comment_alert.add_vline(x=alert_comment_df[alert_comment_df["count"] == alert_comment_df["count"].max()]["commentTime"].iloc[0], line_width=2, line_dash="dashdot", line_color="#017EFA")
+        comment_alert.add_vline(x=alert_comment_df[alert_comment_df["count"] == alert_comment_df["count"].max()]["commentTime"].iloc[0], line_width=2, line_dash="dashdot", line_color="#017EFA",
+                label=dict(text="Max Alerts", textposition="middle", font=dict(size=8, color="blue")) )
 
         # Hover Label
         comment_alert.update_layout(hoverlabel=dict(bgcolor="#c1dfff", font_size=12, font_family="Poppins", align="left"))
@@ -1266,7 +1265,7 @@ def update_pie_chart(time_value, date_range_value, member_value, platform_value,
     result_comment_df = platform_filter(result_comment_df, platform_value)
     result_comment_df = alert_filter(result_comment_df, alert_value)
 
-    if(len(result_comment_df) == 0):
+    if result_comment_df.empty:
         return no_data_graph()
     else:
         result_comment_df = result_comment_df.groupby(by=["result_comments"], as_index=False)["id_comments"].nunique()
@@ -1496,7 +1495,7 @@ def update_saved_report_overview(card0_click, card1_click, card2_click, card3_cl
         for key in payload.keys():
             try:
                 payload[key] = json.loads(payload[key])
-            except Exception as e:
+            except:
                 pass
 
         # Calling Lambda for response body
