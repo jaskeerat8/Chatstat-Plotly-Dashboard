@@ -926,10 +926,11 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value,
         kpi_platform_list = []
         for platform in kpi_platform_df["platform"].unique():
 
+            kpi_platform_count_df = kpi_platform_df_copy.copy()
+
             # Producing Increase for each Platform
             if(time_value != "all"):
                 # Filters
-                kpi_platform_count_df = kpi_platform_df_copy.copy()
                 kpi_platform_count_df = kpi_platform_count_df[kpi_platform_count_df["platform_contents"] == platform]
 
                 kpi_platform_count_df.set_index("createTime_contents", inplace=True)
