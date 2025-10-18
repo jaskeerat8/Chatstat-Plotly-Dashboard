@@ -1,9 +1,10 @@
 # Importing Libraries
 import json, base64
-import miscellaneous_functions
+import miscellaneous_functions as mf
 import radial_bar_chart
 import pandas as pd
 import threading
+import concurrent.futures
 import calendar
 from datetime import datetime, date, timedelta
 from dateutil.relativedelta import relativedelta
@@ -14,13 +15,40 @@ from dash_iconify import DashIconify
 from dash import Dash, html, dcc, Input, Output, State, callback_context, clientside_callback, no_update, ctx
 from dash.exceptions import PreventUpdate
 from flask import Flask, session
+from flask_caching import Cache
 import secrets
 
+# Initialising Dash App
+server = Flask(__name__)
+server.secret_key = secrets.token_hex(16)
+app = Dash(__name__, server=server, assets_folder="assets", title="Welcome to Chatstat", suppress_callback_exceptions=True, update_title=None, external_stylesheets=[dbc.themes.BOOTSTRAP, "https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap"])
+app.css.config.serve_locally = True
 
 # Read the latest Data directly from s3
-df = miscellaneous_functions.read_s3()
-metadata_df = miscellaneous_functions.get_report_metadata()
+cache = Cache(app.server, config={"CACHE_TYPE": "SimpleCache",  "CACHE_DEFAULT_TIMEOUT": 43200})
+read_s3 = cache.memoize()(mf.read_s3)
+get_report_metadata = cache.memoize()(mf.get_report_metadata)
 
+@app.server.before_first_request
+def warm_up_cache():
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = [
+            executor.submit(read_s3),
+            executor.submit(get_report_metadata)
+        ]
+        concurrent.futures.wait(futures)
+
+cache_refresh_lock = threading.Lock()
+def saved_report_refresh():
+    with cache_refresh_lock:
+        try:
+            cache.delete_memoized(get_report_metadata)
+            get_report_metadata()
+        except:
+            pass
+
+
+VALID_USERS = {"jaskeerat.nonu@chatstat.com": "1234", "klubiniecki@chatstat.com":"", "j.teng@chatstat.com":""}
 
 # Defining Colors and Plotly Graph Options
 image_folder = "https://github-projects-resume.s3.ap-south-1.amazonaws.com/Chatstat-Plotly-Dashboard/resources/"
@@ -45,7 +73,6 @@ def time_filter(dataframe, time_value, date_range_value):
     if(time_value == "all"):
         end_date = datetime.combine(datetime.strptime(date_range_value[1], "%Y-%m-%d"), datetime.max.time())
         start_date = datetime.combine(datetime.strptime(date_range_value[0], "%Y-%m-%d"), datetime.min.time())
-        dataframe["createTime_contents"] = pd.to_datetime(dataframe["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f")
         dataframe = dataframe[(dataframe["createTime_contents"] >= start_date) & (dataframe["createTime_contents"] <= end_date)]
         return dataframe
     else:
@@ -62,7 +89,6 @@ def time_filter(dataframe, time_value, date_range_value):
             start_date = end_date
         start_date = datetime.combine(start_date, datetime.min.time())
 
-        dataframe["createTime_contents"] = pd.to_datetime(dataframe["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f")
         dataframe = dataframe[(dataframe["createTime_contents"] >= start_date) & (dataframe["createTime_contents"] <= end_date)]
         return dataframe
 
@@ -84,7 +110,7 @@ def alert_filter(dataframe, alert_value):
 def slider_filter(dataframe, slider_value, date_dict):
     start_date = pd.to_datetime(date_dict[str(slider_value[0])], format="%Y-%m-%d").date()
     end_date = pd.to_datetime(date_dict[str(slider_value[1])], format="%Y-%m-%d").date()
-    dataframe["commentTime_comments"] = pd.to_datetime(dataframe["commentTime_comments"], format="%Y-%m-%d %H:%M:%S").dt.date
+    dataframe["commentTime_comments"] = dataframe["commentTime_comments"].dt.date
     dataframe = dataframe[(dataframe["commentTime_comments"] >= start_date) & (dataframe["commentTime_comments"] <= end_date)]
     return dataframe
 
@@ -139,13 +165,21 @@ sidebar = html.Div(className="sidebar", children=[
 ])
 
 
+# Welcome Page
+welcome_page = html.Div(className="default_page_container", children=[
+    html.Img(src=image_folder + "chatstatlogoheader.png", alt="Chatstat", className="default_image"),
+    html.P("Welcome to chatstat", className="default_heading"),
+    html.P("Your Ally in Social Media Safety Monitoring", className="default_subheading")
+])
+
+
 # Header
 header = dmc.Header(className="header", height="8.5vh", fixed=False, children=[
     dmc.Text(className="header_title", id="header_title"),
     dmc.Menu(className="user_container", trigger="hover", children=[
         dmc.MenuTarget(html.Div(className="user_information", children=[
             dmc.Avatar(id="user_avatar", className="user_avatar", size="6vh", radius="100%",
-                src="https://e7.pngegg.com/pngimages/799/987/png-clipart-computer-icons-avatar-icon-design-avatar-heroes-computer-wallpaper-thumbnail.png"),
+                src=image_folder + "default_user.png"),
             dmc.Text(id="user_name", className="user_name")
         ])),
         dmc.MenuDropdown(className="user_container_dropdown", children=[
@@ -158,7 +192,7 @@ header = dmc.Header(className="header", height="8.5vh", fixed=False, children=[
             dmc.MenuDivider(),
             dmc.MenuItem(className="user_container_option", children="My Account", icon=DashIconify(icon="material-symbols:account-box-outline", width=30), href="https://family.chatstat.com/family", target="_blank"),
             dmc.MenuItem(className="user_container_option", children="Settings", icon=DashIconify(icon="lets-icons:setting-alt-line", width=30), href="https://family.chatstat.com/settings", target="_blank"),
-            dmc.MenuItem(className="user_container_option", children="Sign Out", icon=DashIconify(icon="tabler:logout-2", color="red", width=30), style={"color": "red"}, href="https://family.chatstat.com/signin")
+            dmc.MenuItem(className="user_container_option", id="logout", children="Logout", n_clicks=0, icon=DashIconify(icon="tabler:logout-2", color="red", width=30), style={"color": "red"})
         ])
     ])
 ])
@@ -208,8 +242,7 @@ filters = html.Div(className="filter_row", children=[
         html.P("Child Overview Snapshot", className="searchbar_label"),
         dmc.Select(className="searchbar", id="searchbar", clearable=True, searchable=True, placeholder="Search...", nothingFound="Nothing Found",
             iconWidth=40, icon=html.Img(src=image_folder + "chatstatlogo_black.png", alt="Logo", width="60%"),
-            rightSection=DashIconify(icon="radix-icons:chevron-right", color="black"),
-            data=[{"group": "Members", "label": child_name.title(), "value": child_name} for child_name in sorted(df["name_childrens"].unique())]
+            rightSection=DashIconify(icon="radix-icons:chevron-right", color="black")
         )
     ]),
     dmc.Modal(className="child_overview", id="child_overview", zIndex=10, centered=True, overflow="outside", children=[
@@ -396,7 +429,7 @@ report_saved_tab = html.Div(className="report_saved_container", children=[
     html.Div(className="report_saved_card_list", id="report_saved_card_list"),
     dcc.Store(id="report_saved_card_payload_store", storage_type="memory"),
     html.Div(className="report_saved_card_pagination_container", children=[
-        dmc.Pagination(id="report_saved_card_pagination", total=((len(metadata_df)-1)//5)+1, page=1, siblings=1, color="green", withControls=True, radius="5px")
+        dmc.Pagination(id="report_saved_card_pagination", page=1, total=1, siblings=1, color="green", withControls=True, radius="5px")
     ])
 ])
 
@@ -407,21 +440,8 @@ analytic_charts = html.Div(className="analytic_charts", children=[
 ], style={"height": "calc(100vh - 8.5vh - 20px)", "width": "100%", "text-align": "center", "background-color": "white", "border-radius": "5px"})
 
 
-# Default Page
-default_page = html.Div(className="default_page_container", children=[
-    html.Img(src=image_folder + "chatstatlogoheader.png", alt="Chatstat", className="default_image"),
-    html.P("Welcome to chatstat", className="default_heading"),
-    html.P("Your Ally in Social Media Safety Monitoring", className="default_subheading")
-])
-
-
-# Designing Main App
-server = Flask(__name__)
-app = Dash(__name__, server=server, assets_folder="desktop_assets", suppress_callback_exceptions=True, update_title=None, external_stylesheets=[dbc.themes.BOOTSTRAP, "https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap"])
-app.server.secret_key = secrets.token_hex(16)
-app.css.config.serve_locally = True
-app.title = "Parent Dashboard"
-app.layout = dmc.NotificationsProvider(
+# Main App Page
+main_app = dmc.NotificationsProvider(
     html.Div(children=[
         dmc.Notification(className="dashboard_notification", id="login_notification_message", action="show", autoClose=False,
                          color="green", title="App Navigation", message="Navigate the app using Side Bar"),
@@ -431,9 +451,8 @@ app.layout = dmc.NotificationsProvider(
 
         dmc.Notification(className="dashboard_notification", id="saved_report_notification_message", loading=True, action="hide", autoClose=5000,
                          color="green", title="Loading Report", message="Creating report from saved options"),
-        dcc.Interval(id="time_interval", disabled=True), html.Div(id="data_refresh"), dcc.Interval(id="data_refresh_interval", interval=3600000),
-        html.Div(id="page_title"), dcc.Location(id="url_path", refresh=False),
-        sidebar, header,
+        dcc.Interval(id="data_refresh_interval", interval=3600000),
+        html.Div(id="page_title"), sidebar, header,
         html.Div(className="content_container", id="content_container", children=[
             html.Div(className="sidebar_placeholder", children=[]),
             html.Div(className="page_content", children=[
@@ -447,32 +466,111 @@ app.layout = dmc.NotificationsProvider(
 )
 
 
-# Website Page Navigation
+# Login Page
+login_page = html.Div(className="login_page", children=[
+    dcc.Store(id="login_session_store", storage_type="session"),
+    html.Img(className="login_page_image", src=image_folder + "login_page.png"),
+    html.Div(className="login_page_form", children=[
+        dmc.TextInput(className="login_page_form_email", id="login_page_form_email",
+            label="Email", value="jaskeerat.nonu@chatstat.com", variant="unstyled",
+            placeholder="jaskeerat.nonu@chatstat.com", icon=DashIconify(icon="ic:baseline-alternate-email", color="black")
+        ),
+        dmc.PasswordInput(className="login_page_form_password", id="login_page_form_password",
+            label="Password", variant="unstyled", value="1234"
+        ),
+        dmc.Button(className="login_page_form_submit", id="login_page_form_submit", children="Submit",
+            variant="filled", color="green", radius="xl"
+        ),
+    ]),
+])
+
+
+# App Layout
+app.layout = html.Div([
+    dcc.Location(id="url_path", refresh=False),
+    dcc.Store(id="user_session_store", storage_type="session"),
+    html.Div(id="page_content")
+])
+
+
+# Authorizing Login
+@app.callback(
+    [Output("url_path", "pathname"), Output("user_session_store", "data"), Output("login_page_form_password", "error")],
+    Input("login_page_form_submit", "n_clicks"),
+    [State("login_page_form_email", "value"), State("login_page_form_password", "value")],
+    prevent_initial_call=True
+)
+def login(login_btn_click, user_email, password):
+    if (ctx.triggered_id != "login_page_form_submit") or (not login_btn_click):
+        raise PreventUpdate
+
+    if user_email in VALID_USERS and VALID_USERS[user_email] == password:
+        return "/Home", {"user_email": user_email}, ""
+    else:
+        return no_update, no_update, "Wrong Credentials"
+
+
+# Logging Out
+@app.callback(
+    [Output("url_path", "pathname", allow_duplicate=True), Output("user_session_store", "data", allow_duplicate=True)],
+    Input("logout", "n_clicks"),
+    prevent_initial_call=True
+)
+def logging_out(logout_btn_click):
+    if (ctx.triggered_id != "logout") or (not logout_btn_click):
+        raise PreventUpdate
+    return "/Login", None
+
+
+# Login - Main App Logic
+@app.callback(
+    Output("page_content", "children"),
+    [Input("url_path", "pathname"), Input("user_session_store", "data")]
+)
+def display_page(pathname, session_data):
+    if pathname in ["/", "/Login"]:
+        if session_data and "user_email" in session_data:
+            return main_app
+        return login_page
+
+    elif pathname in ["/Home", "/Dashboard", "/Analytics", "/Report&Logs"]:
+        if session_data and "user_email" in session_data:
+            return main_app
+        else:
+            return dcc.Location(href="/Login", id="redirect_to_login")
+    return html.H3("404 Page Not Found")
+
+
+# Website Main Page Navigation
 @app.callback(
     [Output("content_inner_container", "children"), Output("login_notification_message", "action")],
-    [Input("url_path", "pathname")]
+    Input("url_path", "pathname")
 )
-def display_page(pathname):
-    if pathname.split("/")[-1] == "Dashboard":
+def display_main_page(pathname):
+    if pathname == "/Home":
+        return [welcome_page], "show"
+    elif pathname == "/Dashboard":
         return [filters, kpi_cards, dashboard_charts], "hide"
-    elif pathname.split("/")[-1] == "Analytics":
+    elif pathname == "/Analytics":
         return [analytic_charts], "hide"
-    elif pathname.split("/")[-1] == "Report&Logs":
+    elif pathname == "/Report&Logs":
         return [report_page], "hide"
     else:
-        return [default_page], "show"
+        return [login_page], "hide"
 
 
 # Page Title
 clientside_callback(
     """
     function(pathname) {
-        if (pathname.split("/").pop() == "Dashboard") {
+        if (pathname == "/Home") {
+            document.title = "Chatstat Home"
+        } else if (pathname == "/Dashboard") {
             document.title = "Chatstat Dashboard"
-        } else if (pathname.split("/").pop() == "Analytics") {
-            document.title = "Chatstat Analytics"
-        } else if (pathname.split("/").pop() == "Report&Logs") {
+        } else if (pathname == "/Report&Logs") {
             document.title = "Chatstat Reports"
+        } else if (pathname == "/Analytics") {
+            document.title = "Chatstat Analytics"
         } else {
             document.title = "Welcome to Chatstat"
         }
@@ -493,25 +591,15 @@ def update_header(pathname):
     return title
 
 
-# Refresh Data
-@app.callback(
-    Output("data_refresh", "children"),
-    Input("data_refresh_interval", "n_intervals")
-)
-def update_global_data(data_time_interval):
-    global df
-    df = miscellaneous_functions.read_s3()
-    return ""
-
-
 # User Info
 @app.callback(
     [Output("user_name", "children"), Output("user_email", "children"), Output("user_plan", "children")],
-    Input("time_interval", "n_intervals")
+    Input("url_path", "pathname"),
+    State("user_session_store", "data")
 )
-def update_user_info(time_interval):
-    user_logged_in_email = "jaskeerat.nonu@chatstat.com"
-    user_info = miscellaneous_functions.get_info(df, user_logged_in_email)
+def update_user_info(_, user_session):
+    user_logged_in_email = user_session["user_email"]
+    user_info = mf.get_info(read_s3(), user_logged_in_email)
     return user_info["name_users"].split(" ")[0].title(), user_info["email_users"], user_info["plan_users"].title()
 
 
@@ -520,7 +608,7 @@ def update_user_info(time_interval):
     Output("time_control_information", "children"),
     Input("data_refresh_interval", "n_intervals")
 )
-def update_time_control_information(data_time_interval):
+def update_time_control_information(_):
     information = html.Div([
         DashIconify(icon="streamline-sharp-color:information-circle-flat", width=30, style={"position": "absolute", "top": "10px", "right": "10px"}),
         html.P(className="time_control_info_option", children=[html.Strong("Daily:"), f" For Today's Date {datetime.now().strftime('%d %B, %Y')}"]),
@@ -536,7 +624,7 @@ def update_time_control_information(data_time_interval):
 # Date Picker
 @app.callback(
     [Output("popover_date_picker", "style"), Output("popover_date_picker", "offset")],
-    [Input("time_control", "value")]
+    Input("time_control", "value")
 )
 def update_popover_date_picker(time_value):
     if(time_value == "all"):
@@ -545,12 +633,15 @@ def update_popover_date_picker(time_value):
         return {"display": "none"}, ""
 
 
-# Member Dropdown
+# Member Dashboard Dropdown
 @app.callback(
     [Output("member_dropdown", "data"), Output("member_dropdown", "icon"), Output("member_dropdown", "disabled")],
-    Input("member_dropdown", "value")
+    Input("member_dropdown", "value"),
+    State("user_session_store", "data")
 )
-def update_member_dropdown(member_value):
+def update_dashboard_member_dropdown(member_value, user_session):
+    df = read_s3()
+    df = df[df["email_users"] == user_session["user_email"]]
     user_list = sorted(df[(df["name_childrens"].astype(str) != "nan") & (df["name_childrens"].astype(str) != "no")]["name_childrens"].unique())
     if(len(user_list) == 1):
         disable_flag = True
@@ -564,20 +655,26 @@ def update_member_dropdown(member_value):
 # Member Report Dropdown
 @app.callback(
     Output("report_filter_member", "data"),
-    Input("time_interval", "n_intervals")
+    Input("url_path", "pathname"),
+    State("user_session_store", "data")
 )
-def update_report_member_dropdown(time_interval):
+def update_report_member_dropdown(_, user_session):
+    df = read_s3()
+    df = df[df["email_users"] == user_session["user_email"]]
     user_list = sorted(df[(df["name_childrens"].astype(str) != "nan") & (df["name_childrens"].astype(str) != "no")]["name_childrens"].unique())
     data = [{"label": user.split(" ")[0].title(), "value": user} for user in user_list]
     return data
 
 
-# Platform Dropdown
+# Platform Dashboard Dropdown
 @app.callback(
     [Output("platform_dropdown", "data"), Output("platform_dropdown", "icon"), Output("platform_dropdown", "disabled")],
-    Input("platform_dropdown", "value")
+    Input("platform_dropdown", "value"),
+    State("user_session_store", "data")
 )
-def update_platform_dropdown(platform_value):
+def update_dashboard_platform_dropdown(platform_value, user_session):
+    df = read_s3()
+    df = df[df["email_users"] == user_session["user_email"]]
     platform_list = sorted(df[(df["platform_contents"].astype(str) != "nan") & (df["platform_contents"].astype(str) != "no")]["platform_contents"].unique())
     if(len(platform_list) == 1):
         disable_flag = True
@@ -592,27 +689,32 @@ def update_platform_dropdown(platform_value):
             return data, DashIconify(icon=platform_icons[platform_value.title()], width=20), disable_flag
 
 
-# Platform Checkbox
+# Platform Report Checkbox
 @app.callback(
     [Output("report_filter_platform", "children"), Output("report_filter_platform", "value")],
-    Input("report_filter_member", "value")
+    Input("report_filter_member", "value"),
+    State("user_session_store", "data")
 )
-def update_platform_checkbox(member_value):
+def update_report_platform_checkbox(member_value, user_session):
     # Filters
-    platform_list_df = df.copy()
-    platform_list_df = member_filter(platform_list_df, member_value)
+    df = read_s3()
+    df = df[df["email_users"] == user_session["user_email"]]
+    df = member_filter(df, member_value)
 
-    platform_list = sorted(platform_list_df[(platform_list_df["platform_contents"].astype(str) != "nan") & (platform_list_df["platform_contents"].astype(str) != "no")]["platform_contents"].unique())
+    platform_list = sorted(df[(df["platform_contents"].astype(str) != "nan") & (df["platform_contents"].astype(str) != "no")]["platform_contents"].unique())
     data = dmc.SimpleGrid(cols=2, spacing="md", children=[dmc.Checkbox(label=platform.title(), value=platform.lower(), color="green", disabled=True if member_value == "all" else False) for platform in platform_list])
     return data, []
 
 
-# Alert Dropdown
+# Alert Dashboard Dropdown
 @app.callback(
     [Output("alert_dropdown", "data"), Output("alert_dropdown", "icon")],
-    Input("alert_dropdown", "value")
+    Input("alert_dropdown", "value"),
+    State("user_session_store", "data")
 )
-def update_alert_dropdown(alert_value):
+def update_dashboard_alert_dropdown(alert_value, user_session):
+    df = read_s3()
+    df = df[df["email_users"] == user_session["user_email"]]
     alert_list = df["alert_contents"].unique()
     data = [{"label": "All Alerts", "value": "all"}] + [{"label": alert.title(), "value": alert}
                 for alert in sorted(alert_list, key=lambda x: ["high", "medium", "low"].index(x.lower())
@@ -624,12 +726,15 @@ def update_alert_dropdown(alert_value):
         return data, DashIconify(icon="line-md:alert", color=alert_colors[alert_value.title()], width=30)
 
 
-# Alert Checkbox
+# Alert Report Checkbox
 @app.callback(
     Output("report_filter_alert", "children"),
-    Input("time_interval", "n_intervals")
+    Input("url_path", "pathname"),
+    State("user_session_store", "data")
 )
-def update_alert_checkbox(time_interval):
+def update_report_alert_checkbox(_, user_session):
+    df = read_s3()
+    df = df[df["email_users"] == user_session["user_email"]]
     alert_list = df["alert_contents"].unique()
     data = [dmc.Checkbox(label=alert.title(), value=alert.lower(), color="green") for alert in sorted(alert_list, key=lambda x: ["high", "medium", "low"].index(x.lower())
         if isinstance(x, str) and x.lower() in ["high", "medium", "low"] else float("inf"))
@@ -643,11 +748,24 @@ def update_alert_checkbox(time_interval):
     Input("reset_filter_container", "n_clicks"),
     prevent_initial_call=True
 )
-def reset_filters(n_clicks):
+def reset_filters(_):
     return "M", "all", "all", "all"
 
 
-#
+# Searchbar Dashboard dropdown
+@app.callback(
+    Output("searchbar", "data"),
+    Input("url_path", "pathname"),
+    State("user_session_store", "data")
+)
+def update_searchbar_dropdown(_, user_session):
+    df = read_s3()
+    df = df[df["email_users"] == user_session["user_email"]]
+    data = [{"group": "Members", "label": child_name.title(), "value": child_name} for child_name in sorted(df["name_childrens"].unique())]
+    return data
+
+
+# Overview Card open and close
 @app.callback(
     [Output("searchbar", "value"),
      Output("child_overview", "opened")],
@@ -656,13 +774,10 @@ def reset_filters(n_clicks):
 )
 def toggle_modal_and_searchbar(searchbar_value, modal_opened):
     trigger = ctx.triggered_id
-
     if trigger == "searchbar" and searchbar_value is not None:
         return searchbar_value, True
-
     if trigger == "child_overview" and modal_opened is False:
         return None, False
-
     return no_update, no_update
 
 
@@ -671,21 +786,21 @@ def toggle_modal_and_searchbar(searchbar_value, modal_opened):
     [Output("child_overview", "title"), Output("overview_avatar", "children"), Output("overview_info", "children"),
      Output("overview_platform", "children"), Output("overview_alert", "children"), Output("overview_classification", "children"), Output("overview_comments", "children")],
     Input("searchbar", "value"),
-    [State("time_control", "value"), State("date_range_picker", "value"), ]
+    [State("time_control", "value"), State("date_range_picker", "value")]
 )
 def update_overview_card(searchbar_value, time_value, date_range_value):
     if(searchbar_value is None):
         raise PreventUpdate
     else:
         # Filters
-        overview_df = df.copy()
+        overview_df = read_s3()
         overview_df = member_filter(overview_df, searchbar_value)
         overview_df = time_filter(overview_df, time_value, date_range_value)
 
         overview_info_children = [
             html.Div(className="overview_info_option", children=[html.Strong("Name:"), html.P(searchbar_value)]),
-            html.Div(className="overview_info_option", children=[html.Strong("Email:"), html.P(df.loc[df["name_childrens"] == searchbar_value, "email_childrens"].iloc[0])]),
-            html.Div(className="overview_info_option", children=[html.Strong("ID:"), html.P(df.loc[df["name_childrens"] == searchbar_value, "id_childrens"].iloc[0])])
+            html.Div(className="overview_info_option", children=[html.Strong("Email:"), html.P(overview_df.loc[overview_df["name_childrens"] == searchbar_value, "email_childrens"].iloc[0])]),
+            html.Div(className="overview_info_option", children=[html.Strong("ID:"), html.P(overview_df.loc[overview_df["name_childrens"] == searchbar_value, "id_childrens"].iloc[0])])
         ]
 
         # Platform Risk Distribution
@@ -696,7 +811,6 @@ def update_overview_card(searchbar_value, time_value, date_range_value):
         if overview_platform_df.empty:
             platform_div = no_data_graph()
         else:
-            overview_platform_df["createTime_contents"] = pd.to_datetime(overview_platform_df["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f")
             overview_platform_df = overview_platform_df.groupby(by=["platform_contents"], as_index=False)["id_contents"].nunique()
             overview_platform_df.columns = ["platform", "count"]
             overview_platform_df["percentage_count"] = (overview_platform_df["count"]/overview_platform_df["count"].sum()) * 100
@@ -772,10 +886,10 @@ def update_overview_card(searchbar_value, time_value, date_range_value):
             content_classification_chart = dcc.Graph(figure=overview_classification_fig, config={"displayModeBar": False})
 
         # Comment Area Chart
-        overview_comments_df = df.copy()
+        overview_comments_df = read_s3()
+        overview_comments_df = member_filter(overview_comments_df, searchbar_value)
         overview_comments_df = overview_comments_df[(overview_comments_df["alert_comments"].str.lower() != "no") & (overview_comments_df["alert_comments"].str.lower() != "") & (overview_comments_df["alert_comments"].notna())]
         overview_comments_df = overview_comments_df[(overview_comments_df["result_comments"].str.lower() != "no") & (overview_comments_df["result_comments"].str.lower() != "") & (overview_comments_df["result_comments"].notna())]
-        overview_comments_df["commentTime_comments"] = pd.to_datetime(overview_comments_df["commentTime_comments"], format="%Y-%m-%d %H:%M:%S")
         overview_comments_df = overview_comments_df[overview_comments_df["commentTime_comments"] >= datetime.now()-relativedelta(years=1)]
 
         if overview_comments_df.empty:
@@ -799,7 +913,7 @@ def update_overview_card(searchbar_value, time_value, date_range_value):
             overview_comments_fig.update_layout(margin=dict(t=0, b=0, l=0, r=0), plot_bgcolor="rgba(0, 0, 0, 0)", height=230)
             overview_comments_fig.update_layout(xaxis_title=None, yaxis_title=None, legend_title_text=None)
             overview_comments_fig.update_layout(xaxis_showgrid=False, xaxis=dict(tickfont=dict(size=10, family="Poppins", color="black")))
-            overview_comments_fig.update_layout(yaxis=dict(dtick=50, tickfont=dict(size=10, family="Poppins", color="#8E8E8E"), griddash="dash", gridwidth=1, gridcolor="#DADADA"))
+            overview_comments_fig.update_layout(yaxis=dict(tickfont=dict(size=10, family="Poppins", color="#8E8E8E"), griddash="dash", gridwidth=1, gridcolor="#DADADA"))
             overview_comments_fig.update_layout(yaxis_showgrid=True, yaxis_ticksuffix=" ")
             overview_comments_fig.update_xaxes(fixedrange=False, tickformat="<br>%b'%y")
             overview_comments_fig.update_yaxes(fixedrange=True)
@@ -814,10 +928,12 @@ def update_overview_card(searchbar_value, time_value, date_range_value):
 # KPI Count Card
 @app.callback(
     Output("kpi_alert_count_container", "children"),
-    [Input("time_control", "value"), Input("date_range_picker", "value"), Input("member_dropdown", "value"), Input("alert_dropdown", "value")]
+    [Input("time_control", "value"), Input("date_range_picker", "value"), Input("member_dropdown", "value"), Input("alert_dropdown", "value")],
+    State("user_session_store", "data")
 )
-def update_kpi_count(time_value, date_range_value, member_value, alert_value):
-    alert_count_df = df.copy()
+def update_kpi_count(time_value, date_range_value, member_value, alert_value, user_session):
+    df = read_s3()
+    alert_count_df = df[df["email_users"] == user_session["user_email"]]
     alert_count_df = alert_count_df[(alert_count_df["alert_contents"].str.lower() != "no") & (alert_count_df["alert_contents"].str.lower() != "") & (alert_count_df["alert_contents"].notna())]
 
     # Filters
@@ -840,7 +956,6 @@ def update_kpi_count(time_value, date_range_value, member_value, alert_value):
         return card
 
     else:
-        alert_count_df["createTime_contents"] = pd.to_datetime(alert_count_df["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f")
         alert_count_df.set_index("createTime_contents", inplace=True)
         alert_count_df = alert_count_df.resample(time_value)["id_contents"].nunique()
         alert_count_df = alert_count_df.reset_index()
@@ -900,13 +1015,13 @@ def update_kpi_count(time_value, date_range_value, member_value, alert_value):
     [Output("kpi_platform_count", "children"), Output("kpi_platform_store", "data")],
     [Input("time_control", "value"), Input("date_range_picker", "value"), Input("member_dropdown", "value"), Input("alert_dropdown", "value"),
      Input("kpi_platform_backward", "n_clicks"), Input("kpi_platform_forward", "n_clicks")],
-    State("kpi_platform_store", "data")
+    [State("kpi_platform_store", "data"), State("user_session_store", "data")]
 )
-def update_kpi_platform(time_value, date_range_value, member_value, alert_value, n_clicks_backward, n_clicks_forward, current_index):
-    kpi_platform_df = df.copy()
+def update_kpi_platform(time_value, date_range_value, member_value, alert_value, n_clicks_backward, n_clicks_forward, current_index, user_session):
+    df = read_s3()
+    kpi_platform_df = df[df["email_users"] == user_session["user_email"]]
     kpi_platform_df = kpi_platform_df[(kpi_platform_df["alert_contents"].str.lower() != "no") & (kpi_platform_df["alert_contents"].str.lower() != "") & (kpi_platform_df["alert_contents"].notna())]
     kpi_platform_df = kpi_platform_df[(kpi_platform_df["result_contents"].str.lower() != "no") & (kpi_platform_df["result_contents"].str.lower() != "") & (kpi_platform_df["result_contents"].notna())]
-    kpi_platform_df["createTime_contents"] = pd.to_datetime(kpi_platform_df["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f")
 
     # Filters
     kpi_platform_df = member_filter(kpi_platform_df, member_value)
@@ -993,10 +1108,12 @@ def update_kpi_platform(time_value, date_range_value, member_value, alert_value,
 # Content Classification Radial Chart
 @app.callback(
     [Output("content_classification_radial_chart", "children"), Output("save_as_image", "style"), Output("download_radial_chart_store", "data")],
-    [Input("time_control", "value"), Input("date_range_picker", "value"), Input("member_dropdown", "value"), Input("platform_dropdown", "value"), Input("alert_dropdown", "value")]
+    [Input("time_control", "value"), Input("date_range_picker", "value"), Input("member_dropdown", "value"), Input("platform_dropdown", "value"), Input("alert_dropdown", "value")],
+    State("user_session_store", "data")
 )
-def update_radial_chart(time_value, date_range_value, member_value, platform_value, alert_value):
-    result_contents_df = df.copy()
+def update_radial_chart(time_value, date_range_value, member_value, platform_value, alert_value, user_session):
+    df = read_s3()
+    result_contents_df = df[df["email_users"] == user_session["user_email"]]
     result_contents_df = result_contents_df[(result_contents_df["result_contents"].str.lower() != "no") & (result_contents_df["result_contents"].str.lower() != "") & (result_contents_df["result_contents"].notna())]
     result_contents_df = result_contents_df[(result_contents_df["alert_contents"].str.lower() != "no") & (result_contents_df["alert_contents"].str.lower() != "") & (result_contents_df["alert_contents"].notna())]
 
@@ -1024,7 +1141,7 @@ def update_radial_chart(time_value, date_range_value, member_value, platform_val
         else:
             title = "Content Risk Classification"
 
-        radial_image_src, radial_data_bytes = radial_bar_chart.radial_chart(result_contents_df, "desktop_assets")
+        radial_image_src, radial_data_bytes = radial_bar_chart.radial_chart(result_contents_df, "assets")
         return [
             html.P(title, style={"color": "#052F5F", "fontWeight": "bold", "fontSize": 17, "margin": "10px 25px 0px 25px"}),
             html.Div(className="content_classification_image", children=[
@@ -1049,10 +1166,12 @@ def download_radial_chart(button_click, data_base64):
 # Risk Categories Horizontal Bar
 @app.callback(
     Output("risk_categories_horizontal_bar", "children"),
-    [Input("time_control", "value"), Input("date_range_picker", "value"), Input("member_dropdown", "value"), Input("platform_dropdown", "value")]
+    [Input("time_control", "value"), Input("date_range_picker", "value"), Input("member_dropdown", "value"), Input("platform_dropdown", "value")],
+    State("user_session_store", "data")
 )
-def update_horizontal_bar(time_value, date_range_value, member_value, platform_value):
-    risk_categories_df = df.copy()
+def update_horizontal_bar(time_value, date_range_value, member_value, platform_value, user_session):
+    df = read_s3()
+    risk_categories_df = df[df["email_users"] == user_session["user_email"]]
     risk_categories_df = risk_categories_df[(risk_categories_df["result_contents"].str.lower() != "no") & (risk_categories_df["result_contents"].str.lower() != "") & (risk_categories_df["result_contents"].notna())]
     risk_categories_df = risk_categories_df[(risk_categories_df["alert_contents"].str.lower() != "no") & (risk_categories_df["alert_contents"].str.lower() != "") & (risk_categories_df["alert_contents"].notna())]
 
@@ -1103,10 +1222,12 @@ def update_horizontal_bar(time_value, date_range_value, member_value, platform_v
 # Content Risk Bar Chart
 @app.callback(
     Output("content_risk_bar_chart", "children"),
-    [Input("time_control", "value"), Input("date_range_picker", "value"), Input("member_dropdown", "value"), Input("platform_dropdown", "value")]
+    [Input("time_control", "value"), Input("date_range_picker", "value"), Input("member_dropdown", "value"), Input("platform_dropdown", "value")],
+    State("user_session_store", "data")
 )
-def update_bar_chart(time_value, date_range_value, member_value, platform_value):
-    risk_content_df = df.copy()
+def update_bar_chart(time_value, date_range_value, member_value, platform_value, user_session):
+    df = read_s3()
+    risk_content_df = df[df["email_users"] == user_session["user_email"]]
     risk_content_df = risk_content_df[(risk_content_df["alert_contents"].str.lower() != "no") & (risk_content_df["alert_contents"].str.lower() != "") & (risk_content_df["alert_contents"].notna())]
 
     # Filters
@@ -1117,7 +1238,6 @@ def update_bar_chart(time_value, date_range_value, member_value, platform_value)
     if risk_content_df.empty:
         return no_data_graph()
     else:
-        risk_content_df["createTime_contents"] = pd.to_datetime(risk_content_df["createTime_contents"], format="%Y-%m-%d %H:%M:%S.%f")
         risk_content_df = risk_content_df.groupby(by=["alert_contents", "platform_contents"], as_index=False)["id_contents"].nunique()
         risk_content_df.columns = ["alert", "platform", "count"]
         categories = ["High", "Medium", "Low"]
@@ -1173,16 +1293,18 @@ def update_bar_chart(time_value, date_range_value, member_value, platform_value)
 @app.callback(
     [Output("comment_alert_line_chart_slider", "marks"), Output("comment_alert_line_chart_slider", "max"), Output("comment_alert_line_chart_slider", "min"),
      Output("comment_alert_line_chart_slider", "value"), Output("comment_alert_line_chart_slider_storage", "data")],
-    [Input("member_dropdown", "value")]
+    [Input("member_dropdown", "value")],
+    State("user_session_store", "data")
 )
-def update_line_chart_slider(member_value):
-    slider_df = df.copy()
+def update_line_chart_slider(member_value, user_session):
+    df = read_s3()
+    slider_df = df[df["email_users"] == user_session["user_email"]]
     slider_df = slider_df[(slider_df["alert_comments"].str.lower() != "no") & (slider_df["alert_comments"].str.lower() != "") & (slider_df["alert_comments"].notna())]
 
     # Filters
     slider_df = member_filter(slider_df, member_value)
 
-    slider_df["commentTime_comments"] = pd.to_datetime(slider_df["commentTime_comments"], format="%Y-%m-%d %H:%M:%S").dt.date
+    slider_df["commentTime_comments"] = slider_df["commentTime_comments"].dt.date
     slider_df = slider_df[slider_df["commentTime_comments"] >= date.today()-relativedelta(years=2)]
 
     try:
@@ -1207,10 +1329,12 @@ def update_line_chart_slider(member_value):
 @app.callback(
     Output("comment_alert_line_chart", "children"),
     [Input("member_dropdown", "value"), Input("alert_dropdown", "value"),
-     Input("comment_alert_line_chart_slider", "value"), Input("comment_alert_line_chart_slider_storage", "data")]
+     Input("comment_alert_line_chart_slider", "value"), Input("comment_alert_line_chart_slider_storage", "data")],
+    State("user_session_store", "data")
 )
-def update_line_chart(member_value, alert_value, slider_value, storage_dict):
-    alert_comment_df = df.copy()
+def update_line_chart(member_value, alert_value, slider_value, storage_dict, user_session):
+    df = read_s3()
+    alert_comment_df = df[df["email_users"] == user_session["user_email"]]
     alert_comment_df = alert_comment_df[(alert_comment_df["alert_comments"].str.lower() != "no") & (alert_comment_df["alert_comments"].str.lower() != "") & (alert_comment_df["alert_comments"].notna())]
 
     # Filters
@@ -1253,10 +1377,12 @@ def update_line_chart(member_value, alert_value, slider_value, storage_dict):
 # Comment Classification Pie Chart
 @app.callback(
     Output("comment_classification_pie_chart", "children"),
-    [Input("time_control", "value"), Input("date_range_picker", "value"), Input("member_dropdown", "value"), Input("platform_dropdown", "value"), Input("alert_dropdown", "value")]
+    [Input("time_control", "value"), Input("date_range_picker", "value"), Input("member_dropdown", "value"), Input("platform_dropdown", "value"), Input("alert_dropdown", "value")],
+    State("user_session_store", "data")
 )
-def update_pie_chart(time_value, date_range_value, member_value, platform_value, alert_value):
-    result_comment_df = df.copy()
+def update_pie_chart(time_value, date_range_value, member_value, platform_value, alert_value, user_session):
+    df = read_s3()
+    result_comment_df = df[df["email_users"] == user_session["user_email"]]
     result_comment_df = result_comment_df[(result_comment_df["result_comments"].str.lower() != "no") & (result_comment_df["result_comments"].str.lower() != "") & (result_comment_df["result_comments"].notna())]
     result_comment_df = result_comment_df[(result_comment_df["alert_comments"].str.lower() != "no") & (result_comment_df["alert_comments"].str.lower() != "") & (result_comment_df["alert_comments"].notna())]
 
@@ -1333,12 +1459,12 @@ def update_report_tab_content(tab_value):
     [Output("report_preview_overview", "opened"), Output("report_preview_overview", "title"), Output("report_preview_overview_header", "children"), Output("report_preview_modal_overview_store", "data")],
     Input("preview_report_button", "n_clicks"),
     [State("report_filter_member", "value"), State("report_filter_daterange", "value"), State("report_filter_platform", "value"),
-     State("report_filter_alert", "value"), State("report_filter_content", "value")]
+     State("report_filter_alert", "value"), State("report_filter_content", "value"), State("user_session_store", "data")]
 )
-def update_preview_report_overview(preview_button_click, member_value, time_range, platform_value, alert_value, content_type):
+def update_preview_report_overview(preview_button_click, member_value, time_range, platform_value, alert_value, content_type, user_session):
     # Creating Payload
     payload = {
-        "email": "jaskeerat.nonu@chatstat.com", "children": member_value, "timerange": time_range,
+        "email": user_session["user_email"], "children": member_value, "timerange": time_range,
         "platform": platform_value, "alert": alert_value, "contenttype": content_type
     }
 
@@ -1346,7 +1472,7 @@ def update_preview_report_overview(preview_button_click, member_value, time_rang
         raise PreventUpdate
     else:
         # Calling Lambda for Response Body
-        response_df = miscellaneous_functions.generate_report(df.copy(), payload, None, True)
+        response_df = mf.generate_report(read_s3(), payload, None, True)
         response_modal_div = []
         for _, res in response_df.iterrows():
             response_modal_div.append(html.Div(className="report_preview_overview_children", children=[
@@ -1403,32 +1529,48 @@ def update_preview_report_overview_pagination(modal_status, page, report_modal_d
     [Output("create_report_payload_store", "data"), Output("report_generate_url_store", "data")],
     Input("generate_report_button", "n_clicks"),
     [State("report_filter_member", "value"), State("report_filter_daterange", "value"), State("report_filter_platform", "value"),
-     State("report_filter_alert", "value"), State("report_filter_content", "value"), State("report_filter_type", "value")]
+     State("report_filter_alert", "value"), State("report_filter_content", "value"), State("report_filter_type", "value"), State("user_session_store", "data")]
 )
-def generate_report_file(generate_button_click, member_value, time_range, platform_value, alert_value, content_type, file_type):
+def generate_report_file(generate_button_click, member_value, time_range, platform_value, alert_value, content_type, file_type, user_session):
     # Creating Payload
     payload = {
-        "email": "jaskeerat.nonu@chatstat.com", "children": member_value, "timerange": time_range,
+        "email": user_session["user_email"], "children": member_value, "timerange": time_range,
         "platform": platform_value, "alert": alert_value, "contenttype": content_type, "filetype": file_type
     }
     if (not generate_button_click) or (member_value == "all") or (not time_range) or (not platform_value) or (not alert_value) or (not content_type):
         session["report_url"] = None
         raise PreventUpdate
     else:
-        miscellaneous_functions.post_report_metadata(payload, datetime.now())
-        response_df, response_url = miscellaneous_functions.generate_report(df.copy(), payload, None, False)
+        mf.post_report_metadata(payload, datetime.now())
+        response_df, response_url = mf.generate_report(read_s3(), payload, None, False)
         session["report_url"] = response_url
 
-        threading.Thread(target=lambda: globals().update({'metadata_df': miscellaneous_functions.get_report_metadata()}), daemon=True).start()
+        threading.Thread(target=saved_report_refresh, daemon=True).start()
         return payload, response_url
 
 
-# Saved Report Page Tab Content
+# Saved Report Saved Tab Pagination
+@app.callback(
+    Output("report_saved_card_pagination", "total"),
+    Input("url_path", "pathname"),
+State("user_session_store", "data")
+)
+def update_saved_report_pagination(_, user_session):
+    metadata_df = get_report_metadata()
+    metadata_df = metadata_df[metadata_df["email"] == user_session["user_email"]]
+    return ((len(metadata_df)-1)//5)+1
+
+
+# Saved Report Saved Tab Content
 @app.callback(
     [Output("report_saved_card_list", "children"), Output("report_saved_card_list_store", "data")],
-    [Input("report_main_container_tabs", "value"), Input("report_saved_card_pagination", "page")]
+    [Input("report_main_container_tabs", "value"), Input("report_saved_card_pagination", "page")],
+    State("user_session_store", "data")
 )
-def update_saved_report_page_content(tab_value, pagination_page):
+def update_saved_report_page_content(tab_value, pagination_page, user_session):
+    metadata_df = get_report_metadata()
+    metadata_df = metadata_df[metadata_df["email"] == user_session["user_email"]]
+
     start_report = (pagination_page-1)*5
     end_report = pagination_page*5
     page_df = metadata_df.iloc[start_report:end_report]
@@ -1500,7 +1642,7 @@ def update_saved_report_overview(card0_click, card1_click, card2_click, card3_cl
                 pass
 
         # Calling Lambda for response body
-        response_df = miscellaneous_functions.generate_report(df.copy(), payload, None, True)
+        response_df = mf.generate_report(read_s3(), payload, None, True)
         response_modal_div = []
         for _, res in response_df.iterrows():
             response_modal_div.append(html.Div(className="report_saved_overview_children", children=[
@@ -1555,9 +1697,9 @@ def update_saved_report_overview_pagination(modal_status, page, report_modal_dat
 # Download Report Block
 @app.callback(
     Output("report_side_download", "children"),
-    [Input("report_generate_url_store", "data"), Input("time_interval", "n_intervals")]
+    [Input("report_generate_url_store", "data"), Input("url_path", "pathname")]
 )
-def update_download_report_block(generate_url, time_interval):
+def update_download_report_block(generate_url, pathname):
     latest_url = session.get("report_url", None)
     if(latest_url is None):
         return html.Div(className="report_side_download_no_data", children=[
@@ -1587,7 +1729,7 @@ def update_download_report_block(generate_url, time_interval):
     prevent_initial_call=True
 )
 def download_from_generate(payload):
-    response_df, response_url, data_bytes = miscellaneous_functions.generate_report(df.copy(), payload, "yes", False)
+    response_df, response_url, data_bytes = mf.generate_report(read_s3(), payload, "yes", False)
     return dcc.send_bytes(data_bytes, filename=f"report.{payload['filetype']}")
 
 @app.callback(
@@ -1599,7 +1741,7 @@ def download_from_generate(payload):
 def download_from_saved(btn, payload):
     if not btn:
         raise PreventUpdate
-    response_df, response_url, data_bytes = miscellaneous_functions.generate_report(df.copy(), payload, "yes", False)
+    response_df, response_url, data_bytes = mf.generate_report(read_s3(), payload, "yes", False)
     return dcc.send_bytes(data_bytes, filename=f"report.{payload['filetype']}")
 
 

@@ -5,8 +5,10 @@
 body {
     height: 100%;
     width: 100%;
-    font-family: "Poppins";
+    font-family: "Poppins" !important;
     background-color: #B9D9EB;
+    margin: 0;
+    padding: 0;
 }
 .content_container {
     height: 100%;
