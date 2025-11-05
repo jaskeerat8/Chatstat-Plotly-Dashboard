@@ -7,8 +7,8 @@ ansi2html==1.8.0
 async-timeout==5.0.1
 atomicwrites==1.4.1
 attrs==23.1.0
-boto3==1.28.22
-botocore==1.40.18
+boto3
+botocore
 cachelib==0.13.0
 certifi==2023.7.22
 cfgv==3.4.0
