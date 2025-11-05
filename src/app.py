@@ -38,17 +38,20 @@ def warm_up_cache():
         ]
         concurrent.futures.wait(futures)
 
-cache_refresh_lock = threading.Lock()
-def saved_report_refresh():
-    with cache_refresh_lock:
-        try:
-            cache.delete_memoized(get_report_metadata)
-            get_report_metadata()
-        except:
-            pass
+report_metadata_lock = threading.RLock()
+def update_report_metadata(new_row):
+    with report_metadata_lock:
+        global get_report_metadata
+        metadata_df = get_report_metadata()
 
+        new_row_df = pd.DataFrame([new_row])
+        metadata_df = pd.concat([new_row_df, metadata_df], ignore_index=True)
 
-VALID_USERS = {"jaskeerat.nonu@chatstat.com": "1234", "klubiniecki@chatstat.com":"", "j.teng@chatstat.com":""}
+        cache.delete_memoized(get_report_metadata)
+        get_report_metadata = cache.memoize()(lambda: metadata_df)
+        get_report_metadata()
+    return True
+
 
 # Defining Colors and Plotly Graph Options
 image_folder = "https://github-projects-resume.s3.ap-south-1.amazonaws.com/Chatstat-Plotly-Dashboard/resources/"
@@ -443,7 +446,7 @@ analytic_charts = html.Div(className="analytic_charts", children=[
 # Main App Page
 main_app = dmc.NotificationsProvider(
     html.Div(children=[
-        dmc.Notification(className="dashboard_notification", id="login_notification_message", action="show", autoClose=False,
+        dmc.Notification(className="dashboard_notification", id="login_notification_message", action="hide", autoClose=False,
                          color="green", title="App Navigation", message="Navigate the app using Side Bar"),
 
         html.Div(className="dashboard_notification", id="preview_report_notification_message_container"),
@@ -504,6 +507,7 @@ def login(login_btn_click, user_email, password):
     if (ctx.triggered_id != "login_page_form_submit") or (not login_btn_click):
         raise PreventUpdate
 
+    VALID_USERS = mf.validate_users()
     if user_email in VALID_USERS and VALID_USERS[user_email] == password:
         return "/Home", {"user_email": user_email}, ""
     else:
@@ -525,7 +529,8 @@ def logging_out(logout_btn_click):
 # Login - Main App Logic
 @app.callback(
     Output("page_content", "children"),
-    [Input("url_path", "pathname"), Input("user_session_store", "data")]
+    Input("url_path", "pathname"),
+    State("user_session_store", "data")
 )
 def display_page(pathname, session_data):
     if pathname in ["/", "/Login"]:
@@ -541,22 +546,23 @@ def display_page(pathname, session_data):
     return html.H3("404 Page Not Found")
 
 
-# Website Main Page Navigation
+# Header and Website Main Page Navigation
 @app.callback(
-    [Output("content_inner_container", "children"), Output("login_notification_message", "action")],
+    [Output("header_title", "children"), Output("content_inner_container", "children"), Output("login_notification_message", "action")],
     Input("url_path", "pathname")
 )
-def display_main_page(pathname):
+def update_header_display_main_page(pathname):
+    title = pathname.split("/")[-1].replace("&", " & ")
     if pathname == "/Home":
-        return [welcome_page], "show"
+        return title, [welcome_page], "show"
     elif pathname == "/Dashboard":
-        return [filters, kpi_cards, dashboard_charts], "hide"
+        return title, [filters, kpi_cards, dashboard_charts], "hide"
     elif pathname == "/Analytics":
-        return [analytic_charts], "hide"
+        return title, [analytic_charts], "hide"
     elif pathname == "/Report&Logs":
-        return [report_page], "hide"
+        return title, [report_page], "hide"
     else:
-        return [login_page], "hide"
+        return "Home", [welcome_page], "hide"
 
 
 # Page Title
@@ -581,25 +587,18 @@ clientside_callback(
 )
 
 
-# Header
-@app.callback(
-    Output("header_title", "children"),
-    [Input("url_path", "pathname")]
-)
-def update_header(pathname):
-    title = pathname.split("/")[-1].replace("&", " & ")
-    return title
-
-
 # User Info
 @app.callback(
     [Output("user_name", "children"), Output("user_email", "children"), Output("user_plan", "children")],
-    Input("url_path", "pathname"),
+    Input("data_refresh_interval", "n_intervals"),
     State("user_session_store", "data")
 )
 def update_user_info(_, user_session):
+    if not user_session or "user_email" not in user_session:
+        raise PreventUpdate
+
     user_logged_in_email = user_session["user_email"]
-    user_info = mf.get_info(read_s3(), user_logged_in_email)
+    user_info = mf.get_user_info(read_s3(), user_logged_in_email)
     return user_info["name_users"].split(" ")[0].title(), user_info["email_users"], user_info["plan_users"].title()
 
 
@@ -759,6 +758,9 @@ def reset_filters(_):
     State("user_session_store", "data")
 )
 def update_searchbar_dropdown(_, user_session):
+    if not user_session or "user_email" not in user_session:
+        raise PreventUpdate
+
     df = read_s3()
     df = df[df["email_users"] == user_session["user_email"]]
     data = [{"group": "Members", "label": child_name.title(), "value": child_name} for child_name in sorted(df["name_childrens"].unique())]
@@ -1545,7 +1547,8 @@ def generate_report_file(generate_button_click, member_value, time_range, platfo
         response_df, response_url = mf.generate_report(read_s3(), payload, None, False)
         session["report_url"] = response_url
 
-        threading.Thread(target=saved_report_refresh, daemon=True).start()
+        payload["last_modified"] = pd.Timestamp.now(tz="UTC")
+        update_report_metadata(payload)
         return payload, response_url
 
 
@@ -1553,7 +1556,7 @@ def generate_report_file(generate_button_click, member_value, time_range, platfo
 @app.callback(
     Output("report_saved_card_pagination", "total"),
     Input("url_path", "pathname"),
-State("user_session_store", "data")
+    State("user_session_store", "data")
 )
 def update_saved_report_pagination(_, user_session):
     metadata_df = get_report_metadata()

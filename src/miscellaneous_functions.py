@@ -27,6 +27,17 @@ metadata_path = f"{s3_data_path}/metadata/"
 report_file_path = f"{s3_data_path}/report/"
 
 
+def validate_users():
+    user_password = {"jaskeerat.nonu@chatstat.com": "1234", "klubiniecki@chatstat.com": "", "j.teng@chatstat.com": ""}
+    return user_password
+
+
+def get_user_info(df, user_logged_in_email):
+    df = df[df["email_users"] == user_logged_in_email]
+    user_info = df[["name_users", "email_users", "plan_users"]].iloc[0]
+    return user_info
+
+
 def read_s3():
     s3_client = session.client("s3")
 
@@ -39,12 +50,6 @@ def read_s3():
     df["createTime_contents"] = pd.to_datetime(df["createTime_contents"], format="%Y-%m-%d %H:%M:%S")
     df["commentTime_comments"] = pd.to_datetime(df["commentTime_comments"], format="%Y-%m-%d %H:%M:%S")
     return df
-
-
-def get_info(df, user_logged_in_email):
-    df = df[df["email_users"] == user_logged_in_email]
-    user_info = df[["name_users", "email_users", "plan_users"]].iloc[0]
-    return user_info
 
 
 def post_report_metadata(payload, current_time):
@@ -116,6 +121,7 @@ def generate_report(df, payload, send_buffer=None, preview=False):
         "createTime_contents": "datetime",
         "alert_contents": "alert"
     })
+    df = df.drop(columns=["email"])
     if preview:
         return df
 
