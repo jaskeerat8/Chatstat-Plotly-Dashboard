@@ -102,28 +102,37 @@ def generate_report(df, payload, send_buffer=None, preview=False):
     current_time = datetime.now()
 
     # Filtering Data
-    df = df[(df["email_users"] == payload["email"]) & (df["name_childrens"] == payload["children"])]
-
     start_date, end_date = pd.to_datetime(payload["timerange"])
-    df = df[pd.to_datetime(df["createTime_contents"]).between(start_date, end_date)]
+    df["createTime_contents"] = pd.to_datetime(df["createTime_contents"])
+    df = df[df["createTime_contents"].between(start_date, end_date)]
 
+    df = df[(df["email_users"] == payload["email"]) & (df["name_childrens"] == payload["children"])]
     df = df[df["platform_contents"].str.lower().isin(payload["platform"])]
     df = df[df["alert_contents"].str.lower().isin(payload["alert"])]
-    df = df[["email_users", "name_childrens", "platform_contents", "createTime_contents", "alert_contents"]]
+
+    # Selecting Data
+    df = df[["name_childrens", "platform_contents", "createTime_contents", "alert_contents"]]
+    df = df.sort_values(by=["createTime_contents"], ascending=False)
 
     df["type"] = np.random.choice(payload["contenttype"], size=len(df))
     df["text"] = [fake.sentence() for _ in range(len(df))]
 
     df = df.rename(columns={
-        "email_users": "email",
         "name_childrens": "name",
         "platform_contents": "platform",
         "createTime_contents": "datetime",
         "alert_contents": "alert"
     })
-    df = df.drop(columns=["email"])
+
     if preview:
         return df
+
+    alert_order = pd.CategoricalDtype(["Low", "Medium", "High"], ordered=True)
+    df["alert"] = df["alert"].astype(alert_order)
+    type_order = pd.CategoricalDtype(["watchlist", "posts", "comments"], ordered=True)
+    df["type"] = df["type"].astype(type_order)
+    df = df.sort_values(by=["platform", "type", "alert", "datetime"], ascending=False)
+    df.columns = [col.capitalize() for col in df.columns]
 
     # Writing data to s3
     s3_client = session.client("s3")
