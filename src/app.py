@@ -157,13 +157,12 @@ sidebar = html.Div(className="sidebar", children=[
         ], vertical=True, pills=True)
     ]),
 
-    html.Img(className="sidebar_help", src=image_folder + "help_circle.png", alt="Need Help"),
     html.Div(className="sidebar_help_container", children=[
-        html.Img(className="sidebar_help_icon", src=image_folder + "help_circle.png", alt="Need Help", width="20%",
-                 style={"position": "absolute", "top": "-15%", "padding": "5px", "border-radius": "100%", "background-color": "#25D366"}),
-        html.P("Need Help?"),
-        html.A(html.P("Go to Learning Centre", style={"padding": "0px 10px", "background-color": "#052F5F", "border-radius": "5px"}),
-               href="https://chatstat.com/faq/", target="_blank", style={"color": "white", "textDecoration": "none"})
+        html.Img(className="sidebar_help_icon", src=image_folder + "help_circle.png", alt="Need Help"),
+        html.Div(className="sidebar_help_content", children=[
+            html.P("Need Help?", className="help_title"),
+            html.A(className="help_button",children="Go to Learning Centre", href="https://chatstat.com/faq/", target="_blank")
+        ])
     ])
 ])
 
@@ -423,12 +422,13 @@ report_saved_tab = html.Div(className="report_saved_container", children=[
     dmc.Modal(className="report_saved_overview", id="report_saved_overview", size="50%", zIndex=10, centered=True, overflow="outside", opened=False, children=[
         html.Div(className="report_saved_overview_header_container", children=[
             html.Div(className="report_saved_overview_header", id="report_saved_overview_header"),
+            dcc.Store(id="report_saved_overview_button_store", storage_type="memory"),
             html.Button("Download", className="report_saved_overview_button", id="report_saved_overview_button", n_clicks=0)
         ]),
         html.Div(className="report_saved_overview_container", id="report_saved_overview_container"),
         dmc.Pagination(id="report_saved_overview_pagination", total=1, page=1, siblings=1, color="green", withControls=True, radius="5px")
     ]),
-    dcc.Store(id="report_saved_card_list_store", storage_type="memory"),
+    dcc.Store(id="report_saved_card_list_select_store", storage_type="memory"),
     html.Div(className="report_saved_card_list", id="report_saved_card_list"),
     dcc.Store(id="report_saved_card_payload_store", storage_type="memory"),
     html.Div(className="report_saved_card_pagination_container", children=[
@@ -1566,7 +1566,7 @@ def update_saved_report_pagination(_, user_session):
 
 # Saved Report Saved Tab Content
 @app.callback(
-    [Output("report_saved_card_list", "children"), Output("report_saved_card_list_store", "data")],
+    [Output("report_saved_card_list", "children"), Output("report_saved_card_list_select_store", "data")],
     [Input("report_main_container_tabs", "value"), Input("report_saved_card_pagination", "page")],
     State("user_session_store", "data")
 )
@@ -1624,13 +1624,14 @@ def update_saved_report_page_content(tab_value, pagination_page, user_session):
 
 # Saved Report Output
 @app.callback(
-    [Output("report_saved_overview", "opened"), Output("report_saved_overview", "title"), Output("report_saved_overview_header", "children"), Output("report_saved_card_payload_store", "data"), Output("report_saved_modal_overview_store", "data")],
+    [Output("report_saved_overview", "opened"), Output("report_saved_overview", "title"), Output("report_saved_overview_header", "children"),
+     Output("report_saved_card_payload_store", "data"), Output("report_saved_modal_overview_store", "data"), Output("report_saved_overview_button_store", "data")],
     [Input("report_saved_card_0", "n_clicks"), Input("report_saved_card_1", "n_clicks"), Input("report_saved_card_2", "n_clicks"), Input("report_saved_card_3", "n_clicks"), Input("report_saved_card_4", "n_clicks")],
-    State("report_saved_card_list_store", "data")
+    State("report_saved_card_list_select_store", "data")
 )
 def update_saved_report_overview(card0_click, card1_click, card2_click, card3_click, card4_click, store_data):
     if(all(context["value"] is None for context in callback_context.triggered)):
-        return False, "Report OverView", [], {}, []
+        return False, "Report OverView", [], {}, [], []
     else:
         button_id = callback_context.triggered[0]["prop_id"].split(".")[0]
         button_value = int(button_id.split("_")[-1])
@@ -1681,7 +1682,7 @@ def update_saved_report_overview(card0_click, card1_click, card2_click, card3_cl
                     ]), width=6, align="center")
             ])
         ]
-        return True, f"""Report for { payload["children"].title() }""", report_saved_overview_header, payload, response_modal_div
+        return True, f"""Report for { payload["children"].title() }""", report_saved_overview_header, payload, response_modal_div, response_df.to_dict("records")
 
 
 # Saved Report Overview Pagination
@@ -1738,13 +1739,13 @@ def download_from_generate(payload):
 @app.callback(
     Output("download_file", "data", allow_duplicate=True),
     Input("report_saved_overview_button", "n_clicks"),
-    State("report_saved_card_payload_store", "data"),
+    [State("report_saved_card_payload_store", "data"), State("report_saved_overview_button_store", "data")],
     prevent_initial_call=True
 )
-def download_from_saved(btn, payload):
+def download_from_saved(btn, payload, stored_records):
     if not btn:
         raise PreventUpdate
-    response_df, response_url, data_bytes = mf.generate_report(read_s3(), payload, "yes", False)
+    response_df, response_url, data_bytes = mf.generate_report(pd.DataFrame(stored_records), payload, "yes", False)
     return dcc.send_bytes(data_bytes, filename=f"report.{payload['filetype']}")
 
 

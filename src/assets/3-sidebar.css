@@ -15,7 +15,13 @@
     background-color: #052F5F;
     z-index: 6;
     transition: width 0.2s ease-in-out;
+    overflow: hidden;
 }
+.sidebar:hover {
+    width: 14rem;
+}
+
+
 .sidebar_header {
     display: flex;
     justify-content: left;
@@ -34,6 +40,7 @@
     width: 100%;
     bottom: 0px;
 }
+
 /* width of collapsed sidebar - paddingLeft - paddingRight */
 .sidebar_header img {
     width: 2.5rem;
@@ -44,6 +51,14 @@
     visibility: hidden;
     transition: visibility 0.2s ease-in-out;
 }
+.sidebar:hover .sidebar_header h2 {
+    visibility: visible;
+    color: #25D366;
+    font-size: 32px;
+    font-family: "Poppins";
+}
+
+
 .sidebar_navlink {
     display: flex;
     justify-content: left;
@@ -96,54 +111,89 @@
     transition: visibility 0.2s ease-in-out;
     color: white;
 }
-.sidebar_help {
-    width: 90%;
-    padding: 5px;
-    border-radius: 100%;
-    background-color: #25D366;
-    display: block;
-}
-.sidebar_help_container {
-    position: relative;
-    height: 15%;
-    font-size: 14px;
-    font-family: "Poppins";
-    font-weight: 500;
-    padding: 20% 0px 10px 0px;
-    color: white;
-    background-color: #2D96FF;
-    border-radius: 5px;
-    display: none;
-}
-
-/* when the user hovers on the sidebar, expand it */
-.sidebar:hover {
-    width: 14rem;
-}
-.sidebar:hover .sidebar_header h2 {
-    visibility: visible;
-    color: #25D366;
-    font-size: 26;
-    font-family: "Poppins";
-    font-weight: "bold";
-}
 .sidebar:hover .sidebar_navlink_menu {
     display: block;
-    margin: 5px 0px -5px 0px;
-    padding: 0px;
+    margin: 5px 0 -5px 0;
+    padding: 0;
 }
 .sidebar:hover .sidebar_navlink_option span {
     visibility: visible;
-    color: white;
     font-family: "Poppins";
     font-weight: 500;
 }
-.sidebar:hover .sidebar_help {
-    display: none;
+
+
+/*Sidebar help section*/
+.sidebar_help_container {
+    width: 100%;
+    position: relative;
+    padding: 20px 0 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
-.sidebar:hover .sidebar_help_container {
+.sidebar_help_icon {
+    width: 100%;
+    padding: 5px;
+    border-radius: 100%;
+    background-color: #25D366;
+    transition:
+        width 0.25s ease,
+        height 0.25s ease,
+        padding 0.25s ease,
+        border-radius 0.25s ease,
+        transform 0.25s ease,
+        margin 0.25s ease,
+        opacity 0.25s ease;
+    opacity: 1;
+}
+.sidebar_help_content {
+    width: 100%;
+    background-color: #2D96FF;
+    border-radius: 10px;
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transform: translateY(10px);
+    padding: 0 0;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    transition:
+        opacity 0.25s ease,
+        max-height 0.25s ease,
+        transform 0.25s ease,
+        padding 0.25s ease;
+}
+.help_title {
+    color: white;
+    font-family: "Poppins";
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 20px;
+}
+.help_button {
+    color: white;
+    background-color: #052F5F;
+    font-family: "Poppins";
+    font-size: 12px;
+    text-decoration: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+.sidebar:hover .sidebar_help_icon {
+    z-index: 7;
+    transform: translateY(24px);
+    width: 22%;
+    padding: 5px;
+    border-radius: 100%;
+    background-color: #25D366;
+}
+.sidebar:hover .sidebar_help_content {
+    opacity: 1;
+    max-height: 200px;
+    transform: translateY(0);
+    padding: 40px 0 20px 0;
 }
