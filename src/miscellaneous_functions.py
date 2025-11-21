@@ -96,20 +96,31 @@ def get_report_metadata():
         return pd.DataFrame()
 
 
-def generate_report(df, payload, send_buffer=None, preview=False):
+def generate_preview(df, payload):
+    fake = Faker()
+
+    # Filtering Data
+    start_date, end_date = pd.to_datetime(payload["timerange"])
+    df["createTime_contents"] = pd.to_datetime(df["createTime_contents"])
+    df = df[df["createTime_contents"].between(start_date, end_date)]
+
+    df = df[(df["email_users"] == payload["email"]) & (df["name_childrens"] == payload["children"])]
+    df = df[df["platform_contents"].str.lower().isin(payload["platform"])]
+    df = df[df["alert_contents"].str.lower().isin(payload["alert"])]
+
+    # Selecting Data
+    df = df.sort_values(by=["createTime_contents"], ascending=False)
+    df["type"] = np.random.choice(payload["contenttype"], size=len(df))
+    df["text"] = [fake.sentence() for _ in range(len(df))]
+
+    df.rename(columns={"name_childrens": "name", "platform_contents": "platform", "createTime_contents": "datetime", "alert_contents": "alert"}, inplace=True)
+    return df
+
+
+def generate_report(df, payload, send_buffer=False):
     fake = Faker()
     shortener = pyshorteners.Shortener(timeout=10)
     current_time = datetime.now()
-
-    if "text" not in df.columns:
-        df["text"] = [fake.sentence() for _ in range(len(df))]
-    if "datetime" in df.columns:
-        df.rename(columns={
-            "name": "name_childrens",
-            "platform": "platform_contents",
-            "datetime": "createTime_contents",
-            "alert": "alert_contents"
-        }, inplace=True)
 
     # Filtering Data
     start_date, end_date = pd.to_datetime(payload["timerange"])
@@ -124,21 +135,16 @@ def generate_report(df, payload, send_buffer=None, preview=False):
     df = df.sort_values(by=["createTime_contents"], ascending=False)
     df["type"] = np.random.choice(payload["contenttype"], size=len(df))
 
-    df = df.rename(columns={
-        "name_childrens": "name",
-        "platform_contents": "platform",
-        "createTime_contents": "datetime",
-        "alert_contents": "alert"
-    })
+    if "text" not in df.columns:
+        df["text"] = [fake.sentence() for _ in range(len(df))]
 
-    if preview:
-        return df
+    df.rename(columns={"name_childrens": "name", "platform_contents": "platform", "createTime_contents": "datetime", "alert_contents": "alert"}, inplace=True)
+    df = df[["name", "platform", "type", "datetime", "alert", "text"]]
 
     alert_order = pd.CategoricalDtype(["Low", "Medium", "High"], ordered=True)
     df["alert"] = df["alert"].astype(alert_order)
     type_order = pd.CategoricalDtype(["watchlist", "posts", "comments"], ordered=True)
     df["type"] = df["type"].astype(type_order)
-    df = df[["name", "platform", "type", "datetime", "alert", "text"]]
     df = df.sort_values(by=["platform", "type", "alert", "datetime"], ascending=False)
     df.columns = [col.capitalize() for col in df.columns]
 
@@ -193,7 +199,7 @@ def generate_report(df, payload, send_buffer=None, preview=False):
     )
     url = shortener.tinyurl.short(url)
 
-    if send_buffer is None:
+    if send_buffer is False:
         return df, url
     else:
         return df, url, data_bytes

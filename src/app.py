@@ -1260,7 +1260,7 @@ def update_bar_chart(time_value, date_range_value, member_value, platform_value,
             content_risk = px.bar(risk_content_df, x="alert", y="count", text="count", hover_name="platform", custom_data=["percentage_total"], color="platform", color_discrete_map=platform_colors)
             content_risk.update_layout(title="<b>Alerts on User Content</b>", title_font_color="#052F5F", title_font=dict(size=17, family="Poppins"))
             content_risk.update_traces(width=0.5, hovertemplate="<i><b>%{hovertext}</b></i><br>Alert Severity: <b>%{x}</b><br>Total Alerts: <b>%{text}</b><br>% of Total: <b>%{customdata}%</b><extra></extra>")
-            content_risk.update_layout(legend=dict(font=dict(family="Poppins"), traceorder="grouped", orientation="h", x=0.3, y=0.93, xanchor="center", yanchor="bottom", title_text="", bgcolor="rgba(0,0,0,0)"))
+            content_risk.update_layout(legend=dict(font=dict(family="Poppins"), traceorder="grouped", orientation="h", x=0.3, y=0.95, xanchor="center", yanchor="bottom", title_text="", bgcolor="rgba(0,0,0,0)"))
         else:
             content_risk = px.bar(risk_content_df, x="alert", y="count", color="alert", color_discrete_map=alert_colors)
             content_risk.update_layout(title=f"<b>Alerts on User Content - {platform_value}</b>", title_font_color="#052F5F", title_font=dict(size=17, family="Poppins"))
@@ -1474,7 +1474,7 @@ def update_preview_report_overview(preview_button_click, member_value, time_rang
         raise PreventUpdate
     else:
         # Calling Lambda for Response Body
-        response_df = mf.generate_report(read_s3(), payload, None, True)
+        response_df = mf.generate_preview(read_s3(), payload)
         response_modal_div = []
         for _, res in response_df.iterrows():
             response_modal_div.append(html.Div(className="report_preview_overview_children", children=[
@@ -1544,7 +1544,7 @@ def generate_report_file(generate_button_click, member_value, time_range, platfo
         raise PreventUpdate
     else:
         mf.post_report_metadata(payload, datetime.now())
-        response_df, response_url = mf.generate_report(read_s3(), payload, None, False)
+        response_df, response_url = mf.generate_report(read_s3(), payload, False)
         session["report_url"] = response_url
 
         payload["last_modified"] = pd.Timestamp.now(tz="UTC")
@@ -1646,7 +1646,7 @@ def update_saved_report_overview(card0_click, card1_click, card2_click, card3_cl
                 pass
 
         # Calling Lambda for response body
-        response_df = mf.generate_report(read_s3(), payload, None, True)
+        response_df = mf.generate_preview(read_s3(), payload)
         response_modal_div = []
         for _, res in response_df.iterrows():
             response_modal_div.append(html.Div(className="report_saved_overview_children", children=[
@@ -1733,7 +1733,7 @@ def update_download_report_block(generate_url, pathname):
     prevent_initial_call=True
 )
 def download_from_generate(payload):
-    response_df, response_url, data_bytes = mf.generate_report(read_s3(), payload, "yes", False)
+    response_df, response_url, data_bytes = mf.generate_report(read_s3(), payload, True)
     return dcc.send_bytes(data_bytes, filename=f"report.{payload['filetype']}")
 
 @app.callback(
@@ -1745,7 +1745,10 @@ def download_from_generate(payload):
 def download_from_saved(btn, payload, stored_records):
     if not btn:
         raise PreventUpdate
-    response_df, response_url, data_bytes = mf.generate_report(pd.DataFrame(stored_records), payload, "yes", False)
+
+    df = pd.DataFrame(stored_records)
+    df.rename(columns={"name": "name_childrens", "platform": "platform_contents", "datetime": "createTime_contents", "alert": "alert_contents"}, inplace=True)
+    response_df, response_url, data_bytes = mf.generate_report(df, payload, True)
     return dcc.send_bytes(data_bytes, filename=f"report.{payload['filetype']}")
 
 
@@ -1806,4 +1809,4 @@ def update_saved_report_notification(card0_click, card1_click, card2_click, card
 
 # Running Main App
 if __name__ == "__main__":
-    app.run(debug=False, host="0.0.0.0", port=8001)
+    app.run(debug=True, host="0.0.0.0", port=8001)
