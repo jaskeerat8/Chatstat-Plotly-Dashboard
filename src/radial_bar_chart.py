@@ -68,9 +68,10 @@ def radial_chart(result_contents_df, asset_folder="assets"):
 
     final_buffer = BytesIO()
     pil_img.save(final_buffer, format="PNG")
+    pil_img.close()
     final_buffer.seek(0)
 
-    image_bytes = final_buffer.getvalue()
+    image_bytes = final_buffer.read()
     image_data = base64.b64encode(image_bytes).decode("utf8")
     matplotlib_image = f"data:image/png;base64,{image_data}"
 
