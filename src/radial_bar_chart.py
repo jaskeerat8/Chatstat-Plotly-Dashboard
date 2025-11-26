@@ -6,6 +6,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 from matplotlib.patches import Patch
+from PIL import Image
 matplotlib.use("Agg")
 
 # Colors
@@ -60,12 +61,19 @@ def radial_chart(result_contents_df, asset_folder="assets"):
     image_buffer = BytesIO()
     plt.tight_layout()
     plt.savefig(image_buffer, format="png", dpi=300)
-
-    image_bytes = image_buffer.getvalue()
-    image_data = base64.b64encode(image_bytes).decode("utf8")
-    matplotlib_image = f"data:image/image/png;base64,{image_data}"
-
     plt.close()
+
+    image_buffer.seek(0)
+    pil_img = Image.open(image_buffer)
+
+    final_buffer = BytesIO()
+    pil_img.save(final_buffer, format="PNG")
+    final_buffer.seek(0)
+
+    image_bytes = final_buffer.getvalue()
+    image_data = base64.b64encode(image_bytes).decode("utf8")
+    matplotlib_image = f"data:image/png;base64,{image_data}"
+
     return matplotlib_image, image_bytes
 
 if __name__ == "__main__":
