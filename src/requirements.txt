@@ -15,5 +15,6 @@ python-dotenv==1.2.1
 python_dateutil==2.9.0.post0
 pytz==2023.3
 s3fs==2025.9.0
+setuptools==65.5.0
 openpyxl==3.1.5
 gunicorn
