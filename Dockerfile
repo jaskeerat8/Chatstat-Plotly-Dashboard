@@ -14,4 +14,4 @@ RUN pip install --no-cache-dir -r src/requirements.txt
 EXPOSE 8080
 
 # Start app using gunicorn
-CMD ["gunicorn", "src.app:server", "--bind", "0.0.0.0:8080"]
+CMD ["gunicorn", "src.app:server", "--bind", "0.0.0.0:8001"]
