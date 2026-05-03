@@ -1,17 +1,15 @@
-# Use lightweight Python image
 FROM python:3.10-slim
 
-# Set working directory
 WORKDIR /app
 
-# Copy everything into container
+# Copy everything
 COPY . .
 
-# Install dependencies (from src folder)
+# Install dependencies from src folder
 RUN pip install --no-cache-dir -r src/requirements.txt
 
-# Expose port (Cloud Run uses 8080)
+# Expose your fixed port
 EXPOSE 8001
 
-# Start app using gunicorn
-CMD ["gunicorn", "src.app:server", "--bind", "0.0.0.0:8001"]
+# Run your app from src
+CMD ["python", "src/app.py"]
