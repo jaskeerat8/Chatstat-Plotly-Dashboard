@@ -1,5 +1,5 @@
 # Importing Libraries
-import base64
+import base64, os
 from io import BytesIO
 import numpy as np
 import matplotlib
@@ -16,8 +16,11 @@ content_classification_colors = {"Mental & Emotional Health": "#FFD334", "Other 
 def radial_chart(result_contents_df, asset_folder="assets"):
     try:
         # Custom Font
-        label_font_path = f"{asset_folder}/fonts/Poppins-SemiBold.ttf"
-        legend_font_path = f"{asset_folder}/fonts/Poppins-Regular.ttf"
+        BASE_DIR = os.path.dirname(__file__)
+        asset_path = os.path.join(BASE_DIR, asset_folder)
+        label_font_path = os.path.join(asset_path, "fonts", "Poppins-SemiBold.ttf")
+        legend_font_path = os.path.join(asset_path, "fonts", "Poppins-Regular.ttf")
+        
         label_prop = fm.FontProperties(fname=label_font_path)
         legend_prop = fm.FontProperties(fname=legend_font_path)
         legend_prop.set_size(11)
