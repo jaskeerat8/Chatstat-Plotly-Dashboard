@@ -11,7 +11,7 @@ COPY . .
 RUN pip install --no-cache-dir -r src/requirements.txt
 
 # Expose port (Cloud Run uses 8080)
-EXPOSE 8080
+EXPOSE 8001
 
 # Start app using gunicorn
 CMD ["gunicorn", "src.app:server", "--bind", "0.0.0.0:8001"]
