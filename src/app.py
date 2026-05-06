@@ -1810,4 +1810,4 @@ def update_saved_report_notification(card0_click, card1_click, card2_click, card
 
 # Running Main App
 if __name__ == "__main__":
-    app.run(debug=False, host="0.0.0.0", port=int(os.environ.get("PORT", 8001)))
+    app.run(debug=False, host="0.0.0.0", port=8001)
