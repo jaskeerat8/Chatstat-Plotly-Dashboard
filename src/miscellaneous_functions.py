@@ -11,11 +11,13 @@ from faker import Faker
 import pyshorteners
 from dotenv import load_dotenv
 
-# Credentials
+# Loading Environment
 load_dotenv()
+
+# Credentials
 aws_region = "ap-south-1"
-aws_access_key_id = os.environ.get("aws_access_key_id")
-aws_secret_access_key = os.environ.get("aws_secret_access_key")
+for key, value in os.environ.items():
+    globals()[key.lower()] = value
 
 session = boto3.session.Session(region_name=aws_region, aws_access_key_id=os.environ.get("aws_access_key_id"),
                                     aws_secret_access_key=os.environ.get("aws_secret_access_key"))
