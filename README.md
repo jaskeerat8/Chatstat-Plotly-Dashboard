@@ -1,4 +1,4 @@
-View Dashboard Here - https://chatstat-723554621365.asia-south1.run.app
+View Dashboard Here - https://chatstat-plotly-dashboard-723554621365.asia-south1.run.app
 
 * The process followed in the backend to drive the flask app developed using Plotly Dash.
 * The application uses a live mongodb database that serves as the source.
