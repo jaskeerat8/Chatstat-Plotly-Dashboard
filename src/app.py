@@ -493,6 +493,7 @@ login_page = html.Div(className="login_page", children=[
 app.layout = html.Div([
     dcc.Location(id="url_path", refresh=False),
     dcc.Store(id="user_session_store", storage_type="session"),
+    dcc.Store(id="app_initialized", data=False),
     html.Div(id="page_content")
 ])
 
@@ -529,22 +530,27 @@ def logging_out(logout_btn_click):
 
 # Login - Main App Logic
 @app.callback(
-    Output("page_content", "children"),
+    [Output("page_content", "children"), Output("app_initialized", "data")],
     Input("url_path", "pathname"),
-    State("user_session_store", "data")
+    [State("user_session_store", "data"), State("app_initialized", "data")]
 )
-def display_page(pathname, session_data):
+def display_page(pathname, session_data, app_initialized):
+    app_routes = ["/Home", "/Dashboard", "/Analytics", "/Report&Logs"]
+
     if pathname in ["/", "/Login"]:
         if session_data and "user_email" in session_data:
-            return main_app
-        return login_page
-
-    elif pathname in ["/Home", "/Dashboard", "/Analytics", "/Report&Logs"]:
+            if app_initialized:
+                return no_update, no_update
+            return main_app, True
+        return login_page, False
+    elif pathname in app_routes:
         if session_data and "user_email" in session_data:
-            return main_app
-        else:
-            return dcc.Location(href="/Login", id="redirect_to_login")
-    return html.H3("404 Page Not Found")
+            if app_initialized:
+                return no_update, no_update
+            return main_app, True
+
+        return dcc.Location(href="/Login", id="redirect_to_login"), False
+    return html.H3("404 Page Not Found"), False
 
 
 # Header and Website Main Page Navigation
